@@ -1,0 +1,14 @@
+# Binaries
+bin
+bin-int
+
+# Assets
+#	Some assets maybe avaliable to be able to follow the wiki
+Assets/Scenes
+
+# Visual Studio
+.vs
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user

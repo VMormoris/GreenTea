@@ -1,0 +1,267 @@
+{
+    "Total Entities": 6,
+    "Entities": [
+        {
+            "ID": 0,
+            "Scene Properties Component": {
+                "g": {
+                    "x": 0.0,
+                    "y": -10.0
+                },
+                "Rate": 30,
+                "Velocity Iterations": 6,
+                "Position Iterations": 2
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Orthographic Camera Component": {
+                "Zoom Level": 1.0,
+                "Vertical Boundary": 10.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.4374192953109742,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2,
+            "Renderable 2D Component": {
+                "Color": {
+                    "r": 1.0,
+                    "g": 0.9961389899253845,
+                    "b": 0.9961389899253845,
+                    "a": 1.0
+                },
+                "Filepath": "D:\\dev\\Sandbox\\Assets\\Textures\\Characters\\Ninja\\IdleSpritesheet.png",
+                "Flip": {
+                    "x": false,
+                    "y": false
+                },
+                "Texture Coordinates": {
+                    "BottomLeft": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "BottomRight": {
+                        "x": 0.20000000298023225,
+                        "y": 0.0
+                    },
+                    "BottomLeft": {
+                        "x": 0.20000000298023225,
+                        "y": 0.5
+                    },
+                    "BottomRight": {
+                        "x": 0.0,
+                        "y": 0.5
+                    }
+                }
+            },
+            "Tag Component": {
+                "Tag": "Ninja"
+            },
+            "Box Collider Component": {
+                "Scale": {
+                    "x": 1.0,
+                    "y": 2.0
+                },
+                "Friction": 0.0,
+                "Restitution": 0.0
+            },
+            "RigidBody 2D Component": {
+                "Velocity": {
+                    "x": 0.0,
+                    "y": -0.14338207244873048
+                },
+                "Type": 1,
+                "Angular Velocity": 0.0,
+                "Mass": 1.0,
+                "GravityFactor": 1.0,
+                "FixedRotation": false,
+                "Bullet": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.014073073863983155,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 2.0
+                },
+                "angle": -0.006713638082146645
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1048579,
+            "Renderable 2D Component": {
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Filepath": "D:\\dev\\Sandbox\\Assets\\Textures\\Ground\\tilesheet_complete.png",
+                "Flip": {
+                    "x": false,
+                    "y": false
+                },
+                "Texture Coordinates": {
+                    "BottomLeft": {
+                        "x": 0.0,
+                        "y": 0.1666666716337204
+                    },
+                    "BottomRight": {
+                        "x": 0.04545454680919647,
+                        "y": 0.1666666716337204
+                    },
+                    "BottomLeft": {
+                        "x": 0.04545454680919647,
+                        "y": 0.25
+                    },
+                    "BottomRight": {
+                        "x": 0.0,
+                        "y": 0.25
+                    }
+                }
+            },
+            "Tag Component": {
+                "Tag": "green_tile"
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -7.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 20.0,
+                    "y": 3.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2097156,
+            "Tag Component": {
+                "Tag": "Primary Camera"
+            },
+            "Orthographic Camera Component": {
+                "Zoom Level": 1.0,
+                "Vertical Boundary": 10.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.4374192953109742,
+                "Primary": true,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 5,
+            "Renderable 2D Component": {
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Filepath": "D:\\dev\\Sandbox\\Assets\\Textures\\Ground\\tilesheet_complete.png",
+                "Flip": {
+                    "x": false,
+                    "y": false
+                },
+                "Texture Coordinates": {
+                    "BottomLeft": {
+                        "x": 0.09090909361839295,
+                        "y": 0.1666666716337204
+                    },
+                    "BottomRight": {
+                        "x": 0.13636364042758943,
+                        "y": 0.1666666716337204
+                    },
+                    "BottomLeft": {
+                        "x": 0.13636364042758943,
+                        "y": 0.25
+                    },
+                    "BottomRight": {
+                        "x": 0.09090909361839295,
+                        "y": 0.25
+                    }
+                }
+            },
+            "Tag Component": {
+                "Tag": "upper_ground"
+            },
+            "Box Collider Component": {
+                "Scale": {
+                    "x": 10.0,
+                    "y": 1.0
+                },
+                "Friction": 0.20000000298023225,
+                "Restitution": 0.0
+            },
+            "RigidBody 2D Component": {
+                "Velocity": {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "Type": 0,
+                "Angular Velocity": 0.0,
+                "Mass": 1.0,
+                "GravityFactor": 1.0,
+                "FixedRotation": false,
+                "Bullet": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -3.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 20.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

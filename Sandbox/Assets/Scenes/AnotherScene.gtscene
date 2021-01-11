@@ -1,0 +1,268 @@
+{
+    "Total Entities": 6,
+    "Entities": [
+        {
+            "ID": 0,
+            "Scene Properties Component": {
+                "g": {
+                    "x": 0.0,
+                    "y": -10.0
+                },
+                "Rate": 30,
+                "Velocity Iterations": 6,
+                "Position Iterations": 2
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Orthographic Camera Component": {
+                "Zoom Level": 1.0,
+                "Vertical Boundary": 10.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.5947712659835816,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2,
+            "Renderable 2D Component": {
+                "Color": {
+                    "r": 0.0,
+                    "g": 0.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Filepath": "",
+                "Flip": {
+                    "x": false,
+                    "y": false
+                },
+                "Texture Coordinates": {
+                    "BottomLeft": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "BottomRight": {
+                        "x": 1.0,
+                        "y": 0.0
+                    },
+                    "BottomLeft": {
+                        "x": 1.0,
+                        "y": 1.0
+                    },
+                    "BottomRight": {
+                        "x": 0.0,
+                        "y": 1.0
+                    }
+                }
+            },
+            "Tag Component": {
+                "Tag": "BlueSquare"
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 1,
+            "Entities": [
+                {
+                    "ID": 3145732,
+                    "Renderable 2D Component": {
+                        "Color": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "Filepath": "",
+                        "Flip": {
+                            "x": false,
+                            "y": false
+                        },
+                        "Texture Coordinates": {
+                            "BottomLeft": {
+                                "x": 0.0,
+                                "y": 0.0
+                            },
+                            "BottomRight": {
+                                "x": 1.0,
+                                "y": 0.0
+                            },
+                            "BottomLeft": {
+                                "x": 1.0,
+                                "y": 1.0
+                            },
+                            "BottomRight": {
+                                "x": 0.0,
+                                "y": 1.0
+                            }
+                        }
+                    },
+                    "Tag Component": {
+                        "Tag": "Moving Body"
+                    },
+                    "Box Collider Component": {
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "Friction": 0.20000000298023225,
+                        "Restitution": 0.0
+                    },
+                    "RigidBody 2D Component": {
+                        "Velocity": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "Type": 1,
+                        "Angular Velocity": 0.0,
+                        "Mass": 1.0,
+                        "GravityFactor": 1.0,
+                        "FixedRotation": false,
+                        "Bullet": false
+                    },
+                    "Transform 2D Component": {
+                        "Position": {
+                            "x": 3.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "angle": 0.0
+                    },
+                    "Childrens": 0,
+                    "Entities": []
+                }
+            ]
+        },
+        {
+            "ID": 3,
+            "Tag Component": {
+                "Tag": "Primary Camera"
+            },
+            "Orthographic Camera Component": {
+                "Zoom Level": 1.0,
+                "Vertical Boundary": 10.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.5947712659835816,
+                "Primary": true,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1048581,
+            "Renderable 2D Component": {
+                "Color": {
+                    "r": 0.05575350299477577,
+                    "g": 0.6563706398010254,
+                    "b": 0.1415557712316513,
+                    "a": 1.0
+                },
+                "Filepath": "",
+                "Flip": {
+                    "x": false,
+                    "y": false
+                },
+                "Texture Coordinates": {
+                    "BottomLeft": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "BottomRight": {
+                        "x": 1.0,
+                        "y": 0.0
+                    },
+                    "BottomLeft": {
+                        "x": 1.0,
+                        "y": 1.0
+                    },
+                    "BottomRight": {
+                        "x": 0.0,
+                        "y": 1.0
+                    }
+                }
+            },
+            "Tag Component": {
+                "Tag": "Ground"
+            },
+            "Box Collider Component": {
+                "Scale": {
+                    "x": 15.0,
+                    "y": 1.0
+                },
+                "Friction": 0.20000000298023225,
+                "Restitution": 0.0
+            },
+            "RigidBody 2D Component": {
+                "Velocity": {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "Type": 0,
+                "Angular Velocity": 0.0,
+                "Mass": 1.0,
+                "GravityFactor": 1.0,
+                "FixedRotation": false,
+                "Bullet": false
+            },
+            "Transform 2D Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -9.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 15.0,
+                    "y": 1.0
+                },
+                "angle": 0.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}
