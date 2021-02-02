@@ -11,7 +11,7 @@ uniform mat4 u_eyeMatrix;
 
 out vec4 v_Color;
 out vec2 v_textCoords;
-out float v_textID;
+flat out float v_textID;
 flat out uint v_ObjectID;
 
 void main(void)
@@ -32,7 +32,7 @@ layout(location = 1) out uint o_ObjectID;
 
 in vec4 v_Color;
 in vec2 v_textCoords;
-in float v_textID;
+flat in float v_textID;
 flat in uint v_ObjectID;
 
 uniform sampler2D u_Textures[32];
@@ -40,20 +40,20 @@ uniform sampler2D u_Textures[32];
 void main()
 {
 	//int index = int(v_textID);
-	if(v_textID == 0.0) o_color = texture(u_Textures[0], v_textCoords) * v_Color;
-	else if(v_textID == 1.0) o_color = texture(u_Textures[1], v_textCoords) * v_Color;
-	else if(v_textID == 2.0) o_color = texture(u_Textures[2], v_textCoords) * v_Color;
-	else if(v_textID == 3.0) o_color = texture(u_Textures[3], v_textCoords) * v_Color;
-	else if(v_textID == 4.0) o_color = texture(u_Textures[4], v_textCoords) * v_Color;
-	else if(v_textID == 5.0) o_color = texture(u_Textures[5], v_textCoords) * v_Color;
-	else if(v_textID == 6.0) o_color = texture(u_Textures[6], v_textCoords) * v_Color;
-	else if(v_textID == 7.0) o_color = texture(u_Textures[7], v_textCoords) * v_Color;
-	else if(v_textID == 8.0) o_color = texture(u_Textures[8], v_textCoords) * v_Color;
-	else if(v_textID == 9.0) o_color = texture(u_Textures[9], v_textCoords) * v_Color;
-	else if(v_textID == 10.0) o_color = texture(u_Textures[10], v_textCoords) * v_Color;
-	else if(v_textID == 11.0) o_color = texture(u_Textures[11], v_textCoords) * v_Color;
-	else if(v_textID == 12.0) o_color = texture(u_Textures[12], v_textCoords) * v_Color;
-	else if(v_textID == 13.0) o_color = texture(u_Textures[13], v_textCoords) * v_Color;
+	if(v_textID == 0) o_color = texture(u_Textures[0], v_textCoords) * v_Color;
+	else if(v_textID == 1) o_color = texture(u_Textures[1], v_textCoords) * v_Color;
+	else if(v_textID == 2) o_color = texture(u_Textures[2], v_textCoords) * v_Color;
+	else if(v_textID == 3) o_color = texture(u_Textures[3], v_textCoords) * v_Color;
+	else if(v_textID == 4) o_color = texture(u_Textures[4], v_textCoords) * v_Color;
+	else if(v_textID == 5) o_color = texture(u_Textures[5], v_textCoords) * v_Color;
+	else if(v_textID == 6) o_color = texture(u_Textures[6], v_textCoords) * v_Color;
+	else if(v_textID == 7) o_color = texture(u_Textures[7], v_textCoords) * v_Color;
+	else if(v_textID == 8) o_color = texture(u_Textures[8], v_textCoords) * v_Color;
+	else if(v_textID == 9) o_color = texture(u_Textures[9], v_textCoords) * v_Color;
+	else if(v_textID == 10) o_color = texture(u_Textures[10], v_textCoords) * v_Color;
+	else if(v_textID == 11) o_color = texture(u_Textures[11], v_textCoords) * v_Color;
+	else if(v_textID == 12) o_color = texture(u_Textures[12], v_textCoords) * v_Color;
+	else if(v_textID == 13) o_color = texture(u_Textures[13], v_textCoords) * v_Color;
 	else if(v_textID == 14.0) o_color = texture(u_Textures[14], v_textCoords) * v_Color;
 	else if(v_textID == 15.0) o_color = texture(u_Textures[15], v_textCoords) * v_Color;
 	else if(v_textID == 16.0) o_color = texture(u_Textures[16], v_textCoords) * v_Color;

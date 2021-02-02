@@ -3,50 +3,6 @@
 
 namespace GTE::GPU::OpenGL {
 
-	std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format)
-	{
-		switch (format)
-		{
-		case TextureFormat::RED8:	return { GL_R8, GL_RED };
-		case TextureFormat::RED16:	return { GL_R16, GL_RED };
-		case TextureFormat::RGB8:	return { GL_RGB8, GL_RGB };
-		case TextureFormat::RGB16:	return { GL_RGB16, GL_RGB };
-		case TextureFormat::RGBA8:	return { GL_RGBA8, GL_RGBA };
-		case TextureFormat::RGBA16:	return { GL_RGBA16, GL_RGBA };
-		case TextureFormat::Int8:	return { GL_R8I, GL_RED_INTEGER };
-		case TextureFormat::Int16:	return { GL_R16I, GL_RED_INTEGER };
-		case TextureFormat::Int32:	return { GL_R32I, GL_RED_INTEGER };
-		case TextureFormat::UInt8:	return { GL_R8UI, GL_RED_INTEGER };
-		case TextureFormat::UInt16:	return { GL_R16UI, GL_RED_INTEGER };
-		case TextureFormat::UInt32:	return { GL_R32UI, GL_RED_INTEGER };
-		default:					return {0, 0};
-		}
-	}
-
-	GLenum GetTextureInternalType(TextureFormat format)
-	{
-		switch (format)
-		{
-		case TextureFormat::RED8:
-		case TextureFormat::RED16:
-		case TextureFormat::RGB8:
-		case TextureFormat::RGB16:
-		case TextureFormat::RGBA8:
-		case TextureFormat::RGBA16:
-			return GL_UNSIGNED_BYTE;
-		case TextureFormat::Int8:
-		case TextureFormat::Int16:
-		case TextureFormat::Int32:
-			return GL_INT;
-		case TextureFormat::UInt8:
-		case TextureFormat::UInt16:
-		case TextureFormat::UInt32:
-			return GL_UNSIGNED_INT;
-		default:
-			return 0;
-		}
-	}
-
 	OpenGLTexture2D::OpenGLTexture2D(uint32 width, uint32 height) {
 		m_Width = width; m_Height = height;
 		m_InternalFormat = GL_RGBA8; m_DataFormat = GL_RGBA;
@@ -131,5 +87,67 @@ namespace GTE::GPU::OpenGL {
 	}
 
 	OpenGLTexture2D::OpenGLTexture2D(const Image& image) { SetData(image); }
+
+	std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format)
+	{
+		switch (format)
+		{
+		case TextureFormat::RED8:	return { GL_R8, GL_RED };
+		case TextureFormat::RED16:	return { GL_R16, GL_RED };
+		case TextureFormat::RGB8:	return { GL_RGB8, GL_RGB };
+		case TextureFormat::RGB16:	return { GL_RGB16, GL_RGB };
+		case TextureFormat::RGBA8:	return { GL_RGBA8, GL_RGBA };
+		case TextureFormat::RGBA16:	return { GL_RGBA16, GL_RGBA };
+		case TextureFormat::Int8:	return { GL_R8I, GL_RED_INTEGER };
+		case TextureFormat::Int16:	return { GL_R16I, GL_RED_INTEGER };
+		case TextureFormat::Int32:	return { GL_R32I, GL_RED_INTEGER };
+		case TextureFormat::UInt8:	return { GL_R8UI, GL_RED_INTEGER };
+		case TextureFormat::UInt16:	return { GL_R16UI, GL_RED_INTEGER };
+		case TextureFormat::UInt32:	return { GL_R32UI, GL_RED_INTEGER };
+		default:					return { 0, 0 };
+		}
+	}
+
+	GLenum GetTextureInternalType(TextureFormat format)
+	{
+		switch (format)
+		{
+		case TextureFormat::RED8:
+		case TextureFormat::RED16:
+		case TextureFormat::RGB8:
+		case TextureFormat::RGB16:
+		case TextureFormat::RGBA8:
+		case TextureFormat::RGBA16:
+			return GL_UNSIGNED_BYTE;
+		case TextureFormat::Int8:
+		case TextureFormat::Int16:
+		case TextureFormat::Int32:
+			return GL_INT;
+		case TextureFormat::UInt8:
+		case TextureFormat::UInt16:
+		case TextureFormat::UInt32:
+			return GL_UNSIGNED_INT;
+		default:
+			return 0;
+		}
+	}
+
+	int32 FindDepth(const std::vector<TextureFormat> attachments)
+	{
+		for (int32 i = 0; i<attachments.size(); i++)
+		{
+			TextureFormat format = attachments[i];
+			switch (format)
+			{
+			case TextureFormat::DEPTH24:
+			case TextureFormat::DEPTH24STENCIL8:
+			case TextureFormat::Shadowmap:
+				return i;
+			default:
+				break;
+			}
+		}
+		return -1;
+	}
 
 }

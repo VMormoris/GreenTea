@@ -15,36 +15,36 @@ namespace GTE {
 			DrawTextInput("Tag", tag.Tag, 64, settings);
 		});
 
-		DrawComponent<Transform2DComponent>("Transform 2D Component", entity, [&](auto& transform) {
+		DrawComponent<TransformComponent>("Transform Component", entity, [&](auto& transform) {
 			UISettings settings;
 			bool changed = DrawVec3Control("Position", transform.Position, settings);
-			glm::vec3 value = glm::vec3(transform.Scale.x, transform.Scale.y, 1.0f);
 			settings.ResetValue = 1.0f;
-			settings.Disabled[2] = true;
-			settings.Clamp = glm::vec2(0.0f, FLT_MAX);
-			if (DrawVec3Control("Scale", value, settings))
-			{
-				transform.Scale = glm::vec2(value.x, value.y);
+			if (DrawVec3Control("Scale", transform.Scale, settings))
 				changed = true;
-			}
-			value = glm::vec3(0.0f, 0.0f, transform.Rotation);
 			settings.ResetValue = 0.0f;
-			settings.Disabled[0] = true; settings.Disabled[1] = true; settings.Disabled[2]=false;
-			settings.Clamp = glm::vec2(FLT_MIN, FLT_MAX);
-			if (DrawVec3Control("Rotation", value, settings))
-			{
-				transform.Rotation = value.z;
+			if (DrawVec3Control("Rotation", transform.Rotation, settings))
 				changed = true;
-			}
 			if (changed)
 				entity.UpdateMatrices();
+		});
+
+		DrawComponent<MeshComponent>("Mesh Component", entity, [](auto& mc){
+			UISettings settings;
+			if (DrawFilePicker("Mesh", mc.Filepath, ".obj", settings))
+				mc.Mesh = AssetManager::RequestMesh(mc.Filepath.c_str());
+			if (mc.Mesh->Type == AssetType::MESH)
+			{
+				//Draw Material Inspector Panel
+				GPU::Mesh* gpumesh = static_cast<GPU::Mesh*>(mc.Mesh->ActualAsset);
+				RenderMaterialsPanel(gpumesh->GetMaterials(), mc.MaterialIndex);
+			}
 		});
 
 		DrawComponent<Renderable2DComponent>("Renderable 2D Component", entity, [](auto& renderable) {
 			
 			UISettings settings;
 			DrawColorPicker("Tint Color", renderable.Color, settings);
-			if (DrawFilePicker("Texture", renderable.Filepath, settings))
+			if (DrawFilePicker("Texture", renderable.Filepath, ".png", settings))
 				renderable.Texture = AssetManager::RequestTexture(renderable.Filepath.c_str());
 			if (renderable.Texture->Type == AssetType::TEXTURE)
 			{
@@ -87,60 +87,46 @@ namespace GTE {
 			UISettings settings;
 			settings.ColumnWidth = 125.0f;
 			
-			auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
-			const bool ZoomFlag = DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings);
-			const bool BoundaryFlag = DrawFloatControl("Vetical Boundary", ortho.VerticalBoundary, settings);
+			auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+			const bool TargetFlag = DrawVec3Control("Target", persp.Target, settings);
+			const bool UpVectorFlag = DrawVec3Control("Up Vector", persp.UpVector, settings);
+			const bool FoVFlag = DrawFloatControl("FoV", persp.FoV, settings);
+			const bool NearFlag = DrawFloatControl("Near Plane", persp.Near, settings);
+			const bool FarFlag = DrawFloatControl("Far Plane", persp.Far, settings);
 			DrawCheckboxControl("Primary", cam.Primary, settings);
 			DrawCheckboxControl("Fixed Aspect Ratio", cam.FixedAspectRatio, settings);
-			if (ZoomFlag || BoundaryFlag)
+			
+			if (TargetFlag || UpVectorFlag)
 			{
-				glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-				box *= glm::vec2(cam.AspectRatio, 1.0f);
-				cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+				const auto& transformation = entity.GetComponent<TransformationComponent>();
+				cam.ViewMatrix = glm::lookAt(glm::vec3(transformation.Transform[3]), persp.Target, persp.UpVector);
 				cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 			}
-		});
 
-		DrawComponent<RigidBody2DComponent>("Rigidbody 2D Component", entity, [](auto& rigidbody) {
-			static constexpr char* BodyTypes[] = { "Static", "Dynamic", "Kinematic" };
-			UISettings settings;
-			int32 index = (int32)rigidbody.Type;
-			DrawComboControl("Body Type", index, BodyTypes, IM_ARRAYSIZE(BodyTypes), settings);
-			rigidbody.Type = (BodyType)index;
-			if (rigidbody.Type == BodyType::Static)
+			if (FoVFlag || NearFlag || FarFlag)
 			{
-				settings.Disabled[0] = true;
-				settings.Disabled[1] = true;
+				cam.ProjectionMatrix = glm::perspective(glm::radians(persp.FoV), cam.AspectRatio, persp.Near, persp.Far);
+				cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 			}
-			DrawVec2Control("Velocity", rigidbody.Velocity, settings);
-			DrawFloatControl("Ang. Velocity", rigidbody.AngularVelocity, settings);
-			if (rigidbody.Type == BodyType::Kinematic)
-			{
-				settings.Disabled[0] = true;
-			}
-			settings.Speed = 1.0f;
-			settings.Clamp = glm::vec2(0.0f, FLT_MAX);
-			DrawFloatControl("Gravity Factor", rigidbody.GravityFactor, settings);
-			DrawFloatControl("Mass", rigidbody.Mass, settings);
-			DrawCheckboxControl("Fixed Rotation", rigidbody.FixedRotation, settings);
-			DrawCheckboxControl("Bullet", rigidbody.Bullet, settings);
+			
 		});
 
-		DrawComponent<CircleColliderComponent>("Circle Collider Component", entity, [](auto& collider) {
+		DrawComponent<LightComponent>("Light Component", entity, [&](auto& lc) {
 			UISettings settings;
-			settings.Clamp = glm::vec2(0.0f, FLT_MAX);
-			DrawFloatControl("Radius", collider.Radius, settings);
-			DrawFloatControl("Friction", collider.Friction, settings);
-			DrawFloatControl("Restitution", collider.Restitution, settings);
-		});
-
-		DrawComponent<BoxColliderComponent>("Box Collider Component", entity, [](auto& collider) {
-			UISettings settings;
-			settings.ResetValue = 1.0f;
-			DrawVec2Control("Scale", collider.Scale, settings);
-			settings.Clamp = glm::vec2(0.0f, FLT_MAX);
-			DrawFloatControl("Friction", collider.Friction, settings);
-			DrawFloatControl("Restitution", collider.Restitution, settings);
+			if (DrawVec3Control("Target", lc.Target, settings))
+				entity.UpdateMatrices();
+			settings.Clamp.x = -180.0f;
+			settings.Clamp.y = 180.0f;
+			DrawFloatControl("Umbra", lc.Umbra, settings);
+			DrawFloatControl("Penumbra", lc.Penumbra, settings);
+			DrawIntControl("Shadow Resolution", lc.ShadowMapResolution, settings);
+			settings.Clamp.x = 0.0f;
+			settings.Clamp.y = FLT_MAX;
+			DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);
+			settings.Clamp.x = 1.0f;
+			DrawFloatControl("Intensity", lc.Intensity, settings);
+			settings = UISettings();
+			DrawColorPicker("Color", lc.Color, settings);
 		});
 
 		DrawComponent<NativeScriptComponent>("Native Script Component", entity, [](auto& nScript) {
@@ -165,6 +151,26 @@ namespace GTE {
 			else if ((*it).first == Logger::Type::WARNING) ImGui::TextColored(ImVec4(1.f, 1.f, 0.f, 1.f), (*it).second.c_str());
 		}
 		ImGui::EndChild();
+	}
+
+	void RenderMaterialsPanel(std::vector<Material>& materials, int32& index)
+	{
+		if (ImGui::Begin("Material Inspector"))
+		{
+			int32 size = static_cast<int32>(materials.size());
+			if (size)
+			{
+				const char** values = new const char*[size];
+				for (int32 i = 0; i < size; i++)
+					values[i] = materials[i].Name.c_str();
+				UISettings settings;
+				settings.ColumnWidth = 64.0f;
+				DrawComboControl("Material", index, values, size, settings);
+				DrawMaterialControl(values[index], materials[index], settings);
+				delete[] values;
+			}
+		}
+		ImGui::End();
 	}
 
 }

@@ -39,7 +39,14 @@ namespace GTE {
 
 			UInt8,
 			UInt16,
-			UInt32
+			UInt32,
+
+			DEPTH24,
+			DEPTH24STENCIL8,
+
+			Shadowmap,
+
+			Depth = DEPTH24
 		};
 
 		/**

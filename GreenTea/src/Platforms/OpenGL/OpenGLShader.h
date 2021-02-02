@@ -27,14 +27,15 @@ namespace GTE::GPU::OpenGL {
 
 
 		//Setters for Uniforms
-		void SetUniform(const std::string& uniform, const int32 value) override;
-		void SetUniform(const std::string& uniform, const float value) override;
+		void SetUniform(const std::string& uniform, int32 value) override;
+		void SetUniform(const std::string& uniform, uint32 value) override;
+		void SetUniform(const std::string& uniform, float value) override;
+		void SetUniform(const std::string& uniform, bool value) override;
 		void SetUniform(const std::string& uniform, const glm::vec2& value) override;
 		void SetUniform(const std::string& uniform, const glm::vec3& value) override;
 		void SetUniform(const std::string& uniform, const glm::vec4& value) override;
 		void SetUniform(const std::string& uniform, const glm::mat4& value) override;
 		void SetUniform(const std::string& uniform, const int32* values, uint32 count) override;
-
 
 	protected:
 
@@ -61,17 +62,17 @@ namespace GTE::GPU::OpenGL {
 		/**
 		* ID used to distinguish each Shader Program in OpenGL
 		*/
-		uint32 m_ProgramID;
+		uint32 m_ProgramID = 0;
 
 		/**
 		* ID specific to the Vertex Shader in OpenGL
 		*/
-		uint32 m_VsID;
+		uint32 m_VsID = 0;
 
 		/**
 		* ID specific to the Fragment Shader in OpenGL
 		*/
-		uint32 m_FsID;
+		uint32 m_FsID = 0;
 
 	public:
 

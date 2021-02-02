@@ -1,0 +1,251 @@
+{
+    "Total Entities": 8,
+    "Entities": [
+        {
+            "ID": 0,
+            "Scene Properties Component": {
+                "g": {
+                    "x": 0.0,
+                    "y": -10.0
+                },
+                "Rate": 30,
+                "Velocity Iterations": 6,
+                "Position Iterations": 2
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": -0.4894779324531555,
+                    "y": -0.8216962814331055,
+                    "z": -2.665457248687744
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 40.0,
+                "Near": 0.10000000149011612,
+                "Far": 100.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.4317072629928589,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -1.4122860431671143,
+                    "y": 0.963983416557312,
+                    "z": 2.254896640777588
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2,
+            "Tag Component": {
+                "Tag": "World"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0000152587890625,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 0.019999999552965165,
+                    "y": 0.019999999552965165,
+                    "z": 0.019999999552965165
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 4,
+            "Entities": [
+                {
+                    "ID": 5,
+                    "Mesh Component": {
+                        "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\env2.obj",
+                        "Material Index: ": 0
+                    },
+                    "Tag Component": {
+                        "Tag": "Enviroment"
+                    },
+                    "Transform Component": {
+                        "Position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        },
+                        "Rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        }
+                    },
+                    "Childrens": 0,
+                    "Entities": []
+                },
+                {
+                    "ID": 7,
+                    "Mesh Component": {
+                        "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\chair.obj",
+                        "Material Index: ": 0
+                    },
+                    "Tag Component": {
+                        "Tag": "Chairs"
+                    },
+                    "Transform Component": {
+                        "Position": {
+                            "x": -49.38943862915039,
+                            "y": -67.1554946899414,
+                            "z": -97.95348358154297
+                        },
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        },
+                        "Rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        }
+                    },
+                    "Childrens": 0,
+                    "Entities": []
+                },
+                {
+                    "ID": 6,
+                    "Mesh Component": {
+                        "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\bunny.obj",
+                        "Material Index: ": 0
+                    },
+                    "Tag Component": {
+                        "Tag": "Bunny"
+                    },
+                    "Transform Component": {
+                        "Position": {
+                            "x": -50.96104049682617,
+                            "y": -75.70428466796875,
+                            "z": -101.18439483642578
+                        },
+                        "Scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        },
+                        "Rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        }
+                    },
+                    "Childrens": 0,
+                    "Entities": []
+                },
+                {
+                    "ID": 3,
+                    "Mesh Component": {
+                        "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\floor.obj",
+                        "Material Index: ": 0
+                    },
+                    "Tag Component": {
+                        "Tag": "Floor"
+                    },
+                    "Transform Component": {
+                        "Position": {
+                            "x": 0.0,
+                            "y": -96.64620208740235,
+                            "z": 0.0
+                        },
+                        "Scale": {
+                            "x": 0.990670382976532,
+                            "y": 1.0,
+                            "z": 0.9898831248283386
+                        },
+                        "Rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        }
+                    },
+                    "Childrens": 0,
+                    "Entities": []
+                }
+            ]
+        },
+        {
+            "ID": 4,
+            "Tag Component": {
+                "Tag": "Light"
+            },
+            "Light Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Direction": {
+                    "x": -0.5858975052833557,
+                    "y": -0.49051669239997866,
+                    "z": -0.6450716853141785
+                },
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 189.1999969482422,
+                "Umbra": 36.29999923706055,
+                "Penumbra": 40.0,
+                "Shadow Resolution": 1024,
+                "Shadow Bias": 0.00019999999494757503
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 2.0,
+                    "y": 1.6744112968444825,
+                    "z": 2.2019948959350588
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

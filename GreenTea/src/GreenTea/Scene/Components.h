@@ -9,7 +9,6 @@
 
 #include <glm.hpp>
 
-#include <box2d/b2_body.h>
 
 namespace GTE {
 	/**
@@ -29,14 +28,14 @@ namespace GTE {
 	* @details Transform 2D components are used for the position, size
 	*	and rotation of entities in the 2D space
 	*/
-	struct ENGINE_API Transform2DComponent {
+	struct ENGINE_API TransformComponent {
 		glm::vec3 Position{ 0.0f, 0.0f, 0.0f };
-		glm::vec2 Scale{ 1.0f, 1.0f };
-		float Rotation = 0.0f;
+		glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
+		glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
 
-		Transform2DComponent(void) = default;
-		Transform2DComponent(const Transform2DComponent&) = default;
-		Transform2DComponent(const glm::vec3& position, const glm::vec2& scale, float rotation)
+		TransformComponent(void) = default;
+		TransformComponent(const TransformComponent&) = default;
+		TransformComponent(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
 			: Position(position), Scale(scale), Rotation(rotation) {}
 
 	};
@@ -44,7 +43,7 @@ namespace GTE {
 	/**
 	* @brief Transfomation Component
 	* @details Transformation Component is use internally by the Engine
-	*	for entities position, size and rotation in both 2D space (and 3D potetionaly in the future)
+	*	for entities position, size and rotation in both 2D space and 3D potetionaly in the future
 	*/
 	struct ENGINE_API TransformationComponent {
 		glm::mat4 Transform;
@@ -78,79 +77,34 @@ namespace GTE {
 
 	};
 
-	/**
-	* @brief Enumaration for all availiable RigidBody types
-	*/
-	enum class ENGINE_API BodyType : char {
-		Static = 0x00,
-		Dynamic = 0x01,
-		Kinematic = 0x02
-	};
+	struct ENGINE_API MeshComponent {
 
-	
-	struct ENGINE_API RigidBody2DComponent {
-		b2Body* Body = nullptr;
-		BodyType Type = BodyType::Static;
+		Ref<Asset> Mesh = CreateRef<Asset>(nullptr, AssetType::INVALID);
+		std::string Filepath;
+		int32 MaterialIndex = 0;//Only used on editor
 
-		glm::vec2 Velocity = { 0.0f, 0.0f };
-
-		float AngularVelocity = 0.0f;
-		float Mass = 1.0f;
-		float GravityFactor = 1.0f;
-
-		bool FixedRotation = false;
-		bool Bullet = false;
-
-		RigidBody2DComponent(void) = default;
-		RigidBody2DComponent(const RigidBody2DComponent&) = default;
-		RigidBody2DComponent(const glm::vec2& velocity, float angularVelocity = 0.0f, float mass = 1.0f, float gravityFactor = 1.0f)
-			: Velocity(velocity), AngularVelocity(angularVelocity), Mass(mass), GravityFactor(gravityFactor) {}
-
-		RigidBody2DComponent(const glm::vec2& velocity, BodyType type, float angularVelocity = 0.0f, float mass = 1.0f, float gravityFactor = 1.0f)
-			: Type(type), Velocity(velocity), AngularVelocity(angularVelocity), Mass(mass), GravityFactor(gravityFactor) {}
+		MeshComponent(void) = default;
+		MeshComponent(const MeshComponent&) = default;
 
 	};
 
-	struct ENGINE_API Collider {
-		b2Fixture* Fixture = nullptr;
-		float Friction = 0.2f;
-		float Restitution = 0.0f;
+	struct ENGINE_API PerspectiveCameraComponent {
+		glm::vec3 Target{ 0.0f, 0.0f, 0.0f };
+		glm::vec3 UpVector{ 0.0f, 1.0f, 0.0f };
+		float FoV = 60.0f;
+		float Near = 0.1f;
+		float Far = 1500.0f;
 
-		Collider(void) = default;
-		Collider(const Collider&) = default;
-		Collider(float friction, float restitution)
-			: Friction(friction), Restitution(restitution) {}
+		PerspectiveCameraComponent(void) = default;
+		PerspectiveCameraComponent(const PerspectiveCameraComponent&) = default;
+		PerspectiveCameraComponent(const glm::vec3& target, float fov)
+			: Target(target), FoV(fov) {}
 
-	};
+		PerspectiveCameraComponent(const glm::vec3& target, glm::vec3 upVector, float fov)
+			: Target(target), UpVector(upVector), FoV(fov) {}
 
-	struct ENGINE_API CircleColliderComponent : public Collider{
-		float Radius = 1.0f;
-
-		CircleColliderComponent(void) = default;
-		CircleColliderComponent(const CircleColliderComponent&) = default;
-		CircleColliderComponent(float radius, float friction, float restitution)
-			: Collider(friction, restitution), Radius(radius) {}
-
-	};
-
-	struct ENGINE_API BoxColliderComponent : public Collider {
-		glm::vec2 Scale = { 1.0f, 1.0f };
-
-		BoxColliderComponent(void) = default;
-		BoxColliderComponent(const BoxColliderComponent&) = default;
-		BoxColliderComponent(const glm::vec2 scale, float friction, float restitution)
-			: Collider(friction, restitution), Scale(scale) {}
-
-	};
-
-	struct ENGINE_API OrthographicCameraComponent {
-		float ZoomLevel = 1.0f;
-		float VerticalBoundary = 1.0f;
-
-		OrthographicCameraComponent(void) = default;
-		OrthographicCameraComponent(const OrthographicCameraComponent&) = default;
-		OrthographicCameraComponent(float zoomLevel, float verticalBoundary)
-			: ZoomLevel(zoomLevel), VerticalBoundary(verticalBoundary) {}
+		PerspectiveCameraComponent(const glm::vec3& target, const glm::vec3& upVector, float fov, float near, float far)
+			: Target(target), UpVector(upVector), FoV(fov), Near(near), Far(far) {}
 
 	};
 
@@ -169,6 +123,17 @@ namespace GTE {
 
 		operator glm::mat4& (void) { return EyeMatrix; }
 		operator const glm::mat4& (void) const { return EyeMatrix; }
+	};
+
+	struct ENGINE_API LightComponent {
+		glm::vec3 Target{ 0.0f, 0.0f, 0.0f };
+		glm::vec3 Direction{ 0.0f, 0.0f, 0.0f };
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		float Intensity = 1.0f;
+		float Umbra = 60.0f;
+		float Penumbra = 60.0f;
+		int32 ShadowMapResolution = 1024;
+		float ShadowMapBias = 0.001f;
 	};
 
 	enum class ENGINE_API ScriptState : char {
@@ -196,7 +161,7 @@ namespace GTE {
 	* @warning This component is meant to be used internally by the engine
 	*/
 	struct ENGINE_API ScenePropertiesComponent {
-		b2World* World = nullptr;
+		//b2World* World = nullptr;
 
 		/**
 		* @brief Gravity Acceleration

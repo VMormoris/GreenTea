@@ -1,9 +1,11 @@
 #include "AssetManager.h"
+#include "GeometricMesh.h"
 
-#include <GreenTea/GPU/Texture.h>
+#include <GreenTea/GPU/Mesh.h>
 
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 
 namespace GTE {
@@ -47,6 +49,45 @@ namespace GTE {
 		return asset;
 	}
 
+	Ref<Asset> AssetManager::RequestMesh(const char* filepath)
+	{
+		std::string key(filepath);
+		Ref<Asset> asset = CreateRef<Asset>(nullptr, AssetType::LOADING);
+		Map_Mutex.lock();
+		if (GPU_MAP.find(key) != GPU_MAP.end())//Already record on GPU
+		{
+			if (GPU_MAP[key]->Type == AssetType::MESH)//Already loaded Mesh
+				asset = GPU_MAP[key];
+		}
+		else if (RAM_MAP.find(key) != RAM_MAP.end())
+		{
+			if (RAM_MAP[key]->Type == AssetType::GEOMETRIC_MESH)
+			{
+				GeometricMesh* mesh = (GeometricMesh*)RAM_MAP[key]->ActualAsset;
+				GPU::Mesh* gpumesh = GPU::Mesh::Create(mesh);
+				asset = CreateRef<Asset>(gpumesh, AssetType::MESH);
+				GPU_MAP.insert({ key, asset });
+			}
+		}
+		else
+		{
+			RAM_MAP.insert({ key, CreateRef<Asset>(nullptr, AssetType::LOADING) });
+			std::thread handle = std::thread([&](std::string map_key) {
+				GeometricMesh* mesh = new GeometricMesh(map_key.c_str());
+				Map_Mutex.lock();
+				RAM_MAP[map_key] = CreateRef<Asset>(mesh, AssetType::GEOMETRIC_MESH);
+				Map_Mutex.unlock();
+			}, key);
+			handle.detach();
+		}
+		Map_Mutex.unlock();
+		return asset;
+	}
+
+	void AssetManager::Init() {}
+
+	void AssetManager::Shutdown() {}
+
 	void AssetManager::Clear(void)
 	{
 		
@@ -54,44 +95,12 @@ namespace GTE {
 
 	void AssetManager::Clean(void)
 	{
-		/*std::vector<std::string> CycleBin = {};
-		
-		//Clean GPU memory from not used assets
-		CycleBin.reserve(GPU_MAP.size());
-		for(auto [key, asset] : GPU_MAP)//Find which assets to delete
-		{ 
-			if (asset.Count() == 1)
-				CycleBin.push_back(key);
-		}
-
-		for (auto& key : CycleBin)
-			GPU_MAP.erase(key);
-		//The RAM assets with same key need to also be removed
-		for (auto& key : CycleBin)
-		{
-			if (RAM_MAP.find(key) == RAM_MAP.end())
-				RAM_MAP.erase(key);
-		}
-
-		CycleBin.clear();//Prepare for RAM cleaning
-
-		for (auto [key, ref] : RAM_MAP)//Find RAM assets that need to be deleted
-		{
-			if (ref.Count() == 1)
-			{
-				auto& asset = *ref;
-				if (asset.Type == AssetType::INVALID || asset.Type == AssetType::MUSIC || asset.Type == AssetType::SOUND)
-					CycleBin.push_back(key);
-			}
-		}
-
-		for (auto& key : CycleBin)
-			RAM_MAP.erase(key);*/
 	}
 
 	void AssetManager::DeleteTexture(const char* filepath)
 	{
 		
 	}
+
 
 }

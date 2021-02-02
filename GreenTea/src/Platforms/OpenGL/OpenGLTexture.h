@@ -4,13 +4,17 @@
 #include "GreenTea/GPU/Texture.h"
 
 #include <GL/glew.h>
+
 #include <string>
+#include <vector>
 
 namespace GTE::GPU::OpenGL {
 
 	std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format);
 
 	GLenum GetTextureInternalType(TextureFormat format);
+
+	int32 FindDepth(const std::vector<TextureFormat> attachments);
 
 	/**
 	* @brief Class for representing a 2D Texture on OpenGL API

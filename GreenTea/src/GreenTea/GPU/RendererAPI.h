@@ -49,6 +49,8 @@ namespace GTE::GPU {
 		*/
 		virtual void DrawIndexed(const VertexArray* va, uint32 indices) = 0;
 
+
+		virtual void DrawArray(const VertexArray* va, uint32 offset, uint32 count) = 0;
 		/**
 		* @brief Creates a new RendererAPI
 		* @return A pointer to new RendererAPI

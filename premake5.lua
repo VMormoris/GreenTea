@@ -21,7 +21,6 @@ IncludeDirs["stb"]="3rdParty/stb"
 IncludeDirs["imgui"]="3rdParty/imgui"
 IncludeDirs["IconHeader"]="3rdParty/IconFontCppHeaders"
 IncludeDirs["cereal"]="3rdParty/cereal/include"
-IncludeDirs["box2d"]="3rdParty/box2d/include"
 IncludeDirs["ImGuizmo"]="3rdParty/ImGuizmo"
 
 LibFiles={}
@@ -31,7 +30,6 @@ LibFiles["Glew"]="3rdParty/Glew/lib/glew32.lib"
 LibFiles["OpenGL"]="opengl32.lib"
 
 include "3rdParty/imgui"
-include "3rdParty/box2d"
 
 
 project "GreenTea"
@@ -67,7 +65,6 @@ project "GreenTea"
 		"%{IncludeDirs.imgui}/backends",
 		"%{IncludeDirs.IconHeader}",
 		"%{IncludeDirs.cereal}",
-		"%{IncludeDirs.box2d}",
 	}
 	
 	links
@@ -77,7 +74,6 @@ project "GreenTea"
 		"%{wks.location}/%{LibFiles.Glew}",
 		"%{LibFiles.OpenGL}",
 		"ImGui",
-		"Box2D",
 	}
 		
 	defines
@@ -87,7 +83,7 @@ project "GreenTea"
 	
 	postbuildcommands
 	{
-		("{COPY} %{wks.location}\\bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}\\bin\\" .. outputdir .. "\\CupOfTea"),
+		("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\CupOfTea"),
 		--("{COPY} %{wks.location}..\\bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}..\\bin\\" .. outputdir .. "\\GreenTeaEditor")
 	}
 	
@@ -144,7 +140,6 @@ project "CupOfTea"
 		"%{IncludeDirs.imgui}",
 		"%{IncludeDirs.IconHeader}",
 		"%{IncludeDirs.cereal}",
-		"%{IncludeDirs.box2d}",
 		"%{IncludeDirs.ImGuizmo}",
 	}
 	
@@ -156,14 +151,13 @@ project "CupOfTea"
 		"%{wks.location}/%{LibFiles.Glew}",
 		"%{LibFiles.OpenGL}",
 		"ImGui",
-		"Box2D",
 	}
 	
 	
 	prebuildcommands
 	{
-		("{COPY} %{wks.location}3rdParty\\SDL2\\libs\\**.dll %{wks.location}\\bin\\" .. outputdir .. "\\%{prj.name}"),
-		("{COPY} %{wks.location}3rdParty\\glew\\bin\\**.dll %{wks.location}\\bin\\" .. outputdir .. "\\%{prj.name}"),
+		("{COPY} %{wks.location}3rdParty\\SDL2\\libs\\**.dll %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}"),
+		("{COPY} %{wks.location}3rdParty\\glew\\bin\\**.dll %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}"),
 	}
 	
 	postbuildcommands

@@ -1,11 +1,11 @@
 #ifndef IM_GUI_WIDGETS
 #define IM_GUI_WIDGETS
 
-#include "GreenTea/Scene/Entity.h"
+#include <GreenTea/Scene/Entity.h>
 
-#include "GreenTea/GPU/Texture.h"
+#include <GreenTea/GPU/Texture.h>
 
-#include <glm.hpp>
+#include <GreenTea/Assets/Material.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -80,13 +80,17 @@ namespace GTE {
 
 	ENGINE_API bool DrawMenuItem(const char* icon, const char* item, const char* shortcut);
 
-	ENGINE_API bool DrawFilePicker(const char* label, std::string& text, const UISettings& settings);
+	ENGINE_API bool DrawFilePicker(const char* label, std::string& text, const char* extension, const UISettings& settings);
 
 	ENGINE_API bool DrawIVec2Control(const char* label, glm::ivec2& value, const UISettings& settings);
 
 	ENGINE_API bool DrawTextureCoordinates(TextureCoordinates& textCoords, uint32 width, uint32 height, const UISettings& settings);
 
 	ENGINE_API bool DrawCheckboxControl(const char* label, bool& value, const UISettings& settings);
+
+	ENGINE_API bool DrawMaterialControl(const char* label, Material& mat, const UISettings& settings);
+
+
 
 }
 

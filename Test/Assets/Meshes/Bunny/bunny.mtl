@@ -1,0 +1,84 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 07.07.2014 18:22:49
+
+newmtl WHITE
+	Ns 80.0000
+	Ni 1.1000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.9216 0.9216 0.9216
+	Kd 0.9216 0.9216 0.9216
+	Ks 0.25 0.25 0.25
+	Ke 0.0000 0.0000 0.0000
+	map_bump maps\swade_b.jpg
+	bump maps\swade_b.jpg
+
+newmtl ORANGE
+	Ns 70.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.8627 0.4784 0.0471
+	Kd 0.8627 0.4784 0.0471
+	Ks 0.25 0.25 0.25
+	Ke 0.0000 0.0000 0.0000
+	map_bump maps\swade_b.jpg
+	bump maps\swade_b.jpg
+
+newmtl GREEN
+	Ns 80.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0471 1.0000 0.4941
+	Kd 0.0471 1.0000 0.4941
+	Ks 0.25 0.25 0.25
+	Ke 0.0000 0.0000 0.0000
+	map_bump maps\swade_b.jpg
+	bump maps\swade_b.jpg
+
+newmtl RED
+	Ns 100.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.8627 0.1922 0.0471
+	Kd 0.8627 0.1922 0.0471
+	Ks 0.25 0.25 0.25
+	Ke 0.0000 0.0000 0.0000
+	map_bump maps\swade_b.jpg
+	bump maps\swade_b.jpg
+
+newmtl BLUE
+	Ns 81.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.2039 0.3098 0.8314
+	Kd 0.2039 0.3098 0.8314
+	Ks 0.25 0.25 0.25
+	Ke 0.0000 0.0000 0.0000
+	map_bump maps\swade_b.jpg
+	bump maps\swade_b.jpg
+
+newmtl BlackShiny
+	Ns 91.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.1176 0.1176 0.1176
+	Kd 0.1176 0.1176 0.1176
+	Ks 0.25 0.25 0.25
+	Ke 0.0000 0.0000 0.0000

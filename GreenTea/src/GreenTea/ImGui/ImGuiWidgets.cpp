@@ -8,7 +8,7 @@ namespace GTE {
 
 	void DrawComponentAdder(Entity entity)
 	{
-		static constexpr char* components[] = { "Transform2D", "Renderable2D", "Camera", "RigidBody2D", "CircleCollider", "BoxCollider", "NativeScript" };
+		static constexpr char* components[] = { "Transform2D", "Mesh", "Camera", "Light", "NativeScript" };
 		static int32 current = 0;
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -38,53 +38,38 @@ namespace GTE {
 		{
 			switch (current) {
 			case 0://Transform 2D Component
-				if (!entity.HasComponent<Transform2DComponent>()) entity.AddComponent<Transform2DComponent>();
+				if (!entity.HasComponent<TransformComponent>()) entity.AddComponent<TransformComponent>();
 				break;
-			case 1://Renderable 2D Component
-				if (!entity.HasComponent<Renderable2DComponent>())
+			case 1://Mesh Component
+				if (!entity.HasComponent<MeshComponent>())
 				{
-					if (!entity.HasComponent<Transform2DComponent>()) { GTE_WARN_LOG("Renderable without Transform will be ignored!"); }
-					entity.AddComponent<Renderable2DComponent>();
+					if (!entity.HasComponent<TransformComponent>()) { GTE_WARN_LOG("Mesh without Transform will be ignored!"); }
+					entity.AddComponent<MeshComponent>();
 				}
 				break;
 			case 2://Camera Component
 				if (!entity.HasComponent<CameraComponent>())
 				{
-					if (!entity.HasComponent<Transform2DComponent>())
+					if (!entity.HasComponent<TransformComponent>())
 					{
-						entity.AddComponent<Transform2DComponent>();
+						auto& tc = entity.AddComponent<TransformComponent>();
+						tc.Position.z = -190.0f;
+						tc.Position.y = 80.0f;
 						GTE_INFO_LOG("Automatically created Transform 2D Component!");
 					}
 					entity.AddComponent<CameraComponent>();
-					auto& ortho = entity.AddComponent<OrthographicCameraComponent>();
-					ortho.VerticalBoundary = 10.0f;
+					auto& ortho = entity.AddComponent<PerspectiveCameraComponent>();
 					entity.UpdateMatrices();
 				}
 				break;
-			case 3://RigidBody 2D Component
-				if (!entity.HasComponent<RigidBody2DComponent>())
+			case 3://LightComponent
+				if (!entity.HasComponent<LightComponent>())
 				{
-					if (!entity.HasComponent<Transform2DComponent>()) { GTE_WARN_LOG("RigidBodies without Transfrom components will be ignored!"); }
-					entity.AddComponent<RigidBody2DComponent>();
+					auto& lc = entity.AddComponent<LightComponent>();
+					lc.Direction = { -1.0f, -1.0f, 0.0f };
 				}
 				break;
-			case 4://Circle Collider Component
-				if (!entity.HasComponent<CircleColliderComponent>())
-				{
-					if (entity.HasComponent<BoxColliderComponent>()) { GTE_INFO_LOG("Only one Collider per RigidBody is allowed!"); break; }
-					if (!entity.HasComponent<RigidBody2DComponent>()) { GTE_WARN_LOG("Colliders without RigidBodies will be ignored!"); }
-					entity.AddComponent<CircleColliderComponent>();
-				}
-				break;
-			case 5://Box Collider Component
-				if (!entity.HasComponent<BoxColliderComponent>())
-				{
-					if (entity.HasComponent<CircleColliderComponent>()) { GTE_INFO_LOG("Only one Collider per RigidBody is allowed!"); break; }
-					if (!entity.HasComponent<RigidBody2DComponent>()) { GTE_WARN_LOG("Colliders without RigidBodies will be ignored!"); }
-					entity.AddComponent<BoxColliderComponent>();
-				}
-				break;
-			case 6://NativeScriptComponent
+			case 4://NativeScriptComponent
 				if (!entity.HasComponent<NativeScriptComponent>()) entity.AddComponent<NativeScriptComponent>(std::string(), ScriptState::MustBeInitialized);
 				break;
 			}
@@ -511,8 +496,11 @@ namespace GTE {
 		return pressed;
 	}
 
-	bool DrawFilePicker(const char* label, std::string& text, const UISettings& settings)
+	bool DrawFilePicker(const char* label, std::string& text, const char* extension, const UISettings& settings)
 	{
+		constexpr char PNG[] = "PNG file (*.png)\0*.png\0";
+		constexpr char OBJ[] = "3D Object (*.obj)\0*.obj\0";
+
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[1];
 
@@ -547,7 +535,11 @@ namespace GTE {
 		bool changed = false;
 		if (ImGui::Button("...", buttonSize))
 		{
-			std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png)\0*.png\0");
+			std::string filepath;
+			if (std::string(extension).compare(".obj") == 0)
+				filepath = CreateFileDialog(FileDialogType::Open, OBJ);
+			else
+				filepath = CreateFileDialog(FileDialogType::Open, PNG);
 			if (!filepath.empty() && text.compare(filepath) != 0)
 			{
 				text = filepath;
@@ -680,6 +672,142 @@ namespace GTE {
 		ImGui::PopID();
 
 		return changed;
+	}
+
+	bool DrawMaterialControl(const char* label, Material& mat, const UISettings& settings)
+	{
+		static Ref<Asset> TransparentTexture;
+		TransparentTexture = AssetManager::RequestTexture("../Assets/Textures/Editor/Transparency.png");
+		ImGui::PushID(label);
+		if (ImGui::CollapsingHeader("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::PushID("Diffuse");
+			GPU::Texture2D* texture;
+			void* img = nullptr;
+			if (mat.DiffuseTexture->Type == AssetType::INVALID || mat.DiffuseTexture->Type == AssetType::LOADING)
+			{
+				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			else
+			{
+				texture = static_cast<GPU::Texture2D*>(mat.DiffuseTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			ImGui::Image(img, { 64.0f, 64.0f });
+			if (ImGui::IsItemClicked())
+			{
+				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
+				if (!filepath.empty())
+				{
+					mat.DiffuseName = filepath;
+					mat.DiffuseTexture = AssetManager::RequestTexture(filepath.c_str());
+				}
+			}
+			ImGui::SameLine();
+			ImGui::Text("Tint Color");
+			ImGui::SameLine();
+			UISettings subsettings;
+			subsettings.ColumnWidth = 64.0f + ImGui::CalcTextSize("Tint Color").x + 20.0f;
+			DrawColorPicker("", mat.Diffuse, subsettings);
+			ImGui::PopID();
+		}
+		if (ImGui::CollapsingHeader("Normals", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::PushID("Bump");
+			GPU::Texture2D* texture;
+			void* img = nullptr;
+			if (mat.BumpTexture->Type == AssetType::INVALID || mat.BumpTexture->Type == AssetType::LOADING)
+			{
+				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			else
+			{
+				texture = static_cast<GPU::Texture2D*>(mat.BumpTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			ImGui::Image(img, { 64.0f, 64.0f });
+			if (ImGui::IsItemClicked())
+			{
+				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
+				if (!filepath.empty())
+				{
+					mat.BumpName = filepath;
+					mat.BumpTexture = AssetManager::RequestTexture(filepath.c_str());
+				}
+			}
+			ImGui::PopID();
+		}
+		if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::PushID("Ambient");
+			GPU::Texture2D* texture;
+			void* img = nullptr;
+			if (mat.AmbientTexture->Type == AssetType::INVALID || mat.AmbientTexture->Type == AssetType::LOADING)
+			{
+				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			else
+			{
+				texture = static_cast<GPU::Texture2D*>(mat.AmbientTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			ImGui::Image(img, { 64.0f, 64.0f });
+			if (ImGui::IsItemClicked())
+			{
+				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
+				if (!filepath.empty())
+				{
+					mat.AmbientName = filepath;
+					mat.AmbientTexture = AssetManager::RequestTexture(filepath.c_str());
+				}
+			}
+			ImGui::SameLine();
+			ImGui::Text("Tint Color");
+			ImGui::SameLine();
+			UISettings subsettings;
+			subsettings.ColumnWidth = 64.0f + ImGui::CalcTextSize("Tint Color").x + 20.0f;
+			DrawColorPicker("", mat.Ambient, subsettings);
+			ImGui::PopID();
+		}
+		if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::PushID("Specular");
+			GPU::Texture2D* texture;
+			void* img = nullptr;
+			if (mat.SpecularTexture->Type == AssetType::INVALID || mat.SpecularTexture->Type == AssetType::LOADING)
+			{
+				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			else
+			{
+				texture = static_cast<GPU::Texture2D*>(mat.SpecularTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			ImGui::Image(img, { 64.0f, 64.0f });
+			if (ImGui::IsItemClicked())
+			{
+				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
+				if (!filepath.empty())
+				{
+					mat.SpecularName = filepath;
+					mat.SpecularTexture = AssetManager::RequestTexture(filepath.c_str());
+				}
+			}
+			ImGui::SameLine();
+			ImGui::Text("Tint Color");
+			ImGui::SameLine();
+			UISettings subsettings;
+			subsettings.ColumnWidth = 64.0f + ImGui::CalcTextSize("Tint Color").x + 20.0f;
+			DrawColorPicker("", mat.Specular, subsettings);
+			ImGui::PopID();
+		}
+		ImGui::PopID();
+
+		return false;
 	}
 
 }

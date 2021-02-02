@@ -19,6 +19,8 @@ namespace GTE::GPU::OpenGL {
 		const FrameBufferSpecification& GetSpecification(void) const override;
 
 		uint64 GetColorAttachmentID(uint32 attachement) const override;
+		void BindAttachment(uint32 attachment, uint32 slot) const override;
+
 		void Clear(uint32 attachment, const void* data) const override;
 
 		void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const override;
@@ -29,6 +31,7 @@ namespace GTE::GPU::OpenGL {
 
 		uint32 m_ID = 0;
 		uint32* m_ColorAttachmentID = nullptr;
+		uint32 m_DepthAttachmentID = 0;
 		FrameBufferSpecification m_Specification;
 
 	};

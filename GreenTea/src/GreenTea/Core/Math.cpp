@@ -77,4 +77,12 @@ namespace GTE::Math {
 		return true;
 	}
 
+	//TODO: Check change to dot( pos1, -pos2)
+	float CompDistance(const glm::vec3& pos1, const glm::vec3& pos2)
+	{
+		glm::vec3 dist = pos1 - pos2;
+		dist = dist * dist;
+		return dist.x + dist.y + dist.z;
+	}
+
 }

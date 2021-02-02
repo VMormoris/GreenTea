@@ -12,6 +12,7 @@ namespace GTE::GPU::OpenGL {
 		void SetClearColor(const glm::vec4& color) override;
 		void Clear(void) override;
 		void DrawIndexed(const VertexArray* va, uint32 indices) override;
+		void DrawArray(const VertexArray* va, uint32 offset, uint32 count) override;
 	};
 
 }

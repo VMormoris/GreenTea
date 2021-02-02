@@ -1,0 +1,206 @@
+{
+    "Total Entities": 7,
+    "Entities": [
+        {
+            "ID": 0,
+            "Scene Properties Component": {
+                "g": {
+                    "x": 0.0,
+                    "y": -10.0
+                },
+                "Rate": 30,
+                "Velocity Iterations": 6,
+                "Position Iterations": 2
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": -27.175525665283204,
+                    "y": -63.11573028564453,
+                    "z": -58.01984405517578
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 1500.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.451174259185791,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -67.79946899414063,
+                    "y": 85.6248550415039,
+                    "z": 78.82335662841797
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\ball.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Ball"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -2.2858047485351564,
+                    "y": -88.74762725830078,
+                    "z": -97.39643096923828
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 3,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\bunny.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Bunny"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -42.78626251220703,
+                    "y": -74.22840118408203,
+                    "z": -101.79134368896485
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 4,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\chair.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Chairs"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -41.78925323486328,
+                    "y": -66.4413833618164,
+                    "z": -97.74059295654297
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 5,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\floor.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Floor"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -97.09854888916016,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0364421606063843
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 6,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\env2.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Enviroment"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

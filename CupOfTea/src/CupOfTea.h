@@ -41,7 +41,6 @@ private:
 
 	glm::vec2 m_ViewportSize;
 	glm::vec2 m_CamViewportSize;
-	glm::vec2 m_CameraVelocity = glm::vec2{ 1.0f, 1.0f };
 
 	bool m_Playing = false;
 
@@ -50,6 +49,10 @@ private:
 
 	Scene* m_ActiveScene;
 
+	//For Editor's Camera movement and Rotation
+	glm::vec2 m_CursorPos;
+	glm::vec3 m_CameraVelocity = glm::vec3{ 5.0f };
+	float m_AngularSpeedFactor = 0.0025f;
 };
 
 

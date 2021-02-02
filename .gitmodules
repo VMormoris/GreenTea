@@ -16,6 +16,3 @@
 [submodule "3rdParty/IconFontCppHeaders"]
 	path = 3rdParty/IconFontCppHeaders
 	url = https://github.com/juliettef/IconFontCppHeaders
-[submodule "3rdParty/box2d"]
-	path = 3rdParty/box2d
-	url = https://github.com/VMormoris/box2d

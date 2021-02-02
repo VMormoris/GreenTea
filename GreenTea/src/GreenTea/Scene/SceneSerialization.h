@@ -74,20 +74,24 @@ namespace GTE {
 	}
 
 	template<typename BinaryArchive>
-	void BinSerialize(BinaryArchive& archive, Transform2DComponent& transform)
+	void BinSerialize(BinaryArchive& archive, TransformComponent& transform)
 	{
 		archive(transform.Position.x);
 		archive(transform.Position.y);
 		archive(transform.Position.z);
 
+
 		archive(transform.Scale.x);
 		archive(transform.Scale.y);
+		archive(transform.Scale.z);
 
-		archive(transform.Rotation);
+		archive(transform.Rotation.x);
+		archive(transform.Rotation.y);
+		archive(transform.Rotation.z);
 	}
 
 	template<typename JSONArchive>
-	void JSONSerialize(JSONArchive& archive, Transform2DComponent& transform)
+	void JSONSerialize(JSONArchive& archive, TransformComponent& transform)
 	{
 		archive.setNextName("Position");
 		archive.startNode();
@@ -100,34 +104,40 @@ namespace GTE {
 		archive.startNode();
 		archive(cereal::make_nvp("x", transform.Scale.x));
 		archive(cereal::make_nvp("y", transform.Scale.y));
+		archive(cereal::make_nvp("z", transform.Scale.z));
 		archive.finishNode();
 
-		archive(cereal::make_nvp("angle", transform.Rotation));
+		archive.setNextName("Rotation");
+		archive.startNode();
+		archive(cereal::make_nvp("x", transform.Rotation.x));
+		archive(cereal::make_nvp("y", transform.Rotation.y));
+		archive(cereal::make_nvp("z", transform.Rotation.z));
+		archive.finishNode();
 	}
 
 	template<typename Archive>
-	inline void serialize(Archive& archive, Transform2DComponent& transform) { static_assert(false); }
+	inline void serialize(Archive& archive, TransformComponent& transform) { static_assert(false); }
 
 	template<>
-	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, Transform2DComponent& transform)
+	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, TransformComponent& transform)
 	{
 		BinSerialize(archive, transform);
 	}
 
 	template<>
-	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, Transform2DComponent& transform)
+	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, TransformComponent& transform)
 	{
 		BinSerialize(archive, transform);
 	}
 
 	template<>
-	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, Transform2DComponent& transform)
+	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, TransformComponent& transform)
 	{
 		JSONSerialize(archive, transform);
 	}
 
 	template<>
-	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, Transform2DComponent& transform)
+	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, TransformComponent& transform)
 	{
 		JSONSerialize(archive, transform);
 	}
@@ -229,127 +239,109 @@ namespace GTE {
 	}
 
 	template<typename BinaryArchive>
-	void BinSerialize(BinaryArchive& archive, RigidBody2DComponent& rigidbody)
+	void BinSerialize(BinaryArchive& archive, MeshComponent& mesh)
 	{
-		archive(rigidbody.Velocity.x);
-		archive(rigidbody.Velocity.y);
-
-		archive(rigidbody.Type);
-		archive(rigidbody.AngularVelocity);
-		archive(rigidbody.Mass);
-		archive(rigidbody.GravityFactor);
-		archive(rigidbody.FixedRotation);
-		archive(rigidbody.Bullet);
+		serialize(archive, mesh.Filepath);
+		archive(mesh.MaterialIndex);
 	}
 
 	template<typename JSONArchive>
-	void JSONSerialize(JSONArchive& archive, RigidBody2DComponent& rigidbody)
+	void JSONSerialize(JSONArchive& archive, MeshComponent& mesh)
 	{
-		archive.setNextName("Velocity");
-		archive.startNode();
-		archive(cereal::make_nvp("x", rigidbody.Velocity.x));
-		archive(cereal::make_nvp("y", rigidbody.Velocity.y));
-		archive.finishNode();
-
-		archive(cereal::make_nvp("Type", rigidbody.Type));
-		archive(cereal::make_nvp("Angular Velocity", rigidbody.AngularVelocity));
-		archive(cereal::make_nvp("Mass", rigidbody.Mass));
-		archive(cereal::make_nvp("GravityFactor", rigidbody.GravityFactor));
-		archive(cereal::make_nvp("FixedRotation", rigidbody.FixedRotation));
-		archive(cereal::make_nvp("Bullet", rigidbody.Bullet));
+		archive(cereal::make_nvp("Mesh", mesh.Filepath));
+		archive(cereal::make_nvp("Material Index: ", mesh.MaterialIndex));
 	}
 
 	template<typename Archive>
-	inline void serialize(Archive& archive, RigidBody2DComponent& rigidbody) { static_assert(false); }
+	inline void serialize(Archive& archive, MeshComponent& mesh) { static_assert(false); }
 
 	template<>
-	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, RigidBody2DComponent& rigidbody)
+	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, MeshComponent& mesh)
 	{
-		BinSerialize(archive, rigidbody);
+		BinSerialize(archive, mesh);
 	}
 
 	template<>
-	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, RigidBody2DComponent& rigidbody)
+	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, MeshComponent& mesh)
 	{
-		BinSerialize(archive, rigidbody);
+		BinSerialize(archive, mesh);
 	}
 
 	template<>
-	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, RigidBody2DComponent& rigidbody)
+	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, MeshComponent& mesh)
 	{
-		JSONSerialize(archive, rigidbody);
+		JSONSerialize(archive, mesh);
 	}
 
 	template<>
-	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, RigidBody2DComponent& rigidbody)
+	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, MeshComponent& mesh)
 	{
-		JSONSerialize(archive, rigidbody);
-	}
-
-	template<typename Archive>
-	void serialize(Archive& archive, CircleColliderComponent& collider)
-	{
-		archive(cereal::make_nvp("Radius", collider.Radius));
-		archive(cereal::make_nvp("Friction", collider.Friction));
-		archive(cereal::make_nvp("Restitution", collider.Restitution));
+		JSONSerialize(archive, mesh);
 	}
 
 	template<typename BinaryArchive>
-	void BinSerialze(BinaryArchive& archive, BoxColliderComponent& collider)
+	void BinSerialize(BinaryArchive& archive, PerspectiveCameraComponent& persp)
 	{
+		archive(persp.Target.x);
+		archive(persp.Target.y);
+		archive(persp.Target.z);
 
-		archive(collider.Scale.x);
-		archive(collider.Scale.y);
+		archive(persp.UpVector.x);
+		archive(persp.UpVector.y);
+		archive(persp.UpVector.z);
 
-		archive(collider.Friction);
-		archive(collider.Restitution);
+		archive(persp.FoV);
+		archive(persp.Near);
+		archive(persp.Far);
 	}
 
 	template<typename JSONArchive>
-	void JSONSerialize(JSONArchive& archive, BoxColliderComponent& collider)
+	void JSONSerialize(JSONArchive& archive, PerspectiveCameraComponent& persp)
 	{
-		archive.setNextName("Scale");
+		archive.setNextName("Target");
 		archive.startNode();
-		archive(cereal::make_nvp("x", collider.Scale.x));
-		archive(cereal::make_nvp("y", collider.Scale.y));
+		archive(cereal::make_nvp("x", persp.Target.x));
+		archive(cereal::make_nvp("y", persp.Target.y));
+		archive(cereal::make_nvp("z", persp.Target.z));
 		archive.finishNode();
 
-		archive(cereal::make_nvp("Friction", collider.Friction));
-		archive(cereal::make_nvp("Restitution", collider.Restitution));
-	}
+		archive.setNextName("Up Vector");
+		archive.startNode();
+		archive(cereal::make_nvp("x", persp.UpVector.x));
+		archive(cereal::make_nvp("y", persp.UpVector.y));
+		archive(cereal::make_nvp("z", persp.UpVector.z));
+		archive.finishNode();
 
+		archive(cereal::make_nvp("FoV", persp.FoV));
+		archive(cereal::make_nvp("Near", persp.Near));
+		archive(cereal::make_nvp("Far", persp.Far));
+	}
+	
 	template<typename Archive>
-	inline void serialize(Archive& archive, BoxColliderComponent& collider) { static_assert(false); }
+	inline void serialize(Archive& archive, PerspectiveCameraComponent& persp) { static_assert(false); }
 
 	template<>
-	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, BoxColliderComponent& collider)
+	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, PerspectiveCameraComponent& persp)
 	{
-		BinSerialze(archive, collider);
+		BinSerialize(archive, persp);
 	}
 
 	template<>
-	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, BoxColliderComponent& collider)
+	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, PerspectiveCameraComponent& persp)
 	{
-		BinSerialze(archive, collider);
+		BinSerialize(archive, persp);
 	}
 
 	template<>
-	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, BoxColliderComponent& collider)
+	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, PerspectiveCameraComponent& persp)
 	{
-		JSONSerialize(archive, collider);
+		JSONSerialize(archive, persp);
 	}
 
 	template<>
-	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, BoxColliderComponent& collider)
+	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, PerspectiveCameraComponent& persp)
 	{
-		JSONSerialize(archive, collider);
-	}
-
-	template<typename Archive>
-	void serialize(Archive& archive, OrthographicCameraComponent& ortho)
-	{
-		archive(cereal::make_nvp("Zoom Level", ortho.ZoomLevel));
-		archive(cereal::make_nvp("Vertical Boundary", ortho.VerticalBoundary));
+		JSONSerialize(archive, persp);
 	}
 
 	template<typename Archive>
@@ -359,6 +351,89 @@ namespace GTE {
 		archive(cereal::make_nvp("Primary", cam.Primary));
 		archive(cereal::make_nvp("Fixed Aspect Ratio", cam.FixedAspectRatio));
 	}
+
+	template<typename BinaryArchive>
+	void BinSerialize(BinaryArchive& archive, LightComponent& lc)
+	{
+		archive(lc.Target.x);
+		archive(lc.Target.y);
+		archive(lc.Target.z);
+
+		archive(lc.Direction.x);
+		archive(lc.Direction.y);
+		archive(lc.Direction.z);
+
+		archive(lc.Color.r);
+		archive(lc.Color.g);
+		archive(lc.Color.b);
+		archive(lc.Color.a);
+
+		archive(lc.Intensity);
+		archive(lc.Umbra);
+		archive(lc.Penumbra);
+		archive(lc.ShadowMapResolution);
+		archive(lc.ShadowMapBias);
+	}
+
+	template<typename JSONArchive>
+	void JSONSerialize(JSONArchive& archive, LightComponent& lc)
+	{
+		archive.setNextName("Target");
+		archive.startNode();
+		archive(cereal::make_nvp("x", lc.Target.x));
+		archive(cereal::make_nvp("y", lc.Target.y));
+		archive(cereal::make_nvp("z", lc.Target.z));
+		archive.finishNode();
+
+		archive.setNextName("Direction");
+		archive.startNode();
+		archive(cereal::make_nvp("x", lc.Direction.x));
+		archive(cereal::make_nvp("y", lc.Direction.y));
+		archive(cereal::make_nvp("z", lc.Direction.z));
+		archive.finishNode();
+
+		archive.setNextName("Color");
+		archive.startNode();
+		archive(cereal::make_nvp("r", lc.Color.r));
+		archive(cereal::make_nvp("g", lc.Color.g));
+		archive(cereal::make_nvp("b", lc.Color.b));
+		archive(cereal::make_nvp("a", lc.Color.a));
+		archive.finishNode();
+
+		archive(cereal::make_nvp("Intensity", lc.Intensity));
+		archive(cereal::make_nvp("Umbra", lc.Umbra));
+		archive(cereal::make_nvp("Penumbra", lc.Penumbra));
+		archive(cereal::make_nvp("Shadow Resolution", lc.ShadowMapResolution));
+		archive(cereal::make_nvp("Shadow Bias", lc.ShadowMapBias));
+	}
+
+	template<typename Archive>
+	inline void serialize(Archive& archive, LightComponent& lc) { static_assert(false); }
+
+	template<>
+	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, LightComponent& lc)
+	{
+		BinSerialize(archive, lc);
+	}
+
+	template<>
+	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, LightComponent& lc)
+	{
+		BinSerialize(archive, lc);
+	}
+
+	template<>
+	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, LightComponent& lc)
+	{
+		JSONSerialize(archive, lc);
+	}
+
+	template<>
+	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, LightComponent& lc)
+	{
+		JSONSerialize(archive, lc);
+	}
+
 
 	template<typename BinaryArchive>
 	void BinSerialize(BinaryArchive& archive, ScenePropertiesComponent& sceneProps)
@@ -476,10 +551,10 @@ namespace GTE {
 				archive(tag);
 				break;
 			}
-			case entt::type_info<Transform2DComponent>::id():
+			case entt::type_info<TransformComponent>::id():
 			{
-				const auto& transform = reg.get<Transform2DComponent>(entity);
-				archive.setNextName("Transform 2D Component");
+				const auto& transform = reg.get<TransformComponent>(entity);
+				archive.setNextName("Transform Component");
 				archive(transform);
 				break;
 			}
@@ -490,25 +565,11 @@ namespace GTE {
 				archive(renderable);
 				break;
 			}
-			case entt::type_info<RigidBody2DComponent>::id():
+			case entt::type_info<MeshComponent>::id():
 			{
-				const auto& rigidbody = reg.get<RigidBody2DComponent>(entity);
-				archive.setNextName("RigidBody 2D Component");
-				archive(rigidbody);
-				break;
-			}
-			case entt::type_info<CircleColliderComponent>::id():
-			{
-				const auto& ccollider = reg.get<CircleColliderComponent>(entity);
-				archive.setNextName("Circle Collider Component");
-				archive(ccollider);
-				break;
-			}
-			case entt::type_info<BoxColliderComponent>::id():
-			{
-				const auto& bcollider = reg.get<BoxColliderComponent>(entity);
-				archive.setNextName("Box Collider Component");
-				archive(bcollider);
+				const auto& mc = reg.get<MeshComponent>(entity);
+				archive.setNextName("Mesh Component");
+				archive(mc);
 				break;
 			}
 			case entt::type_info<NativeScriptComponent>::id():
@@ -518,10 +579,10 @@ namespace GTE {
 				archive(nScript);
 				break;
 			}
-			case entt::type_info<OrthographicCameraComponent>::id():
+			case entt::type_info<PerspectiveCameraComponent>::id():
 			{
-				const auto& camProp = reg.get<OrthographicCameraComponent>(entity);
-				archive.setNextName("Orthographic Camera Component");
+				const auto& camProp = reg.get<PerspectiveCameraComponent>(entity);
+				archive.setNextName("Perspective Camera Component");
 				archive(camProp);
 				break;
 			}
@@ -530,6 +591,13 @@ namespace GTE {
 				const auto& cam = reg.get<CameraComponent>(entity);
 				archive.setNextName("Camera Component");
 				archive(cam);
+				break;
+			}
+			case entt::type_info<LightComponent>::id():
+			{
+				const auto& lc = reg.get<LightComponent>(entity);
+				archive.setNextName("Light Component");
+				archive(lc);
 				break;
 			}
 			case entt::type_info<ScenePropertiesComponent>::id():
@@ -602,11 +670,11 @@ namespace GTE {
 				archive(tag);
 				reg.emplace<TagComponent>(entt, tag);
 			}
-			else if (component.compare("Transform 2D Component") == 0)
+			else if (component.compare("Transform Component") == 0)
 			{
-				Transform2DComponent tranform;
+				TransformComponent tranform;
 				archive(tranform);
-				reg.emplace<Transform2DComponent>(entt, tranform);
+				reg.emplace<TransformComponent>(entt, tranform);
 			}
 			else if (component.compare("Renderable 2D Component") == 0)
 			{
@@ -614,23 +682,11 @@ namespace GTE {
 				archive(renderable);
 				reg.emplace<Renderable2DComponent>(entt, renderable);
 			}
-			else if (component.compare("RigidBody 2D Component") == 0)
+			else if (component.compare("Mesh Component") == 0)
 			{
-				RigidBody2DComponent rigidbody;
-				archive(rigidbody);
-				reg.emplace<RigidBody2DComponent>(entt, rigidbody);
-			}
-			else if (component.compare("Circle Collider Component") == 0)
-			{
-				CircleColliderComponent ccollider;
-				archive(ccollider);
-				reg.emplace<CircleColliderComponent>(entt, ccollider);
-			}
-			else if (component.compare("Box Collider Component") == 0)
-			{
-				BoxColliderComponent bcollider;
-				archive(bcollider);
-				reg.emplace<BoxColliderComponent>(entt, bcollider);
+				MeshComponent mc;
+				archive(mc);
+				reg.emplace<MeshComponent>(entt, mc);
 			}
 			else if (component.compare("Native Script Component") == 0)
 			{
@@ -638,17 +694,23 @@ namespace GTE {
 				archive(nScript);
 				reg.emplace<NativeScriptComponent>(entt, nScript);
 			}
-			else if (component.compare("Orthographic Camera Component") == 0)
+			else if (component.compare("Perspective Camera Component") == 0)
 			{
-				OrthographicCameraComponent ortho;
-				archive(ortho);
-				reg.emplace<OrthographicCameraComponent>(entt, ortho);
+				PerspectiveCameraComponent persp;
+				archive(persp);
+				reg.emplace<PerspectiveCameraComponent>(entt, persp);
 			}
 			else if (component.compare("Camera Component") == 0)
 			{
 				CameraComponent cam;
 				archive(cam);
 				reg.emplace<CameraComponent>(entt, cam);
+			}
+			else if (component.compare("Light Component") == 0)
+			{
+				LightComponent lc;
+				archive(lc);
+				reg.emplace<LightComponent>(entt, lc);
 			}
 			else if (component.compare("Scene Properties Component") == 0)
 			{

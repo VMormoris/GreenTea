@@ -43,6 +43,8 @@ namespace GTE {
 			* @param indices Number of indices that will used for drawning
 			*/
 			static void DrawIndexed(const GPU::VertexArray* va, uint32 indices);
+		
+			static void DrawArray(const GPU::VertexArray* va, uint32 offset, uint32 count);
 		};
 
 }

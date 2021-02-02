@@ -108,14 +108,6 @@ namespace GTE::GPU::OpenGL {
 		return true;
 	}
 
-	void OpenGLShader::SetUniform(const std::string& uniform, int32 value) { glUniform1i((m_Uniforms[uniform]), value); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const float value) { glUniform1f(m_Uniforms[uniform], value); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec2& value) { glUniform2f(m_Uniforms[uniform], value[0], value[1]); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec3& value) { glUniform3f(m_Uniforms[uniform], value[0], value[1], value[2]); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec4& value) { glUniform4f(m_Uniforms[uniform], value[0], value[1], value[2], value[3]); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::mat4& value) { glUniformMatrix4fv(m_Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(value)); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const int32* values, uint32 count) { glUniform1iv(m_Uniforms[uniform], count, values); }
-
 	void OpenGLShader::PreProcess(std::string& content) {
 		constexpr char* token = "#type";
 		size_t token_size = strlen(token);
@@ -142,4 +134,62 @@ namespace GTE::GPU::OpenGL {
 	OpenGLShader::~OpenGLShader(void) { glDeleteProgram(m_ProgramID); }
 
 	void OpenGLShader::AddUniform(const std::string& uniform) { m_Uniforms[uniform] = glGetUniformLocation(m_ProgramID, uniform.c_str()); }
+
+	void OpenGLShader::SetUniform(const std::string& uniform, int32 value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		glUniform1i((m_Uniforms[uniform]), value);
+	}
+	
+	void OpenGLShader::SetUniform(const std::string& uniform, float value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		glUniform1f(m_Uniforms[uniform], value);
+	}
+
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec2& value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!"); 
+		glUniform2f(m_Uniforms[uniform], value[0], value[1]);
+	}
+	
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec3& value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!"); 
+		glUniform3f(m_Uniforms[uniform], value[0], value[1], value[2]);
+	}
+	
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec4& value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		glUniform4f(m_Uniforms[uniform], value[0], value[1], value[2], value[3]);
+	}
+	
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::mat4& value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		glUniformMatrix4fv(m_Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(value));
+	}
+	
+	void OpenGLShader::SetUniform(const std::string& uniform, const int32* values, uint32 count)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		glUniform1iv(m_Uniforms[uniform], count, values);
+	}
+	
+	void OpenGLShader::SetUniform(const std::string& uniform, uint32 value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		glUniform1ui(m_Uniforms[uniform], value);
+	}
+
+	void OpenGLShader::SetUniform(const std::string& uniform, bool value)
+	{
+		ENGINE_ASSERT(m_Uniforms.find(uniform) != m_Uniforms.end(), "Uniform ", uniform, " is not added!");
+		if (value)
+			glUniform1i(m_Uniforms[uniform], 1);
+		else
+			glUniform1i(m_Uniforms[uniform], 0);
+	}
+
 }

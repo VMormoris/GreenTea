@@ -2,11 +2,11 @@
 #define _SCENE
 
 #include "GreenTea/Core/EngineCore.h"
+#include <GreenTea/GPU/FrameBuffer.h>
 
 #include <sstream>
 
 #include <glm.hpp>
-#include <box2d/b2_world.h>
 
 #pragma warning( push )
 #pragma warning( disable : 4267 )
@@ -35,7 +35,7 @@ namespace GTE {
 		Entity GetSceneEntity(void);
 
 		void Update(float dt);
-		void Render(const glm::mat4* eyematrix);
+		void Render(const glm::mat4* eyematrix, GPU::FrameBuffer* target, const glm::vec3& pos, const glm::vec3& dir);
 
 		void Save(const char* filepath);
 		void Load(const char* filepath);
@@ -52,10 +52,7 @@ namespace GTE {
 
 		void UpdateMatrices(void);
 
-		void SetupWorld(void);
-		void DestroyWorld(void);
-
-		void FixedUpdate(void);
+		//void FixedUpdate(void);
 
 	private:
 
@@ -68,9 +65,7 @@ namespace GTE {
 
 		friend class Entity;
 		friend class SceneManagerPanel;
-		friend class CollisionDispatcher;
 		friend ENGINE_API std::vector<Entity> GetEntities(const std::string&);
-		//friend Entity RenderSceneManager(Scene& instance);
 	};
 
 	ENGINE_API std::vector<Entity> GetEntities(const std::string& Tag);

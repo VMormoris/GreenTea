@@ -1,0 +1,50 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 27.10.2015 12:11:49
+
+newmtl _envEnv2
+	Ns 100.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.7451 0.9882 0.5843
+	Kd 1 1 1
+	Ks 0.18 0.18 0.18
+	Ke 0.0000 0.0000 0.0000
+	map_Ka maps\STUCCO1.JPG
+	map_Kd maps\STUCCO1.JPG
+	map_bump maps\STUCCO1.JPG
+	bump maps\STUCCO1.JPG
+
+newmtl _envEnv
+	Ns 100.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.9059 0.8392 0.6980
+	Kd 1 1 1
+	Ks 0.18 0.18 0.18
+	Ke 0.0000 0.0000 0.0000
+	map_Ka maps\STUCCO1.JPG
+	map_Kd maps\STUCCO1.JPG
+	map_bump maps\STUCCO1.JPG
+	bump maps\STUCCO1.JPG
+
+newmtl _envLINING
+	Ns 100.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.8863 0.8863 0.8863
+	Kd 1 1 1
+	Ks 0.18 0.18 0.18
+	Ke 0.0000 0.0000 0.0000
+	map_Ka maps\OAKWHITE.JPG
+	map_Kd maps\OAKWHITE.JPG
+	map_bump maps\OAKWHITE.JPG
+	bump maps\OAKWHITE.JPG

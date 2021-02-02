@@ -4,6 +4,7 @@
 #include "GreenTea/Core/Application.h"
 #include "GreenTea/Core/Logger.h"
 #include "GreenTea/Core/FileDialog.h"
+#include "GreenTea/Core/Math.h"
 
 #include "GreenTea/Events/Input.h"
 
@@ -17,7 +18,7 @@
 
 #include "GreenTea/GPU/FrameBuffer.h"
 
-#include "GreenTea/Renderer/Renderer2D.h"
+#include "GreenTea/Renderer/Renderer.h"
 #include "GreenTea/Renderer/RenderCommand.h"
 
 #include "GreenTea/Scene/Entity.h"

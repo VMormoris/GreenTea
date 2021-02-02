@@ -3,7 +3,7 @@
 #include "GreenTea/Events/EventDispatcher.h"
 #include "GreenTea/Events/EventRegistry.h"
 
-#include "GreenTea/Renderer/Renderer2D.h"
+#include "GreenTea/Renderer/Renderer.h"
 #include "GreenTea/Renderer/RenderCommand.h"
 
 #include <chrono>
@@ -52,7 +52,7 @@ namespace GTE {
 		
 		//Prepare for Rendering
 		RenderCommand::Init();
-		Renderer2D::Init();
+		Renderer::Init();
 	}
 
 	Application::Application(const char* title, int32 width, int32 height)
@@ -64,13 +64,14 @@ namespace GTE {
 
 		//Prepare for Rendering
 		RenderCommand::Init();
-		Renderer2D::Init();
+		Renderer::Init();
 	}
 
 	Application::~Application(void)
 	{
 		UNREGISTER(this);
 		delete m_Window;
+		Renderer::Shutdown();
 	}
 
 	bool Application::onResize(uint32 width, uint32 height)

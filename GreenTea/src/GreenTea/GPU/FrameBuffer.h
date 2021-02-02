@@ -26,6 +26,8 @@ namespace GTE::GPU {
 
 		virtual uint64 GetColorAttachmentID(uint32 attachment) const = 0;
 
+		virtual void BindAttachment(uint32 attachment, uint32 slot) const = 0;
+
 		virtual void Clear(uint32 attachment, const void* data) const = 0;
 
 		virtual void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const = 0;

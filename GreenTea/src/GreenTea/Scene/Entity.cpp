@@ -1,6 +1,10 @@
 #include "Entity.h"
 #include "Components.h"
+
 #include <gtc/matrix_transform.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 
 namespace GTE {
 
@@ -14,10 +18,10 @@ namespace GTE {
 			auto& tag = newEntity.AddComponent<TagComponent>();
 			tag.Tag = GetComponent<TagComponent>().Tag;
 		}
-		if (HasComponent<Transform2DComponent>())
+		if (HasComponent<TransformComponent>())
 		{
-			auto& transform = newEntity.AddComponent<Transform2DComponent>();
-			auto& ref = GetComponent<Transform2DComponent>();
+			auto& transform = newEntity.AddComponent<TransformComponent>();
+			auto& ref = GetComponent<TransformComponent>();
 			transform.Position = ref.Position;
 			transform.Scale = ref.Scale;
 			transform.Rotation = ref.Rotation;
@@ -28,12 +32,15 @@ namespace GTE {
 			auto& ref = GetComponent<Renderable2DComponent>();
 			renderable = ref;
 		}
-		if (HasComponent<OrthographicCameraComponent>())
+		if (HasComponent<PerspectiveCameraComponent>())
 		{
-			auto& camProp = newEntity.AddComponent<OrthographicCameraComponent>();
-			auto& ref = GetComponent<OrthographicCameraComponent>();
-			camProp.VerticalBoundary = ref.VerticalBoundary;
-			camProp.ZoomLevel = ref.ZoomLevel;
+			auto& camProp = newEntity.AddComponent<PerspectiveCameraComponent>();
+			auto& ref = GetComponent<PerspectiveCameraComponent>();
+			camProp.Target = ref.Target;
+			camProp.UpVector = ref.UpVector;
+			camProp.FoV = ref.FoV;
+			camProp.Near = ref.Near;
+			camProp.Far = ref.Far;
 		}
 		if (HasComponent<CameraComponent>())
 		{
@@ -47,34 +54,6 @@ namespace GTE {
 			 auto& ref = GetComponent<NativeScriptComponent>();
 			 nScript.ClassName = ref.ClassName;
 			 nScript.State = ScriptState::MustBeInitialized;
-		}
-		if (HasComponent<RigidBody2DComponent>())
-		{
-			auto& rigidbody = newEntity.AddComponent<RigidBody2DComponent>();
-			auto& ref = GetComponent<RigidBody2DComponent>();
-			rigidbody.AngularVelocity = ref.AngularVelocity;
-			rigidbody.Bullet = ref.Bullet;
-			rigidbody.FixedRotation = ref.FixedRotation;
-			rigidbody.GravityFactor = ref.GravityFactor;
-			rigidbody.Mass = ref.Mass;
-			rigidbody.Type = ref.Type;
-			rigidbody.Velocity = ref.Velocity;
-		}
-		if (HasComponent<BoxColliderComponent>())
-		{
-			auto& collider = newEntity.AddComponent<BoxColliderComponent>();
-			auto& ref = GetComponent<BoxColliderComponent>();
-			collider.Friction = ref.Friction;
-			collider.Restitution = ref.Restitution;
-			collider.Scale = ref.Scale;
-		}
-		if (HasComponent<CircleColliderComponent>())
-		{
-			auto& collider = newEntity.AddComponent<CircleColliderComponent>();
-			auto& ref = GetComponent<CircleColliderComponent>();
-			collider.Radius = ref.Radius;
-			collider.Friction = ref.Friction;
-			collider.Restitution = ref.Restitution;
 		}
 		if (HasComponent<RelationshipComponent>())
 		{
@@ -199,12 +178,12 @@ namespace GTE {
 		const auto& rel = GetComponent<RelationshipComponent>();
 		if (HasComponent<TransformationComponent>())
 		{
-			const auto& transform = GetComponent<Transform2DComponent>();
+			const auto& transform = GetComponent<TransformComponent>();
 			auto& transformation = GetComponent<TransformationComponent>();
 
 			transformation = glm::translate(glm::mat4(1.0f), transform.Position) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(transform.Rotation), glm::vec3(0.0f, 0.0f, 1.0f)) *
-				glm::scale(glm::mat4(1.0f), glm::vec3(transform.Scale.x, transform.Scale.y, 1.0f));
+				glm::toMat4(glm::quat(glm::radians(transform.Rotation))) *
+				glm::scale(glm::mat4(1.0f), transform.Scale);
 
 			if (rel.Parent != entt::null)
 			{
@@ -218,10 +197,18 @@ namespace GTE {
 			if (HasComponent<CameraComponent>())
 			{
 				auto& camera = GetComponent<CameraComponent>();
-				camera.ViewMatrix = glm::inverse(transformation.Transform);
+				auto& persp = GetComponent<PerspectiveCameraComponent>();
+				camera.ViewMatrix = glm::lookAt(glm::vec3(transformation.Transform[3]), persp.Target, persp.UpVector);
 				camera.EyeMatrix = camera.ProjectionMatrix * camera.ViewMatrix;
 			}
+
+			if (HasComponent<LightComponent>())
+			{
+				auto& lc = GetComponent<LightComponent>();
+				lc.Direction = glm::normalize(lc.Target - glm::vec3(transformation.Transform[3]));
+			}
 		}
+
 		Entity Child = { rel.FirstChild, m_Owner };
 		for (size_t i = 0; i < rel.Childrens; i++)
 		{

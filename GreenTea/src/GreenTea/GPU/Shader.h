@@ -60,14 +60,21 @@ namespace GTE::GPU {
 		* @param uniform Name of the uniform
 		* @param value An integer to be loaded into the uniform
 		*/
-		virtual void SetUniform(const std::string& uniform, const int32 value) = 0;
+		virtual void SetUniform(const std::string& uniform, int32 value) = 0;
+
+		/**
+		* @brief Setter for a uniform
+		* @param uniform Name of the uniform
+		* @param value An unsigned integer to be loaded into the uniform
+		*/
+		virtual void SetUniform(const std::string& uniform, uint32 value) = 0;
 
 		/**
 		* @brief Setter for a uniform
 		* @param uniform Name of the uniform
 		* @param value A float to be loaded into the uniform
 		*/
-		virtual void SetUniform(const std::string& uniform, const float value) = 0;
+		virtual void SetUniform(const std::string& uniform, float value) = 0;
 
 		/**
 		* @brief Setter for a uniform
@@ -104,6 +111,13 @@ namespace GTE::GPU {
 		* @param count Numbers of elments that will be loaded from the array into the uniform
 		*/
 		virtual void SetUniform(const std::string& uniform, const int32* values, uint32 count) = 0;
+
+		/**
+		* @brief Setter for a uniform
+		* @param uniform Name of the uniform
+		* @param value A boolean to be loaded into the uniform
+		*/
+		virtual void SetUniform(const std::string & uniform, bool value) = 0;
 
 	};
 

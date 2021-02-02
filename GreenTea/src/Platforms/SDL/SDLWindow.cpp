@@ -27,9 +27,9 @@ namespace GTE {
 			ENGINE_ASSERT((SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != -1), "No double buffering!\n\tError: ", SDL_GetError() , '\n');
  
 			// set OpenGL Version (3.3)
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 			ENGINE_ASSERT((SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3) != -1), "Couldn't set OpenGL major version to 3!\n\tError:", SDL_GetError(), '\n');
 			ENGINE_ASSERT((SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3) != -1), "Couldn't set OpenGL minor version to 3!\n\tError: ", SDL_GetError(), '\n');
-
 			break;
 		default:
 			ENGINE_ASSERT(false, "Only OpenGL API is supported currently!");

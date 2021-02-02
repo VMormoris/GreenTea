@@ -1,6 +1,6 @@
 #include "Buffer.h"
-#include "GreenTea/Core/Logger.h"
 #include "GraphicsContext.h"
+#include "GreenTea/Core/Logger.h"
 
 #include "Platforms/OpenGL/OpenGLBuffer.h"
 
