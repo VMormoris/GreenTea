@@ -4,13 +4,11 @@
         {
             "ID": 0,
             "Scene Properties Component": {
-                "g": {
-                    "x": 0.0,
-                    "y": -10.0
+                "Shadowmap Resolution": {
+                    "x": 1024.0,
+                    "y": 1024.0
                 },
-                "Rate": 30,
-                "Velocity Iterations": 6,
-                "Position Iterations": 2
+                "Camera's Velocity": 5.0
             },
             "Childrens": 0,
             "Entities": []
@@ -224,7 +222,8 @@
                 "Intensity": 189.1999969482422,
                 "Umbra": 36.29999923706055,
                 "Penumbra": 40.0,
-                "Shadow Resolution": 1024,
+                "Near": 0.1,
+                "Far": 10.0,
                 "Shadow Bias": 0.00019999999494757503
             },
             "Transform Component": {

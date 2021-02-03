@@ -1,48 +1,40 @@
-[30-01-2021 11:50:08] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:07:45] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state.
-[30-01-2021 11:50:08] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:07:45] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state, and was not found in the disk cache
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
-	Source: 33350
-	Type: 33360
-	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state.
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
-	Source: 33350
-	Type: 33360
-	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state, and was not found in the disk cache
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
-	Source: 33350
-	Type: 33360
-	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state.
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
-	Source: 33350
-	Type: 33360
-	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state, and was not found in the disk cache
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:08:05] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 9 is being recompiled based on GL state.
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:08:05] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 9 is being recompiled based on GL state, and was not found in the disk cache
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:08:05] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state.
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:08:05] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state, and was not found in the disk cache
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:08:42] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state.
-[30-01-2021 11:50:18] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+[03-02-2021 15:08:42] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+	Source: 33350
+	Type: 33360
+	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state, and was not found in the disk cache
+[03-02-2021 15:08:42] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
+	Source: 33350
+	Type: 33360
+	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state.
+[03-02-2021 15:08:42] [File: OpenGLRendererAPI.cpp, line: 18] (ERROR): 
 	Source: 33350
 	Type: 33360
 	Program/shader state performance warning: Vertex shader in program 1 is being recompiled based on GL state, and was not found in the disk cache

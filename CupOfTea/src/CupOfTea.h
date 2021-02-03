@@ -51,7 +51,7 @@ private:
 
 	//For Editor's Camera movement and Rotation
 	glm::vec2 m_CursorPos;
-	glm::vec3 m_CameraVelocity = glm::vec3{ 5.0f };
+	float m_CameraVelocity = 5.0f ;
 	float m_AngularSpeedFactor = 0.0025f;
 };
 

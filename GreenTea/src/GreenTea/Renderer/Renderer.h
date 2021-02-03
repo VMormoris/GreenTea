@@ -9,14 +9,14 @@
 
 namespace GTE {
 
-	struct SceneData {
+	struct ENGINE_API SceneData {
 		glm::mat4 EyeMatrix = glm::mat4(1.0f);
 		glm::vec3 CameraPos = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 CameraDir = { 0.0f, 0.0f, -1.0f };
 		GPU::FrameBuffer* Target = nullptr;
 	};
 
-	struct LightSource {
+	struct ENGINE_API LightSource {
 		glm::vec3 Position;
 		const LightComponent* lc = nullptr;
 
@@ -25,7 +25,7 @@ namespace GTE {
 	};
 
 
-	class Renderer {
+	class ENGINE_API Renderer {
 	public:
 
 		static void Init(void);
@@ -39,6 +39,8 @@ namespace GTE {
 		static void SubmitLight(const glm::vec3& position, const LightComponent& lc);
 
 		static void EndScene(void);
+
+		static void ResizeShadowmapRes(const glm::vec2& resolution);
 	
 	private:
 

@@ -57,7 +57,7 @@ uniform bool u_IsBump;
 
 
 uniform mat4 u_LightProjectionMatrix;
-uniform float u_ConstantBias = 0.0002;
+uniform float u_ConstantBias;
 
 uniform uint u_ID;
 

@@ -57,6 +57,7 @@ namespace GTE {
 		s_RendererData.Shader3D->AddUniform("u_CameraPos");
 		s_RendererData.Shader3D->AddUniform("u_CameraDir");
 		s_RendererData.Shader3D->AddUniform("u_LightProjectionMatrix");
+		s_RendererData.Shader3D->AddUniform("u_ConstantBias");
 
 		s_RendererData.Shader3D->AddUniform("DiffuseTexture");
 		s_RendererData.Shader3D->AddUniform("NormalTexture");
@@ -96,12 +97,11 @@ namespace GTE {
 			s_RendererData.Shader3D->SetUniform("u_Penumbra", light.lc->Penumbra);
 			s_RendererData.Shader3D->SetUniform("u_CameraPos", s_RendererData.SceneData.CameraPos);
 			s_RendererData.Shader3D->SetUniform("u_CameraDir", s_RendererData.SceneData.CameraDir);
+			s_RendererData.Shader3D->SetUniform("u_ConstantBias", light.lc->ShadowMapBias);
 
 			const glm::mat4 ViewMatrix = glm::lookAt(light.Position, light.lc->Target, glm::vec3(0.0f, 1.0f, 0.0f));
-			constexpr float Near = 0.1f;
-			constexpr float Far = 100.0f;
-			const float h = Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
-			const glm::mat4 ProjectionMatrix = glm::frustum(-h, h, -h, h, Near, Far);
+			const float h = light.lc->Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
+			const glm::mat4 ProjectionMatrix = glm::frustum(-h, h, -h, h, light.lc->Near, light.lc->Far);
 			const glm::mat4 EyeMatrix = ProjectionMatrix * ViewMatrix;
 
 			s_RendererData.Shader3D->SetUniform("u_LightProjectionMatrix", EyeMatrix);
@@ -193,18 +193,17 @@ namespace GTE {
 
 	void Renderer::RenderShadowmaps(const LightSource& light)
 	{
-		s_RendererData.ShadowmapFBO->Resize(light.lc->ShadowMapResolution, light.lc->ShadowMapResolution);
+		//s_RendererData.ShadowmapFBO->Resize(light.lc->ShadowMapResolution, light.lc->ShadowMapResolution);
 		s_RendererData.ShadowmapFBO->Bind();
-		RenderCommand::SetViewport(0, 0, light.lc->ShadowMapResolution, light.lc->ShadowMapResolution);
+		auto spec = s_RendererData.ShadowmapFBO->GetSpecification();
+		RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
 		RenderCommand::Clear();
 
 		s_RendererData.ShaderShadows->Bind();
 
 		const glm::mat4 ViewMatrix = glm::lookAt(light.Position, light.lc->Target, glm::vec3(0.0f, 1.0f, 0.0f));
-		constexpr float Near = 0.1f;
-		constexpr float Far = 100.0f;
-		const float h = Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
-		const glm::mat4 ProjectionMatrix = glm::frustum(-h, h, -h, h, Near, Far);
+		const float h = light.lc->Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
+		const glm::mat4 ProjectionMatrix = glm::frustum(-h, h, -h, h, light.lc->Near, light.lc->Far);
 		const glm::mat4 EyeMatrix = ProjectionMatrix * ViewMatrix;
 		
 		for (const auto& mesh : s_RendererData.Meshes)
@@ -235,5 +234,6 @@ namespace GTE {
 
 	void Renderer::SubmitMesh(const glm::mat4& transform, GPU::Mesh* mesh, uint32 ID) { s_RendererData.Meshes.push_back({ transform, mesh, ID }); }
 	void Renderer::SubmitLight(const glm::vec3& position, const LightComponent& lc) { s_RendererData.Lights.push_back({ position, lc }); }
+	void Renderer::ResizeShadowmapRes(const glm::vec2& resolution) { s_RendererData.ShadowmapFBO->Resize(static_cast<uint32>(resolution.x), static_cast<uint32>(resolution.y)); }
 
 }

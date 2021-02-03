@@ -371,7 +371,8 @@ namespace GTE {
 		archive(lc.Intensity);
 		archive(lc.Umbra);
 		archive(lc.Penumbra);
-		archive(lc.ShadowMapResolution);
+		archive(lc.Near);
+		archive(lc.Far);
 		archive(lc.ShadowMapBias);
 	}
 
@@ -403,7 +404,8 @@ namespace GTE {
 		archive(cereal::make_nvp("Intensity", lc.Intensity));
 		archive(cereal::make_nvp("Umbra", lc.Umbra));
 		archive(cereal::make_nvp("Penumbra", lc.Penumbra));
-		archive(cereal::make_nvp("Shadow Resolution", lc.ShadowMapResolution));
+		archive(cereal::make_nvp("Near", lc.Near));
+		archive(cereal::make_nvp("Far", lc.Far));
 		archive(cereal::make_nvp("Shadow Bias", lc.ShadowMapBias));
 	}
 
@@ -438,24 +440,22 @@ namespace GTE {
 	template<typename BinaryArchive>
 	void BinSerialize(BinaryArchive& archive, ScenePropertiesComponent& sceneProps)
 	{
-		archive(sceneProps.Gravity.x);
-		archive(sceneProps.Gravity.y);
-		archive(sceneProps.Rate);
-		archive(sceneProps.VelocityIterations);
-		archive(sceneProps.PositionIterations);
+		archive(sceneProps.ShadowmapResolution.x);
+		archive(sceneProps.ShadowmapResolution.y);
+
+		archive(sceneProps.CamVelocity);
 	}
 
 	template<typename JSONArchive>
 	void JSONSerialize(JSONArchive& archive, ScenePropertiesComponent& sceneProps)
 	{
-		archive.setNextName("g");
+		archive.setNextName("Shadowmap Resolution");
 		archive.startNode();
-		archive(cereal::make_nvp("x", sceneProps.Gravity.x));
-		archive(cereal::make_nvp("y", sceneProps.Gravity.y));
+		archive(cereal::make_nvp("x", sceneProps.ShadowmapResolution.x));
+		archive(cereal::make_nvp("y", sceneProps.ShadowmapResolution.y));
 		archive.finishNode();
-		archive(cereal::make_nvp("Rate", sceneProps.Rate));
-		archive(cereal::make_nvp("Velocity Iterations", sceneProps.VelocityIterations));
-		archive(cereal::make_nvp("Position Iterations", sceneProps.PositionIterations));
+
+		archive(cereal::make_nvp("Camera's Velocity", sceneProps.CamVelocity));
 	}
 
 	template<typename Archive>

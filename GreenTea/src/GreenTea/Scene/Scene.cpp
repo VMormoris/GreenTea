@@ -125,17 +125,6 @@ namespace GTE {
 
 		m_Accumulator += dt;
 
-		const auto& sceneProp = m_Registry.get<ScenePropertiesComponent>(m_Me);
-		const float STEP = 1.0f / (float)sceneProp.Rate;
-
-		bool physics = false;
-		while (m_Accumulator >= STEP)
-		{
-			physics = true;
-			//FixedUpdate();
-			m_Accumulator -= STEP;
-		}
-
 		/*{
 			//Update Transforms RigidBodies for next rendering (aka Move stuff on the screen)
 			//	Physics has fixed time step so we need to "smooth" the movement between frames

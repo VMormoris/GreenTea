@@ -377,7 +377,13 @@ namespace GTE {
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
-		const bool changed = ImGui::DragFloat("##", &value, settings.Speed, settings.Clamp.x, settings.Clamp.y);
+
+		bool changed;
+		if(value<0.001f)
+			changed = ImGui::DragFloat("##", &value, settings.Speed, settings.Clamp.x, settings.Clamp.y, "%.5f");
+		else
+			changed = ImGui::DragFloat("##", &value, settings.Speed, settings.Clamp.x, settings.Clamp.y);
+
 		if (settings.Disabled[0])
 		{
 			ImGui::PopItemFlag();

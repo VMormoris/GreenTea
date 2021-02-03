@@ -132,8 +132,9 @@ namespace GTE {
 		float Intensity = 1.0f;
 		float Umbra = 60.0f;
 		float Penumbra = 60.0f;
-		int32 ShadowMapResolution = 1024;
-		float ShadowMapBias = 0.001f;
+		float Near = 0.1f;
+		float Far = 10.0f;
+		float ShadowMapBias = 0.0002f;
 	};
 
 	enum class ENGINE_API ScriptState : char {
@@ -161,25 +162,13 @@ namespace GTE {
 	* @warning This component is meant to be used internally by the engine
 	*/
 	struct ENGINE_API ScenePropertiesComponent {
-		//b2World* World = nullptr;
-
-		/**
-		* @brief Gravity Acceleration
-		*/
-		glm::vec2 Gravity = { 0.0f, -10.0f };
-		/**
-		* @brief Physics fixed-update rate
-		* @details How many fixed-updates and physics calculations will be happening each second
-		*/
-		int32 Rate = 30;
-
-		int32 VelocityIterations = 6;
-		int32 PositionIterations = 2;
-
+		glm::vec2 ShadowmapResolution {1024.0f, 1024.0f};
+		float CamVelocity = 5.0f;
 		ScenePropertiesComponent(void) = default;
 		ScenePropertiesComponent(const ScenePropertiesComponent&) = default;
-		ScenePropertiesComponent(const glm::vec2 g, int32 rate, int32 velIterations = 6, int32 posIterations = 2)
-			: Gravity(g), Rate(rate), VelocityIterations(velIterations), PositionIterations(posIterations) {}
+		
+		ScenePropertiesComponent(const glm::vec2& shadowRes, float vel)
+			: ShadowmapResolution(shadowRes), CamVelocity(vel) {}
 
 	};
 

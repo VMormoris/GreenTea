@@ -119,12 +119,13 @@ namespace GTE {
 			settings.Clamp.y = 180.0f;
 			DrawFloatControl("Umbra", lc.Umbra, settings);
 			DrawFloatControl("Penumbra", lc.Penumbra, settings);
-			DrawIntControl("Shadow Resolution", lc.ShadowMapResolution, settings);
 			settings.Clamp.x = 0.0f;
 			settings.Clamp.y = FLT_MAX;
 			DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);
 			settings.Clamp.x = 1.0f;
 			DrawFloatControl("Intensity", lc.Intensity, settings);
+			DrawFloatControl("Near", lc.Near, settings);
+			DrawFloatControl("Far", lc.Far, settings);
 			settings = UISettings();
 			DrawColorPicker("Color", lc.Color, settings);
 		});

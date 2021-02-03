@@ -39,14 +39,14 @@ void CupOfTea::Update(float dt)
 		glm::vec3 dir = glm::normalize(persp.Target - tc.Position);
 
 		bool flag = false;
-		if (Input::KeyPressed(KeyCode::UP))//Move Forward
-		{
+		if (Input::KeyPressed(KeyCode::UP) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::W)))
+		{//Move Forward
 			tc.Position += dir * m_CameraVelocity * dt;
 			persp.Target += dir * m_CameraVelocity * dt;
 			flag = true;
 		}
-		if (Input::KeyPressed(KeyCode::DOWN))
-		{
+		if (Input::KeyPressed(KeyCode::DOWN) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::S)))
+		{//Move Backwars
 			tc.Position -= dir * m_CameraVelocity * dt;
 			persp.Target -= dir * m_CameraVelocity * dt;
 			flag = true;
@@ -54,18 +54,19 @@ void CupOfTea::Update(float dt)
 
 		glm::vec3 right = glm::normalize(glm::cross(dir, persp.UpVector));
 
-		if (Input::KeyPressed(KeyCode::RIGHT))
-		{
+		if (Input::KeyPressed(KeyCode::RIGHT) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::D)))
+		{//Move to the Right
 			tc.Position += right * m_CameraVelocity * dt;
 			persp.Target += right * m_CameraVelocity * dt;
 			flag = true;
 		}
-		if (Input::KeyPressed(KeyCode::LEFT))
-		{
+		if (Input::KeyPressed(KeyCode::LEFT) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::A)))
+		{//Move to the Left
 			tc.Position -= right * m_CameraVelocity * dt;
 			persp.Target -= right * m_CameraVelocity * dt;
 			flag = true;
 		}
+
 		if (flag)
 		{
 			auto& transformation = EditorCameraEntity.GetComponent<TransformationComponent>();
@@ -219,21 +220,29 @@ void CupOfTea::Update(float dt)
 	{
 		if (ImGui::Begin("Scene Properties"))
 		{
+			Entity sceneEntity = m_ActiveScene->GetSceneEntity();
+			DrawComponent<ScenePropertiesComponent>("Scene Properties", sceneEntity, [&](auto& sceneProp) {
+				UISettings settings;
+				settings.Clamp = glm::vec2(512.0f, FLT_MAX);
+				settings.ResetValue = 1024.0f;
+				settings.Speed = 1.0f;
+				settings.ColumnWidth = 125.0f;
+				if (DrawVec2Control("Shadowmap Res", sceneProp.ShadowmapResolution, settings))
+					Renderer::ResizeShadowmapRes(sceneProp.ShadowmapResolution);
+			});
 
 			DrawComponent<CameraComponent>("Editor's Camera", EditorCameraEntity, [&](auto& cam) {
 				UISettings settings;
-				settings.ColumnWidth = 125.0f;
 				auto& tc = EditorCameraEntity.GetComponent<TransformComponent>();
 				const bool PositionFlag = DrawVec3Control("Position", tc.Position, settings);
-				DrawVec3Control("Velocity", m_CameraVelocity, settings);
 				auto& persp = EditorCameraEntity.GetComponent<PerspectiveCameraComponent>();
 				const bool TargetFlag = DrawVec3Control("Target", persp.Target, settings);
 				const bool UpVectorFlag = DrawVec3Control("Up Vector", persp.UpVector, settings);
 				const bool FoVFlag = DrawFloatControl("FoV", persp.FoV, settings);
 				const bool NearFlag = DrawFloatControl("Near Plane", persp.Near, settings);
 				const bool FarFlag = DrawFloatControl("Far Plane", persp.Far, settings);
-				DrawCheckboxControl("Primary", cam.Primary, settings);
-				DrawCheckboxControl("Fixed Aspect Ratio", cam.FixedAspectRatio, settings);
+				DrawFloatControl("Velocity", m_CameraVelocity, settings);
+
 
 				if (PositionFlag)
 					EditorCameraEntity.UpdateMatrices();
@@ -621,6 +630,13 @@ void CupOfTea::OpenScene(void)
 		pProps.WorkingScene = filepath.substr(filepath.find_last_of("/\\"));
 		std::string content = pProps.ProjectName + ".dll\n" + pProps.WorkingScene;
 		utils::writefile(project_filepath.c_str(), content);
+
+		//Update Scene properties
+		Entity entity = m_ActiveScene->GetSceneEntity();
+		auto& sceneProp = entity.GetComponent<ScenePropertiesComponent>();
+		m_CameraVelocity = sceneProp.CamVelocity;
+
+		Renderer::ResizeShadowmapRes(sceneProp.ShadowmapResolution);
 	}
 }
 
@@ -630,6 +646,11 @@ void CupOfTea::SaveSceneAs(void)
 	if (!filepath.empty()) {
 		if (filepath.find(".gtscene") == std::string::npos)
 			filepath += ".gtscene";
+
+		//Update Scene properties
+		Entity entity = m_ActiveScene->GetSceneEntity();
+		auto& sceneProp = entity.GetComponent<ScenePropertiesComponent>();
+		sceneProp.CamVelocity = m_CameraVelocity;
 		m_ActiveScene->Save(filepath.c_str());
 	}
 }
