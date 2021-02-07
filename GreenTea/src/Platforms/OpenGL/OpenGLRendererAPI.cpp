@@ -27,7 +27,7 @@ namespace GTE::GPU::OpenGL {
 
 	void OpenGLRendererAPI::Init()
 	{
-		glEnable(GL_DEBUG_OUTPUT);
+		//glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(OpenGLMessageCallback, NULL);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);

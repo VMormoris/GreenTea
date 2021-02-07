@@ -1,0 +1,88 @@
+{
+    "Total Entities": 3,
+    "Entities": [
+        {
+            "ID": 0,
+            "Scene Properties Component": {
+                "Shadowmap Resolution": {
+                    "x": 1024.0,
+                    "y": 1024.0
+                },
+                "Camera's Velocity": 5.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 1500.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.4755661487579346,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 2.0,
+                    "y": 2.0,
+                    "z": 4.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\Sphere.obj",
+                "Material Index: ": 1
+            },
+            "Tag Component": {
+                "Tag": "Sphere"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

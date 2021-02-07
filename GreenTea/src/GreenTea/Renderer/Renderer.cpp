@@ -34,7 +34,7 @@ namespace GTE {
 
 	void Renderer::Init(void)
 	{
-		s_RendererData.Shader3D = GPU::Shader::Create("../Assets/Shaders/Shader3D.glsl");
+		s_RendererData.Shader3D = GPU::Shader::Create("../Assets/Shaders/PBR.glsl");
 		s_RendererData.Shader3D->Bind();
 		//Vertex Shader's uniforms
 		s_RendererData.Shader3D->AddUniform("u_EyeMatrix");
@@ -46,28 +46,33 @@ namespace GTE {
 		s_RendererData.Shader3D->AddUniform("u_Specular");
 		s_RendererData.Shader3D->AddUniform("u_Ambient");
 		s_RendererData.Shader3D->AddUniform("u_Shininess");
-		s_RendererData.Shader3D->AddUniform("u_HasTexture");
 
+		s_RendererData.Shader3D->AddUniform("u_HasTexture");
 		s_RendererData.Shader3D->AddUniform("u_HasLight");
+		s_RendererData.Shader3D->AddUniform("u_HasNormal");
+		s_RendererData.Shader3D->AddUniform("u_HasMask");
+		s_RendererData.Shader3D->AddUniform("u_HasEmissive");
+		//s_RendererData.Shader3D->AddUniform("u_IsBump");
+
 		s_RendererData.Shader3D->AddUniform("u_LightColor");
 		s_RendererData.Shader3D->AddUniform("u_LightPos");
 		s_RendererData.Shader3D->AddUniform("u_LightDir");
 		s_RendererData.Shader3D->AddUniform("u_Umbra");
 		s_RendererData.Shader3D->AddUniform("u_Penumbra");
-		s_RendererData.Shader3D->AddUniform("u_CameraPos");
-		s_RendererData.Shader3D->AddUniform("u_CameraDir");
 		s_RendererData.Shader3D->AddUniform("u_LightProjectionMatrix");
 		s_RendererData.Shader3D->AddUniform("u_ConstantBias");
+		
+		s_RendererData.Shader3D->AddUniform("u_CameraPos");
+		s_RendererData.Shader3D->AddUniform("u_CameraDir");
+
+		s_RendererData.Shader3D->AddUniform("u_ID");
+		s_RendererData.Shader3D->AddUniform("u_ViewportSize");
 
 		s_RendererData.Shader3D->AddUniform("DiffuseTexture");
 		s_RendererData.Shader3D->AddUniform("NormalTexture");
+		s_RendererData.Shader3D->AddUniform("MaskTexture");
+		s_RendererData.Shader3D->AddUniform("EmissiveTexture");
 		s_RendererData.Shader3D->AddUniform("ShadowmapTexture");
-
-		s_RendererData.Shader3D->AddUniform("u_HasNormal");
-		s_RendererData.Shader3D->AddUniform("u_IsBump");
-		//s_RendererData.Shader3D->AddUniform("u_ConstantBias");
-
-		s_RendererData.Shader3D->AddUniform("u_ID");
 
 		s_RendererData.ShaderShadows = GPU::Shader::Create("../Assets/Shaders/ShaderShadowmap.glsl");
 		s_RendererData.ShaderShadows->AddUniform("u_EyeModelMatrix");
@@ -105,9 +110,12 @@ namespace GTE {
 			const glm::mat4 EyeMatrix = ProjectionMatrix * ViewMatrix;
 
 			s_RendererData.Shader3D->SetUniform("u_LightProjectionMatrix", EyeMatrix);
-			//s_RendererData.Shader3D->SetUniform("NormalTexture", 1);
-			//s_RendererData.Shader3D->SetUniform("ShadowmapTexture", 2);
-			//s_RendererData.ShadowmapFBO->BindAttachment(0, 2);
+			s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
+			s_RendererData.Shader3D->SetUniform("NormalTexture", 1);
+			s_RendererData.Shader3D->SetUniform("MaskTexture", 2);
+			s_RendererData.Shader3D->SetUniform("EmissiveTexture", 3);
+			s_RendererData.Shader3D->SetUniform("ShadowmapTexture", 4);
+			s_RendererData.ShadowmapFBO->BindAttachment(0, 4);
 			RenderGeometry();
 		}
 		else
@@ -115,6 +123,7 @@ namespace GTE {
 			s_RendererData.Shader3D->Bind();
 			s_RendererData.Shader3D->SetUniform("u_EyeMatrix", s_RendererData.SceneData.EyeMatrix);
 			s_RendererData.Shader3D->SetUniform("u_HasLight", false);
+			s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
 			RenderGeometry();
 		}
 	}
@@ -126,6 +135,7 @@ namespace GTE {
 		RenderCommand::SetViewport(0, 0, fboSpec.Width, fboSpec.Height);
 		RenderCommand::SetClearColor({ 1.0f, 0.0f, 1.0f, 1.0f });
 		RenderCommand::Clear();
+		s_RendererData.Shader3D->SetUniform("u_ViewportSize", glm::vec2(fboSpec.Width, fboSpec.Height));
 
 		for (const auto& mesh : s_RendererData.Meshes)
 		{
@@ -159,32 +169,60 @@ namespace GTE {
 					if (material.DiffuseTexture->Type == AssetType::TEXTURE)
 					{
 						s_RendererData.Shader3D->SetUniform("u_HasTexture", true);
-						s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
 						((GPU::Texture2D*)material.DiffuseTexture->ActualAsset)->Bind(0);
 					}
 				}
 
-				{//Bump
-					if (material.BumpTexture->Type == AssetType::INVALID)
+				{//Normal
+					if (material.NormalTexture->Type == AssetType::INVALID)
 						s_RendererData.Shader3D->SetUniform("u_HasNormal", false);
-					else if (material.BumpTexture->Type == AssetType::LOADING)
+					else if (material.NormalTexture->Type == AssetType::LOADING)
 					{
-						material.BumpTexture = AssetManager::RequestTexture(material.BumpName.c_str());
-						if (material.BumpTexture->Type == AssetType::LOADING)
+						material.NormalTexture = AssetManager::RequestTexture(material.NormalName.c_str());
+						if (material.NormalTexture->Type == AssetType::LOADING)
 							s_RendererData.Shader3D->SetUniform("u_HasNormal", false);
 					}
 
-					if (material.BumpTexture->Type == AssetType::TEXTURE)
+					if (material.NormalTexture->Type == AssetType::TEXTURE)
 					{
 						s_RendererData.Shader3D->SetUniform("u_HasNormal", true);
-						s_RendererData.Shader3D->SetUniform("u_IsBump", true);
-						s_RendererData.Shader3D->SetUniform("NormalTexture", 1);
-						((GPU::Texture2D*)material.BumpTexture->ActualAsset)->Bind(1);
+						((GPU::Texture2D*)material.NormalTexture->ActualAsset)->Bind(1);
 					}
 				}
 
-				s_RendererData.Shader3D->SetUniform("ShadowmapTexture", 2);
-				s_RendererData.ShadowmapFBO->BindAttachment(0, 2);
+				{//Metallicity Ambient Reflectance Glossiness
+					if (material.SpecularTexture->Type == AssetType::INVALID)
+						s_RendererData.Shader3D->SetUniform("u_HasMask", false);
+					else if (material.SpecularTexture->Type == AssetType::LOADING)
+					{
+						material.SpecularTexture = AssetManager::RequestTexture(material.SpecularName.c_str());
+						if(material.SpecularTexture->Type == AssetType::LOADING)
+							s_RendererData.Shader3D->SetUniform("u_HasMask", false);
+					}
+
+					if (material.SpecularTexture->Type == AssetType::TEXTURE)
+					{
+						s_RendererData.Shader3D->SetUniform("u_HasMask", true);
+						((GPU::Texture2D*)material.SpecularTexture->ActualAsset)->Bind(2);
+					}
+				}
+
+				{//Emissivity
+					if (material.AmbientTexture->Type == AssetType::INVALID)
+						s_RendererData.Shader3D->SetUniform("u_HasEmissive", false);
+					else if (material.AmbientTexture->Type == AssetType::LOADING)
+					{
+						material.AmbientTexture = AssetManager::RequestTexture(material.AmbientName.c_str());
+						if (material.AmbientTexture->Type == AssetType::LOADING)
+							s_RendererData.Shader3D->SetUniform("u_HasEmissive", false);
+					}
+
+					if (material.AmbientTexture->Type == AssetType::TEXTURE)
+					{
+						s_RendererData.Shader3D->SetUniform("u_HasEmissive", true);
+						((GPU::Texture2D*)material.AmbientTexture->ActualAsset)->Bind(3);
+					}
+				}
 
 				RenderCommand::DrawArray(mesh.Geometry->GetVAO(), parts[i].Start, (parts[i].End - parts[i].Start));
 			}

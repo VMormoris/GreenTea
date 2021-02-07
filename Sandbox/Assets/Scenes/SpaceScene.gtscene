@@ -1,0 +1,224 @@
+{
+    "Total Entities": 7,
+    "Entities": [
+        {
+            "ID": 0,
+            "Scene Properties Component": {
+                "Shadowmap Resolution": {
+                    "x": 1024.0,
+                    "y": 1024.0
+                },
+                "Camera's Velocity": 5.0
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": 6.871521472930908,
+                    "y": -5.226207256317139,
+                    "z": 10.686751365661621
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 40.0,
+                "Near": 0.10000000149011612,
+                "Far": 1500.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.4773269891738892,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -0.7144580483436585,
+                    "y": 3.963493824005127,
+                    "z": -11.588339805603028
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2097154,
+            "Tag Component": {
+                "Tag": "Light"
+            },
+            "Light Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Direction": {
+                    "x": 0.36039677262306216,
+                    "y": -0.9324137568473816,
+                    "z": -0.02680678479373455
+                },
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 500.0,
+                "Umbra": 60.0,
+                "Penumbra": 94.80000305175781,
+                "Near": 0.10000000149011612,
+                "Far": 100.0,
+                "Shadow Bias": 0.0020000000949949028
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -1.5335960388183594,
+                    "y": 3.9676995277404787,
+                    "z": 0.11407089233398438
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 3,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\Cannon.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Cannon"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -2.990137815475464,
+                    "y": -0.6124701499938965,
+                    "z": -1.737912893295288
+                },
+                "Scale": {
+                    "x": 0.9999573826789856,
+                    "y": 1.0,
+                    "z": 0.9999573826789856
+                },
+                "Rotation": {
+                    "x": -180.0,
+                    "y": 0.0,
+                    "z": -180.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 2097156,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\Wall.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Wall"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -1.729892373085022,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 0.9999276399612427,
+                    "y": 1.0000007152557374,
+                    "z": 0.9999284744262695
+                },
+                "Rotation": {
+                    "x": 90.0,
+                    "y": 89.99877166748047,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 5,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\CannonMount.obj",
+                "Material Index: ": 0
+            },
+            "Tag Component": {
+                "Tag": "Cannon Mount"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -3.061469554901123,
+                    "y": -2.566179037094116,
+                    "z": 0.06799399852752686
+                },
+                "Scale": {
+                    "x": 0.999902606010437,
+                    "y": 1.0,
+                    "z": 0.999902606010437
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 90.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 6,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\Corridor_Straight.obj",
+                "Material Index: ": 1
+            },
+            "Tag Component": {
+                "Tag": "Corridor"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

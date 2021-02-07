@@ -720,17 +720,17 @@ namespace GTE {
 		}
 		if (ImGui::CollapsingHeader("Normals", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::PushID("Bump");
+			ImGui::PushID("Normal");
 			GPU::Texture2D* texture;
 			void* img = nullptr;
-			if (mat.BumpTexture->Type == AssetType::INVALID || mat.BumpTexture->Type == AssetType::LOADING)
+			if (mat.NormalTexture->Type == AssetType::INVALID || mat.NormalTexture->Type == AssetType::LOADING)
 			{
 				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
 				img = texture->GetID();
 			}
 			else
 			{
-				texture = static_cast<GPU::Texture2D*>(mat.BumpTexture->ActualAsset);
+				texture = static_cast<GPU::Texture2D*>(mat.NormalTexture->ActualAsset);
 				img = texture->GetID();
 			}
 			ImGui::Image(img, { 64.0f, 64.0f });
@@ -739,13 +739,72 @@ namespace GTE {
 				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
 				if (!filepath.empty())
 				{
-					mat.BumpName = filepath;
-					mat.BumpTexture = AssetManager::RequestTexture(filepath.c_str());
+					mat.NormalName = filepath;
+					mat.NormalTexture = AssetManager::RequestTexture(filepath.c_str());
 				}
 			}
 			ImGui::PopID();
 		}
-		if (ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_DefaultOpen))
+
+		if (ImGui::CollapsingHeader("Mask", ImGuiTreeNodeFlags_DefaultOpen))
+		{			
+			GPU::Texture2D* texture;
+			void* img = nullptr;
+			if (mat.SpecularTexture->Type == AssetType::INVALID || mat.SpecularTexture->Type == AssetType::LOADING)
+			{
+				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
+				img = texture->GetID();
+			}
+			else
+			{
+				texture = static_cast<GPU::Texture2D*>(mat.SpecularTexture->ActualAsset);
+				img = texture->GetID();
+			}
+
+			ImGui::PushID("MaskMap");
+			ImGui::Columns(2);
+			ImGui::SetColumnWidth(0, 72.0f);
+
+			ImGui::Image(img, { 64.0f, 64.0f });
+			if (ImGui::IsItemClicked())
+			{
+				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
+				if (!filepath.empty())
+				{
+					mat.SpecularName = filepath;
+					mat.SpecularTexture = AssetManager::RequestTexture(filepath.c_str());
+				}
+			}
+
+			ImGui::NextColumn();
+
+			
+			const float size = ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize("Roughness").x;
+			
+
+			ImGui::PushID("Metallicity");
+			ImGui::Text("Metallicity:");
+			ImGui::SameLine(0.0f, 14.0f);
+			ImGui::PushItemWidth(size);
+			ImGui::SliderFloat("", &mat.Specular.r, 0.0f, 1.0f);
+			ImGui::PopItemWidth();
+			ImGui::PopID();
+
+			ImGui::PushID("Roughness");
+			ImGui::Text("Roughness:");
+			ImGui::SameLine();
+			float roughness = 1.0f - mat.Shininess;
+			ImGui::PushItemWidth(size);
+			if (ImGui::SliderFloat("", &roughness, 0.0f, 1.0f))
+				mat.Shininess = 1.0f - roughness;
+			ImGui::PopItemWidth();
+			ImGui::PopID();
+
+			ImGui::Columns(1);
+			ImGui::PopID();
+		}
+
+		if (ImGui::CollapsingHeader("Emissive", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::PushID("Ambient");
 			GPU::Texture2D* texture;
@@ -778,39 +837,7 @@ namespace GTE {
 			DrawColorPicker("", mat.Ambient, subsettings);
 			ImGui::PopID();
 		}
-		if (ImGui::CollapsingHeader("Specular", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::PushID("Specular");
-			GPU::Texture2D* texture;
-			void* img = nullptr;
-			if (mat.SpecularTexture->Type == AssetType::INVALID || mat.SpecularTexture->Type == AssetType::LOADING)
-			{
-				texture = static_cast<GPU::Texture2D*>(TransparentTexture->ActualAsset);
-				img = texture->GetID();
-			}
-			else
-			{
-				texture = static_cast<GPU::Texture2D*>(mat.SpecularTexture->ActualAsset);
-				img = texture->GetID();
-			}
-			ImGui::Image(img, { 64.0f, 64.0f });
-			if (ImGui::IsItemClicked())
-			{
-				std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png); JPG file (*.jpg)\0*.png;*.jpg\0");
-				if (!filepath.empty())
-				{
-					mat.SpecularName = filepath;
-					mat.SpecularTexture = AssetManager::RequestTexture(filepath.c_str());
-				}
-			}
-			ImGui::SameLine();
-			ImGui::Text("Tint Color");
-			ImGui::SameLine();
-			UISettings subsettings;
-			subsettings.ColumnWidth = 64.0f + ImGui::CalcTextSize("Tint Color").x + 20.0f;
-			DrawColorPicker("", mat.Specular, subsettings);
-			ImGui::PopID();
-		}
+		
 		ImGui::PopID();
 
 		return false;

@@ -312,6 +312,8 @@ void CupOfTea::Update(float dt)
 						glm::scale(glm::mat4(1.0f), tc.Scale);
 
 					const auto& rel = SelectedEntity.GetComponent<RelationshipComponent>();
+					
+					bool manipulated;
 
 					if (rel.Parent != entt::null)
 					{
@@ -319,37 +321,41 @@ void CupOfTea::Update(float dt)
 						glm::mat4 PTransform = Parent.GetComponent<TransformationComponent>().Transform;
 						transform = PTransform * transform;
 
-						ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
+						manipulated = ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
 							GuizmoOP, ImGuizmo::MODE::LOCAL,
 							glm::value_ptr(transform));
 						transform = glm::inverse(PTransform) * transform;
 					}
 					else
 					{
-						ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
-							GuizmoOP, ImGuizmo::MODE::LOCAL,
+						manipulated = ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
+							GuizmoOP, ImGuizmo::MODE::WORLD,
 							glm::value_ptr(transform));
 					}
 
 					if (ImGuizmo::IsUsing())
 					{
 						SelectionFlag = false;
-						glm::vec3 Position, Rotation, Scale;
-						//ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(Position), glm::value_ptr(Rotation), glm::value_ptr(Scale));
-						Math::DecomposeTransform(transform, Position, Rotation, Scale);
-						tc.Position = Position;
-						if (Scale.x == 0.0f || Scale.y == 0.0f || Scale.z == 0.0f)
+						if (manipulated)
 						{
-							GTE_TRACE_LOG("Here I am on the road again!");
+							glm::vec3 Position, Rotation, Scale;
+							ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(Position), glm::value_ptr(Rotation), glm::value_ptr(Scale));
+							//Math::DecomposeTransform(transform, Position, Rotation, Scale);
+							switch (GuizmoOP)
+							{
+							case ImGuizmo::OPERATION::TRANSLATE:
+								tc.Position = Position;
+								break;
+							case ImGuizmo::OPERATION::SCALE:
+								tc.Scale = Scale;
+								break;
+							case ImGuizmo::OPERATION::ROTATE:
+								glm::vec3 delta = Rotation - tc.Rotation;
+								tc.Rotation += delta;
+								break;
+							}
+							SelectedEntity.UpdateMatrices();
 						}
-						else
-							tc.Scale = Scale;
-
-						//Avoid Deadlock
-						glm::vec3 delta = glm::degrees(Rotation) - tc.Rotation;
-						tc.Rotation += delta;
-						
-						SelectedEntity.UpdateMatrices();
 					}
 				}
 			}

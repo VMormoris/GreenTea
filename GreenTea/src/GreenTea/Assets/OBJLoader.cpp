@@ -563,26 +563,37 @@ namespace GTE {
 				s >> m_Mesh->m_Materials[currentMaterialID].DiffuseName;
 				m_Mesh->m_Materials[currentMaterialID].DiffuseName = folder + m_Mesh->m_Materials[currentMaterialID].DiffuseName;
 				m_Mesh->m_Materials[currentMaterialID].DiffuseTexture = AssetManager::RequestTexture(m_Mesh->m_Materials[currentMaterialID].DiffuseName.c_str());
+				m_Mesh->m_Materials[currentMaterialID].Diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+			else if (utils::compareStringIgnoreCase(line.substr(0, 13), "map_emissive ")) {// read ambient texture
+				std::istringstream s(line.substr(13));
+				s >> m_Mesh->m_Materials[currentMaterialID].AmbientName;
+				m_Mesh->m_Materials[currentMaterialID].AmbientName = folder + m_Mesh->m_Materials[currentMaterialID].AmbientName;
+				m_Mesh->m_Materials[currentMaterialID].AmbientTexture = AssetManager::RequestTexture(m_Mesh->m_Materials[currentMaterialID].AmbientName.c_str());
+				m_Mesh->m_Materials[currentMaterialID].Ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 			else if (utils::compareStringIgnoreCase(line.substr(0, 7), "map_ka ")) { // read ambient texture
 				std::istringstream s(line.substr(7));
 				s >> m_Mesh->m_Materials[currentMaterialID].AmbientName;
 				m_Mesh->m_Materials[currentMaterialID].AmbientName = folder + m_Mesh->m_Materials[currentMaterialID].AmbientName;
 				m_Mesh->m_Materials[currentMaterialID].AmbientTexture = AssetManager::RequestTexture(m_Mesh->m_Materials[currentMaterialID].AmbientName.c_str());
+				m_Mesh->m_Materials[currentMaterialID].Ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 			else if (utils::compareStringIgnoreCase(line.substr(0, 7), "map_ks ")) { // read specular texture
 				std::istringstream s(line.substr(7));
 				s >> m_Mesh->m_Materials[currentMaterialID].SpecularName;
 				m_Mesh->m_Materials[currentMaterialID].SpecularName = folder + m_Mesh->m_Materials[currentMaterialID].SpecularName;
 				m_Mesh->m_Materials[currentMaterialID].SpecularTexture = AssetManager::RequestTexture(m_Mesh->m_Materials[currentMaterialID].SpecularName.c_str());
+				m_Mesh->m_Materials[currentMaterialID].Specular = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+				m_Mesh->m_Materials[currentMaterialID].Shininess = 0.0f;
 			}
 			else if (utils::compareStringIgnoreCase(line.substr(0, 6), "map_d ")) { // read opacity texture
 				std::istringstream s(line.substr(6));
 				s >> m_Mesh->m_Materials[currentMaterialID].OpacityName;
 				m_Mesh->m_Materials[currentMaterialID].OpacityName = folder + m_Mesh->m_Materials[currentMaterialID].OpacityName;
-				m_Mesh->m_Materials[currentMaterialID].OpacityTexture = AssetManager::RequestTexture(m_Mesh->m_Materials[currentMaterialID].OpacityName.c_str());
+				m_Mesh->m_Materials[currentMaterialID].OpacityTexture = AssetManager::RequestTexture(m_Mesh->m_Materials[currentMaterialID].OpacityName.c_str());		
 			}
-			else if (utils::compareStringIgnoreCase(line.substr(0, 9), "map_bump ")) { // read bump texture
+			else if (utils::compareStringIgnoreCase(line.substr(0, 9), "map_bump ")) { // read bump texture (NORMAL)
 				std::istringstream s(line.substr(9));
 				s >> m_Mesh->m_Materials[currentMaterialID].NormalName;
 				m_Mesh->m_Materials[currentMaterialID].NormalName = folder + m_Mesh->m_Materials[currentMaterialID].NormalName;
