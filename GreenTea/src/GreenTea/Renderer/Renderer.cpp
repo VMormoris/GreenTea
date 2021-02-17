@@ -22,6 +22,10 @@ namespace GTE {
 		
 		GPU::Shader* Shader3D = nullptr;
 		GPU::Shader* ShaderShadows = nullptr;
+		GPU::Shader* ShaderSkybox = nullptr;
+
+		GPU::VertexArray* SkyboxVAO = nullptr;
+		GPU::VertexBuffer* SkyboxVBO = nullptr;
 
 		GPU::FrameBuffer* ShadowmapFBO = nullptr;
 		SceneData SceneData;
@@ -77,14 +81,77 @@ namespace GTE {
 		s_RendererData.ShaderShadows = GPU::Shader::Create("../Assets/Shaders/ShaderShadowmap.glsl");
 		s_RendererData.ShaderShadows->AddUniform("u_EyeModelMatrix");
 
+		s_RendererData.ShaderSkybox = GPU::Shader::Create("../Assets/Shaders/Skybox.glsl");
+
+		s_RendererData.ShaderSkybox->AddUniform("u_EyeModelMatrix");
+		s_RendererData.ShaderSkybox->AddUniform("Skybox");
+
 		GPU::FrameBufferSpecification spec;
 		spec.Attachments = { GPU::TextureFormat::Shadowmap };
 		spec.Width = 1024;
 		spec.Height = 1024;
 		s_RendererData.ShadowmapFBO = GPU::FrameBuffer::Create(spec);
+
+		constexpr glm::vec3 skyboxVertices[] =
+		{
+			//Front Face
+			{-0.5f, -0.5f, -0.5f},//Left Bottom Corner
+			{ 0.5f, -0.5f, -0.5f},//Right Bottom Corner
+			{ 0.5f,  0.5f, -0.5f},//Right Top Corner
+			{ 0.5f,  0.5f, -0.5f},//Right Top Corner
+			{-0.5f,  0.5f, -0.5f},//Left Top Corner
+			{-0.5f, -0.5f, -0.5f},//Left Bottom Corner
+
+			//Left Face
+			{-0.5f, -0.5f, -0.5f},//Bottom Front Corner
+			{-0.5f, -0.5f,  0.5f},//Bottom Back Corner
+			{-0.5f,  0.5f,  0.5f},//Top Back Corner
+			{-0.5f,  0.5f,  0.5f},//Top Back Corner
+			{-0.5f,  0.5f, -0.5f},//Top Front Corner
+			{-0.5f, -0.5f, -0.5f},//Bottom Front Corner
+
+			//Bottom Face
+			{-0.5f, -0.5f, -0.5f},//Left Front Corner
+			{ 0.5f, -0.5f, -0.5f},//Right Front Corner
+			{ 0.5f, -0.5f, 0.5f},//Right Back Corner
+			{ 0.5f, -0.5f, 0.5f},//Right Back Corner
+			{-0.5f, -0.5f, 0.5f},//Left Back Corner
+			{-0.5f, -0.5f, -0.5f},//Left Front Corner
+
+			//Back Face
+			{-0.5f, -0.5f, 0.5f},//Left Bottom Corner
+			{ 0.5f, -0.5f, 0.5f},//Right Bottom Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Top Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Top Corner
+			{-0.5f,  0.5f, 0.5f},//Left Top Corner
+			{-0.5f, -0.5f, 0.5f},//Left Bottom Corner
+
+			//Right Face
+			{ 0.5f, -0.5f, -0.5f},//Bottom Front Corner
+			{ 0.5f, -0.5f,  0.5f},//Bottom Back Corner
+			{ 0.5f,  0.5f,  0.5f},//Top Back Corner
+			{ 0.5f,  0.5f,  0.5f},//Top Back Corner
+			{ 0.5f,  0.5f, -0.5f},//Top Front Corner
+			{ 0.5f, -0.5f, -0.5f},//Bottom Front Corner
+
+			//Top Face
+			{-0.5f,  0.5f, -0.5f},//Left Front Corner
+			{ 0.5f,  0.5f, -0.5f},//Right Front Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Back Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Back Corner
+			{-0.5f,  0.5f, 0.5f},//Left Back Corner
+			{-0.5f,  0.5f, -0.5f},//Left Front Corner
+		};
+
+		s_RendererData.SkyboxVAO = GPU::VertexArray::Create();
+
+		s_RendererData.SkyboxVBO = GPU::VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
+		s_RendererData.SkyboxVBO->SetLayout({ { GPU::ShaderDataType::Vec3, "_position" } });
+
+		s_RendererData.SkyboxVAO->AddVertexBuffer(s_RendererData.SkyboxVBO);
 	}
 
-	void Renderer::EndScene(void)
+	void Renderer::EndScene(const GPU::CubicTexture* skybox)
 	{
 
 		if (s_RendererData.Lights.size() > 0)
@@ -126,6 +193,9 @@ namespace GTE {
 			s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
 			RenderGeometry();
 		}
+
+		if (skybox)
+			RenderSkybox(skybox);
 	}
 
 	void Renderer::RenderGeometry(void)
@@ -256,6 +326,19 @@ namespace GTE {
 		s_RendererData.ShadowmapFBO->Unbind();
 	}
 
+	void Renderer::RenderSkybox(const GPU::CubicTexture* skybox)
+	{
+		s_RendererData.ShaderSkybox->Bind();
+		s_RendererData.SceneData.Target->Bind();
+		const glm::mat4 view = glm::mat4(glm::mat3(s_RendererData.SceneData.ViewMatrix));
+		const glm::mat4 EyeModelMatrix = s_RendererData.SceneData.ProjectionMatrix * view * glm::mat4(1.0f);
+		s_RendererData.ShaderSkybox->SetUniform("u_EyeModelMatrix", EyeModelMatrix);
+		s_RendererData.ShaderSkybox->SetUniform("Skybox", 0);
+		skybox->Bind(0);
+		s_RendererData.SkyboxVAO->Bind();
+		RenderCommand::DrawArray(s_RendererData.SkyboxVAO, 0, 36);
+	}
+
 	void Renderer::BeginScene(const SceneData& data)
 	{ 
 		s_RendererData.Meshes.clear();
@@ -267,6 +350,11 @@ namespace GTE {
 	{
 		delete s_RendererData.Shader3D;
 		delete s_RendererData.ShaderShadows;
+		delete s_RendererData.ShaderSkybox;
+
+		delete s_RendererData.SkyboxVAO;
+		delete s_RendererData.SkyboxVBO;
+
 		delete s_RendererData.ShadowmapFBO;
 	}
 

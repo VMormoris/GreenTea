@@ -24,13 +24,16 @@ namespace GTE {
 	static DynamicLibLoader GameLogic;
 	static Scene* ActiveScene = nullptr;
 
-	void Scene::Render(const glm::mat4* eyematrix, GPU::FrameBuffer* target, const glm::vec3& pos, const glm::vec3& dir)
+	void Scene::Render(const CameraComponent* cam, GPU::FrameBuffer* target, const glm::vec3& pos, const glm::vec3& dir)
 	{
 		SceneData data;
 		data.Target = target;
-		if (eyematrix != nullptr)
+		if (cam)
 		{
-			data.EyeMatrix = *eyematrix;
+			data.EyeMatrix = cam->EyeMatrix;
+			data.ProjectionMatrix = cam->ProjectionMatrix;
+			data.ViewMatrix = cam->ViewMatrix;
+
 			data.CameraPos = pos;
 			data.CameraDir = dir;
 		}
@@ -43,6 +46,10 @@ namespace GTE {
 				auto& camComponent = view.get(enttID);
 				if (camComponent.Primary)
 				{
+					data.EyeMatrix = camComponent.EyeMatrix;
+					data.ProjectionMatrix = camComponent.ProjectionMatrix;
+					data.ViewMatrix = camComponent.ViewMatrix;
+
 					data.CameraPos = m_Registry.get<TransformationComponent>(enttID).Transform[3];
 					data.CameraDir = glm::normalize(m_Registry.get<PerspectiveCameraComponent>(enttID).Target - data.CameraPos);
 					FoundCamera = true;
@@ -66,12 +73,14 @@ namespace GTE {
 		
 		Renderer::BeginScene(data);
 
-		auto view = m_Registry.view<LightComponent, TransformationComponent>();
-		for(auto enttID : view)
-		{
-			glm::vec3 pos = m_Registry.get<TransformationComponent>(enttID).Transform[3];
-			const auto& lc = view.get<LightComponent>(enttID);
-			Renderer::SubmitLight(pos, lc);
+		{//Submit Lights
+			auto view = m_Registry.view<LightComponent, TransformationComponent>();
+			for (auto enttID : view)
+			{
+				glm::vec3 pos = m_Registry.get<TransformationComponent>(enttID).Transform[3];
+				const auto& lc = view.get<LightComponent>(enttID);
+				Renderer::SubmitLight(pos, lc);
+			}
 		}
 
 		for (auto enttID : group)
@@ -83,7 +92,17 @@ namespace GTE {
 				Renderer::SubmitMesh(transformation, (GPU::Mesh*)mc.Mesh->ActualAsset, static_cast<uint32>(enttID));
 		}
 
-		Renderer::EndScene();
+		GPU::CubicTexture* skybox = nullptr;
+		{//Get skybox
+			auto view = m_Registry.view<EnviromentComponent>();
+			auto& env = view.get(*view.begin());
+			if (!env.SkyboxFilepath.empty() && env.Skybox->Type != AssetType::TEXTURE)
+				env.Skybox = AssetManager::RequestCubeMap(env.SkyboxFilepath.c_str());
+			if (env.Skybox->Type == AssetType::TEXTURE)
+				skybox = (GPU::CubicTexture*)env.Skybox->ActualAsset;
+		}
+
+		Renderer::EndScene(skybox);
 	}
 
 
@@ -300,14 +319,20 @@ namespace GTE {
 	Scene::Scene(void)
 	{
 		ActiveScene = this;
+
+		//Setup registry callbacks
+		m_Registry.on_construct<TransformComponent>().connect<&CreateTransform>();
+		m_Registry.on_destroy<TransformComponent>().connect<&DestroyTransform>();
+		m_Registry.on_destroy<CameraComponent>().connect<&DestroyCamera>();
+
 		//Setup scene Properties
 		m_Me = m_Registry.create();
 		auto& sceneProp = m_Registry.emplace<ScenePropertiesComponent>(m_Me);
 		m_Registry.emplace<RelationshipComponent>(m_Me);
+		EnviromentComponent env;
+		env.SkyboxFilepath = "../Assets/Textures/Skybox/DefaultSkybox.png";
+		m_Registry.emplace<EnviromentComponent>(m_Me, env);
 
-		m_Registry.on_construct<TransformComponent>().connect<&CreateTransform>();
-		m_Registry.on_destroy<TransformComponent>().connect<&DestroyTransform>();
-		m_Registry.on_destroy<CameraComponent>().connect<&DestroyCamera>();
 
 		//Setup Editor's Camera
 		auto EditorCamera = m_Registry.create();

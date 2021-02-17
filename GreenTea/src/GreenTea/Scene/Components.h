@@ -172,6 +172,14 @@ namespace GTE {
 
 	};
 
+	struct ENGINE_API EnviromentComponent {
+		Ref<Asset> Skybox = CreateRef<Asset>(nullptr, AssetType::INVALID);
+		std::string SkyboxFilepath;
+
+		EnviromentComponent(void) = default;
+		EnviromentComponent(const EnviromentComponent&) = default;
+	};
+
 	/**
 	* @brief Component for representing Relationship between entities
 	* @sa You can read more about the implementation here:

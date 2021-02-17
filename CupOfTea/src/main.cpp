@@ -7,7 +7,6 @@ int main(int argc, char** argv)
 	std::ofstream err("error.gtlog");
 	Logger::Init(std::cout, err);
 	//AssetManager::Init();
-	
 	Application* app = nullptr;
 	if (argc == 2)
 	{

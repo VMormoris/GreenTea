@@ -11,6 +11,8 @@ namespace GTE {
 
 	struct ENGINE_API SceneData {
 		glm::mat4 EyeMatrix = glm::mat4(1.0f);
+		glm::mat4 ProjectionMatrix = glm::mat4(1.0f);
+		glm::mat4 ViewMatrix = glm::mat4(1.0f);
 		glm::vec3 CameraPos = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 CameraDir = { 0.0f, 0.0f, -1.0f };
 		GPU::FrameBuffer* Target = nullptr;
@@ -38,7 +40,7 @@ namespace GTE {
 
 		static void SubmitLight(const glm::vec3& position, const LightComponent& lc);
 
-		static void EndScene(void);
+		static void EndScene(const GPU::CubicTexture* skybox = nullptr);
 
 		static void ResizeShadowmapRes(const glm::vec2& resolution);
 	
@@ -48,5 +50,6 @@ namespace GTE {
 
 		static void RenderShadowmaps(const LightSource& lc);
 
+		static void RenderSkybox(const GPU::CubicTexture* skybox);
 	};
 }

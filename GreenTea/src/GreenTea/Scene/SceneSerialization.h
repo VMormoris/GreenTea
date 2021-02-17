@@ -486,6 +486,45 @@ namespace GTE {
 	}
 
 	template<typename BinaryArchive>
+	void BinSerialize(BinaryArchive& archive, EnviromentComponent& env)
+	{
+		serialize(archive, env.SkyboxFilepath);
+	}
+
+	template<typename JSONArchive>
+	void JSONSerialize(JSONArchive& archive, EnviromentComponent& env)
+	{
+		archive(cereal::make_nvp("Skybox Filepath", env.SkyboxFilepath));
+	}
+
+	template<typename Archive>
+	inline void serialize(Archive& archive, EnviromentComponent& env) { static_assert(false); }
+
+	template<>
+	inline void serialize<cereal::BinaryOutputArchive>(cereal::BinaryOutputArchive& archive, EnviromentComponent& env)
+	{
+		BinSerialize(archive, env);
+	}
+
+	template<>
+	inline void serialize<cereal::BinaryInputArchive>(cereal::BinaryInputArchive& archive, EnviromentComponent& env)
+	{
+		BinSerialize(archive, env);
+	}
+
+	template<>
+	inline void serialize<cereal::JSONOutputArchive>(cereal::JSONOutputArchive& archive, EnviromentComponent& env)
+	{
+		JSONSerialize(archive, env);
+	}
+
+	template<>
+	inline void serialize<cereal::JSONInputArchive>(cereal::JSONInputArchive& archive, EnviromentComponent& env)
+	{
+		JSONSerialize(archive, env);
+	}
+
+	template<typename BinaryArchive>
 	void BinSerialize(BinaryArchive& archive, NativeScriptComponent& nScript)
 	{
 		archive(nScript.State);
@@ -607,6 +646,13 @@ namespace GTE {
 				archive(sceneProp);
 				break;
 			}
+			case entt::type_info<EnviromentComponent>::id():
+			{
+				const auto& env = reg.get<EnviromentComponent>(entity);
+				archive.setNextName("Enviroment Component");
+				archive(env);
+				break;
+			}
 			default:
 				break;
 			}
@@ -717,6 +763,12 @@ namespace GTE {
 				ScenePropertiesComponent sceneProp;
 				archive(sceneProp);
 				reg.emplace<ScenePropertiesComponent>(entt, sceneProp);
+			}
+			else if (component.compare("Enviroment Component") == 0)
+			{
+				EnviromentComponent env;
+				archive(env);
+				reg.emplace<EnviromentComponent>(entt, env);
 			}
 		}
 		size_t size, childNum = 0;

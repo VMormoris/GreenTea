@@ -1,9 +1,11 @@
 #ifndef _TEXTURE
 #define _TEXTURE
 
-#include "GreenTea/Assets/Image.h"
+#include "GreenTea/Assets/CubeMap.h"
 
 #include <glm.hpp>
+
+//TODO: Revisit API for Textures is very bad right now!
 
 namespace GTE {
 
@@ -103,6 +105,7 @@ namespace GTE {
 		class ENGINE_API Texture2D : public Texture {
 		public:
 
+			virtual ~Texture2D(void) = default;
 			/**
 			* @brief Creates a 2D Texture with default color (White)
 			* @param width Texture's width
@@ -125,7 +128,14 @@ namespace GTE {
 			*/
 			//static Texture* Create(const char* filepath);
 
+		};
 
+		class ENGINE_API CubicTexture : public Texture {
+		public:
+
+			virtual ~CubicTexture(void) = default;
+
+			static CubicTexture* Create(const CubeMap& cm);
 		};
 
 	}

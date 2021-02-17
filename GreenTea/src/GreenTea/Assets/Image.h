@@ -1,7 +1,7 @@
 #ifndef _IMAGE
 #define _IMAGE
 
-#include "GreenTea/Core/EngineCore.h"
+#include "GreenTea/Core/Logger.h"
 
 
 namespace GTE {
@@ -60,8 +60,8 @@ namespace GTE {
 		template<typename T>
 		T& GetPixel(size_t x, size_t y)
 		{
-			ENGINE_ASSERT(x < _width && y < _height, "Pixel is out of bounds!");
-			T* tbuffer = (T*)buffer + y * _width + x;
+			ENGINE_ASSERT(x < m_Width && y < m_Height, "Pixel is out of bounds!");
+			T* tbuffer = (T*)m_Buffer + y * m_Width + x;
 			return *tbuffer;
 		}
 

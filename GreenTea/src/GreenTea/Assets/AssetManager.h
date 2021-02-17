@@ -42,6 +42,15 @@ namespace GTE {
 		static Ref<Asset> RequestMesh(const char* filepath);
 
 		/**
+		* @brief Queiries for a Asset handle of a CubeMap
+		* @param filepath  A C-style string containg the filepath (the filepath is also used for the key on the underlying map)
+		* @returns A Reference to an Asset
+		* @warnings To properly used the returned reference you must check the Type
+		*	if the given AssetType is LOADING then you should continue Requesting
+		*/
+		static Ref<Asset> RequestCubeMap(const char* filepath);
+
+		/**
 		* @brief Destroyes a Texture from GPU memory as well and it's cached data on RAM
 		* @param A C-style string containg the filepath (the filepath is also used for the key on the underlying map)
 		*/

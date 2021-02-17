@@ -9,6 +9,7 @@
 #include "GreenTea/Events/Input.h"
 
 #include "GreenTea/Assets/AssetManager.h"
+#include "GreenTea/Assets/CubeMap.h"
 
 #include "GreenTea/Events/EventDispatcher.h"
 #include "GreenTea/Events/EventRegistry.h"

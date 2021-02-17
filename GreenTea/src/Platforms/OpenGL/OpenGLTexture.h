@@ -31,7 +31,7 @@ namespace GTE::GPU::OpenGL {
 		uint32 GetWidth(void) const override { return m_Width; }
 		void* GetID(void) const override { return (void*)(uint64)m_ID; }
 
-		void Bind(uint32 slot = 0) const;
+		void Bind(uint32 slot = 0) const override;
 		void SetData(void* data, size_t size) override;
 		void SetData(const Image& image) override;
 
@@ -62,6 +62,29 @@ namespace GTE::GPU::OpenGL {
 	public:
 		//ALLOC
 		//DEALLOC
+	};
+
+	class OpenGLCubicTexture : public CubicTexture {
+	public:
+
+		OpenGLCubicTexture(const CubeMap& cm);
+		~OpenGLCubicTexture(void);
+
+		uint32 GetHeight(void) const override { return m_Height; }
+		uint32 GetWidth(void) const override { return m_Width; }
+		void* GetID(void) const override { return (void*)(uint64)m_ID; }
+
+		void Bind(uint32 slot = 0) const override;
+		void SetData(void* data, size_t size) override;
+		void SetData(const Image& image) override;
+
+	private:
+
+		uint32 m_Width;
+		uint32 m_Height;
+
+		uint32 m_ID;
+
 	};
 
 }

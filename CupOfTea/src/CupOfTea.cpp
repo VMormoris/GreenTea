@@ -96,12 +96,12 @@ void CupOfTea::Update(float dt)
 	//Render into the Viewport's Framebuffer
 	m_ViewportFBO->Bind();
 	m_ViewportFBO->Clear(1, &EnttNull);
-	const glm::mat4* EyeMatrix = &EditorCameraEntity.GetComponent<CameraComponent>().EyeMatrix;
+	const auto& cam = &EditorCameraEntity.GetComponent<CameraComponent>();
 	const glm::vec3 EyePos = EditorCameraEntity.GetComponent<TransformationComponent>().Transform[3];
 	const glm::vec3 EyeDir = glm::normalize(EditorCameraEntity.GetComponent<PerspectiveCameraComponent>().Target-EyePos);
 	m_ActiveScene->Render
 	(
-		m_Playing ? nullptr : EyeMatrix,
+		m_Playing ? nullptr : cam,
 		m_ViewportFBO,
 		EyePos,
 		EyeDir
@@ -122,7 +122,7 @@ void CupOfTea::Update(float dt)
 		m_CamFBO->Bind();
 		m_CamFBO->Clear(1, &EnttNull);
 		RenderCommand::Clear();
-		m_ActiveScene->Render(&cam.EyeMatrix, m_CamFBO, { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f});
+		m_ActiveScene->Render(&cam, m_CamFBO, { 0.0f, 0.0f, 0.0f }, {0.0f, 0.0f, 0.0f});
 		m_CamFBO->Unbind();
 	}
 
@@ -220,17 +220,6 @@ void CupOfTea::Update(float dt)
 	{
 		if (ImGui::Begin("Scene Properties"))
 		{
-			Entity sceneEntity = m_ActiveScene->GetSceneEntity();
-			DrawComponent<ScenePropertiesComponent>("Scene Properties", sceneEntity, [&](auto& sceneProp) {
-				UISettings settings;
-				settings.Clamp = glm::vec2(512.0f, FLT_MAX);
-				settings.ResetValue = 1024.0f;
-				settings.Speed = 1.0f;
-				settings.ColumnWidth = 125.0f;
-				if (DrawVec2Control("Shadowmap Res", sceneProp.ShadowmapResolution, settings))
-					Renderer::ResizeShadowmapRes(sceneProp.ShadowmapResolution);
-			});
-
 			DrawComponent<CameraComponent>("Editor's Camera", EditorCameraEntity, [&](auto& cam) {
 				UISettings settings;
 				auto& tc = EditorCameraEntity.GetComponent<TransformComponent>();
@@ -258,7 +247,28 @@ void CupOfTea::Update(float dt)
 					cam.ProjectionMatrix = glm::perspective(glm::radians(persp.FoV), cam.AspectRatio, persp.Near, persp.Far);
 					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 				}
-				});
+			});
+
+
+			Entity sceneEntity = m_ActiveScene->GetSceneEntity();
+
+			DrawComponent<EnviromentComponent>("Enviroment", sceneEntity, [](auto& env) {
+				UISettings settings;
+				if (DrawFilePicker("Map", env.SkyboxFilepath, ".png", settings))
+					env.Skybox = AssetManager::RequestCubeMap(env.SkyboxFilepath.c_str());
+			});
+
+			DrawComponent<ScenePropertiesComponent>("Scene Properties", sceneEntity, [&](auto& sceneProp) {
+				UISettings settings;
+				settings.Clamp = glm::vec2(512.0f, FLT_MAX);
+				settings.ResetValue = 1024.0f;
+				settings.Speed = 1.0f;
+				settings.ColumnWidth = 125.0f;
+				if (DrawVec2Control("Shadowmap Res", sceneProp.ShadowmapResolution, settings))
+					Renderer::ResizeShadowmapRes(sceneProp.ShadowmapResolution);
+			});
+
+			
 
 		}
 		ImGui::End();

@@ -22,6 +22,8 @@ namespace GTE {
 
 	class ENGINE_API Entity;
 
+	struct ENGINE_API CameraComponent;
+
 	//TODO: Check sorting algorithm
 	class ENGINE_API Scene {
 	public:
@@ -35,7 +37,7 @@ namespace GTE {
 		Entity GetSceneEntity(void);
 
 		void Update(float dt);
-		void Render(const glm::mat4* eyematrix, GPU::FrameBuffer* target, const glm::vec3& pos, const glm::vec3& dir);
+		void Render(const CameraComponent* cam, GPU::FrameBuffer* target, const glm::vec3& pos, const glm::vec3& dir);
 
 		void Save(const char* filepath);
 		void Load(const char* filepath);

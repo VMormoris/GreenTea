@@ -84,6 +84,42 @@ namespace GTE {
 		return asset;
 	}
 
+	Ref<Asset> AssetManager::RequestCubeMap(const char* filepath)
+	{
+		std::string key(filepath);
+		Ref<Asset> asset = CreateRef<Asset>(nullptr, AssetType::LOADING);
+		Map_Mutex.lock();
+		if (GPU_MAP.find(key) != GPU_MAP.end())
+		{
+			if (GPU_MAP[key]->Type == AssetType::TEXTURE)
+				asset = GPU_MAP[key];
+		}
+		else if (RAM_MAP.find(key) != RAM_MAP.end())
+		{
+			if (RAM_MAP[key]->Type == AssetType::IMAGE)
+			{
+				CubeMap* cm = (CubeMap*)RAM_MAP[key]->ActualAsset;
+				GPU::CubicTexture* cmtext = GPU::CubicTexture::Create(*cm);
+				asset = CreateRef<Asset>(cmtext, AssetType::TEXTURE);
+				GPU_MAP.insert({ key, asset });
+			}
+		}
+		else
+		{
+			RAM_MAP.insert({ key, CreateRef<Asset>(nullptr, AssetType::LOADING) });
+			std::thread handle = std::thread([&](const std::string map_key)
+				{
+					CubeMap* cm = new CubeMap(map_key.c_str());
+					Map_Mutex.lock();
+					RAM_MAP[map_key] = CreateRef<Asset>(cm, AssetType::IMAGE);
+					Map_Mutex.unlock();
+				}, key);
+			handle.detach();
+		}
+		Map_Mutex.unlock();
+		return asset;
+	}
+
 	void AssetManager::Init() {}
 
 	void AssetManager::Shutdown() {}

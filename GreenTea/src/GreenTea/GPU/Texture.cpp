@@ -40,4 +40,15 @@ namespace GTE::GPU {
 			return nullptr;
 		}
 	}*/
+
+	CubicTexture* CubicTexture::Create(const CubeMap& cm)
+	{
+		switch (GraphicsContext::GetAPI())
+		{
+		case GraphicsAPI::OpenGL: return new OpenGL::OpenGLCubicTexture(cm);
+		default:
+			ENGINE_ASSERT(false, "Only OpenGL is currently supported!");
+			return nullptr;
+		}
+	}
 }

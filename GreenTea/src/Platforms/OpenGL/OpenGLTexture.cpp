@@ -77,9 +77,7 @@ namespace GTE::GPU::OpenGL {
 		glDeleteTextures(1, &m_ID);
 	}
 
-	void OpenGLTexture2D::Bind(uint32 slot) const {
-		glBindTextureUnit(slot, m_ID);
-	}
+	void OpenGLTexture2D::Bind(uint32 slot) const {glBindTextureUnit(slot, m_ID);}
 
 	void OpenGLTexture2D::SetData(void* data, size_t size) {
 		glBindTexture(GL_TEXTURE_2D, m_ID);
@@ -149,5 +147,38 @@ namespace GTE::GPU::OpenGL {
 		}
 		return -1;
 	}
+
+//-----------------OpenGLCubicTexture-----------------
+
+	OpenGLCubicTexture::OpenGLCubicTexture(const CubeMap& cm)
+	{
+		m_Width = cm.GetBack().GetWidth();
+		m_Height = cm.GetBack().GetHeight();
+
+		glGenTextures(1, &m_ID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_ID);
+		
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cm.GetRight().Data());
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cm.GetLeft().Data());
+
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cm.GetTop().Data());
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cm.GetBottom().Data());
+
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cm.GetBack().Data());
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cm.GetFront().Data());
+	
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+
+	OpenGLCubicTexture::~OpenGLCubicTexture(void) { glDeleteTextures(1, &m_ID); }
+
+	void OpenGLCubicTexture::Bind(uint32 slot) const { glBindTextureUnit(slot, m_ID); }
+
+	void OpenGLCubicTexture::SetData(void* data, size_t size) { ENGINE_ASSERT(false, "Cannot setData on CubicTexture!"); }
+	void OpenGLCubicTexture::SetData(const Image& image) { ENGINE_ASSERT(false, "Cannot setData on CubicTexture!"); }
 
 }

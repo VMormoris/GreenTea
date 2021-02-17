@@ -53,7 +53,7 @@ namespace GTE::GPU::OpenGL {
 			}
 
 			GLenum* DrawBuffers = new GLenum[ColorAttachments];
-			for (uint32 i = 0; i < ColorAttachments; i++)
+			for (int32 i = 0; i < ColorAttachments; i++)
 				DrawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
 			glDrawBuffers(ColorAttachments, DrawBuffers);
 			delete[] DrawBuffers;

@@ -8,7 +8,7 @@ namespace GTE {
 	* @brief Enumaration for all kind of Assets
 	*/
 	enum class ENGINE_API AssetType : byte {
-		//Usually this means that the Asset has being destroyed
+		//Usually this means that the Asset has being destroyed, or not used
 		INVALID = 0,
 		//When the Asset is still loading either 
 		//	from Disk to RAM either from RAM to GPU memory

@@ -3,6 +3,9 @@
     "Entities": [
         {
             "ID": 0,
+            "Enviroment Component": {
+                "Skybox Filepath": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Textures\\Skybox\\Nebula\\Nebula.png"
+            },
             "Scene Properties Component": {
                 "Shadowmap Resolution": {
                     "x": 1024.0,
@@ -17,9 +20,9 @@
             "ID": 1,
             "Perspective Camera Component": {
                 "Target": {
-                    "x": 6.871521472930908,
-                    "y": -5.226207256317139,
-                    "z": 10.686751365661621
+                    "x": -5.376888751983643,
+                    "y": -1.132275104522705,
+                    "z": -4.291448593139648
                 },
                 "Up Vector": {
                     "x": 0.0,
@@ -31,15 +34,15 @@
                 "Far": 1500.0
             },
             "Camera Component": {
-                "Aspect Ratio": 1.4773269891738892,
+                "Aspect Ratio": 1.600728154182434,
                 "Primary": false,
                 "Fixed Aspect Ratio": false
             },
             "Transform Component": {
                 "Position": {
-                    "x": -0.7144580483436585,
-                    "y": 3.963493824005127,
-                    "z": -11.588339805603028
+                    "x": 4.519911289215088,
+                    "y": 7.018352031707764,
+                    "z": -26.058704376220704
                 },
                 "Scale": {
                     "x": 1.0,
