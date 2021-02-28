@@ -14,6 +14,9 @@ namespace GTE {
 		void RenderCommand::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) { s_Renderer->SetViewport(x, y, width, height); }
 		void RenderCommand::SetClearColor(const glm::vec4& color) { s_Renderer->SetClearColor(color); }
 		void RenderCommand::Clear(void) { s_Renderer->Clear(); }
+		void RenderCommand::ClearColor(void) { s_Renderer->ClearColor(); }
+		void RenderCommand::ClearDepth(void) { s_Renderer->ClearDepth(); }
+		void RenderCommand::SetBlendFunc(void) { s_Renderer->SetBlendFunc(); }
 		void RenderCommand::DrawIndexed(const GPU::VertexArray* va, uint32 indices) { s_Renderer->DrawIndexed(va, indices); }
 		void RenderCommand::DrawArray(const GPU::VertexArray* va, uint32 offset, uint32 count) { s_Renderer->DrawArray(va, offset, count); }
 }

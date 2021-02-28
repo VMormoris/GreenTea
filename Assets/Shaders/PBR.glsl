@@ -275,26 +275,8 @@ void main()
 		color *= spotEffect;
 		break;
 	}
-	//color *= shadow_value;
-	o_Color += vec4(color, 1.0);
-	
-	/*if(u_HasLight)
-	{
-		vec3 surfToLight = normalize(u_LightPos - v_Position_WCS);
-		float spotEffect = compute_spotlight(surfToLight);
-		float shadow_value = shadow(v_Position_WCS);
-
-		vec3 color = cook_torrance(surfToEye, surfToLight, v_Position_WCS, 
-			normal,
-			albedo, vec4(metallic, ao, reflectance, gloss),
-			vec3(emission.r, emission.g, emission.b));
-
-		color *= spotEffect * shadow_value;
-
-		o_Color = vec4(color, 1.0);
-	}
-	else
-		o_Color = vec4(albedo, 1.0);*/
+	color *= shadow_value;
+	o_Color = vec4(color, 1.0);
 
 	o_ObjectID = u_ID;
 }

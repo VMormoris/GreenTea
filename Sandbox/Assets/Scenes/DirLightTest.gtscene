@@ -1,70 +1,70 @@
 {
-    "Total Entities": 3,
+    "Total Entities": 4,
     "Entities": [
-      {
-        "ID": 0,
-        "Transform Component": {
-          "Position": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "Scale": {
-            "x": 1.0,
-            "y": 1.0,
-            "z": 1.0
-          },
-          "Rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          }
+        {
+            "ID": 0,
+            "Light Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Direction": {
+                    "x": 0.0,
+                    "y": -1.0,
+                    "z": 0.0
+                },
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 10.0,
+                "Umbra": 60.0,
+                "Penumbra": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 10.0,
+                "Shadow Bias": 0.05999999865889549,
+                "Type": 0
+            },
+            "Enviroment Component": {
+                "Skybox Filepath": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Textures\\Skybox\\Nebula\\Nebula.png"
+            },
+            "Scene Properties Component": {
+                "Shadowmap Resolution": {
+                    "x": 1024.0,
+                    "y": 1024.0
+                },
+                "Camera's Velocity": 25.0
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
         },
-        "Light Component": {
-          "Target": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "Direction": {
-            "x": 0.0,
-            "y": -1.0,
-            "z": 0.0
-          },
-          "Color": {
-            "r": 1.0,
-            "g": 1.0,
-            "b": 1.0,
-            "a": 1.0
-          },
-          "Intensity": 10.0,
-          "Umbra": 60.0,
-          "Penumbra": 60.0,
-          "Near": 0.10000000149011612,
-          "Far": 10.0,
-          "Shadow Bias": 0.05999999865889549,
-          "Type": 0
-        },
-        "Enviroment Component": {
-          "Skybox Filepath": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Textures\\Skybox\\Nebula\\Nebula.png"
-        },
-        "Scene Properties Component": {
-          "Shadowmap Resolution": {
-            "x": 1024.0,
-            "y": 1024.0
-          },
-          "Camera's Velocity": 25.0
-        },
-        "Childrens": 0,
-        "Entities": []
-      },
         {
             "ID": 1,
             "Perspective Camera Component": {
                 "Target": {
-                    "x": 0.5853049159049988,
-                    "y": -4.354641914367676,
-                    "z": -8.577102661132813
+                    "x": 0.45341771841049197,
+                    "y": 1.8387346267700196,
+                    "z": -11.579081535339356
                 },
                 "Up Vector": {
                     "x": 0.0,
@@ -76,15 +76,15 @@
                 "Far": 1500.0
             },
             "Camera Component": {
-                "Aspect Ratio": 1.566544532775879,
+                "Aspect Ratio": 1.605757236480713,
                 "Primary": false,
                 "Fixed Aspect Ratio": false
             },
             "Transform Component": {
                 "Position": {
-                    "x": 0.3482474684715271,
-                    "y": -1.5666934251785279,
-                    "z": -15.451102256774903
+                    "x": 1.0069494247436524,
+                    "y": 2.518921375274658,
+                    "z": -18.948728561401368
                 },
                 "Scale": {
                     "x": 1.0,
@@ -112,7 +112,57 @@
             "Transform Component": {
                 "Position": {
                     "x": 0.0,
-                    "y": -10.411620140075684,
+                    "y": -0.1604609489440918,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 3,
+            "Tag Component": {
+                "Tag": "SpotLight"
+            },
+            "Light Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Direction": {
+                    "x": 0.022126326337456704,
+                    "y": -0.9997551441192627,
+                    "z": 0.0
+                },
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 267.0,
+                "Umbra": 58.70000076293945,
+                "Penumbra": 83.30000305175781,
+                "Near": 0.10000000149011612,
+                "Far": 10.0,
+                "Shadow Bias": 0.00019999999494757503,
+                "Type": 2
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": -0.10196232795715332,
+                    "y": 4.607062339782715,
                     "z": 0.0
                 },
                 "Scale": {

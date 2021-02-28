@@ -161,9 +161,14 @@ namespace GTE {
 
 	void Renderer::EndScene(const GPU::CubicTexture* skybox)
 	{
+		s_RendererData.SceneData.Target->Bind();
+		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 0.0f });
+		RenderCommand::Clear();
+
 		for (const auto& light : s_RendererData.Lights)
 		{
 			RenderShadowmaps(light);
+			RenderCommand::SetBlendFunc();
 			RenderGeometry(light);
 		}
 
@@ -202,8 +207,6 @@ namespace GTE {
 		s_RendererData.SceneData.Target->Bind();
 		const auto& fboSpec = s_RendererData.SceneData.Target->GetSpecification();
 		RenderCommand::SetViewport(0, 0, fboSpec.Width, fboSpec.Height);
-		RenderCommand::SetClearColor({ 1.0f, 0.0f, 1.0f, 1.0f });
-		RenderCommand::Clear();
 		s_RendererData.Shader3D->SetUniform("u_ViewportSize", glm::vec2(fboSpec.Width, fboSpec.Height));
 
 		for (const auto& mesh : s_RendererData.Meshes)
@@ -304,7 +307,7 @@ namespace GTE {
 		s_RendererData.ShadowmapFBO->Bind();
 		auto spec = s_RendererData.ShadowmapFBO->GetSpecification();
 		RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
-		RenderCommand::Clear();
+		RenderCommand::ClearDepth();
 
 		s_RendererData.ShaderShadows->Bind();
 

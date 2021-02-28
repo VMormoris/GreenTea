@@ -11,6 +11,9 @@ namespace GTE::GPU::OpenGL {
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) override;
 		void SetClearColor(const glm::vec4& color) override;
 		void Clear(void) override;
+		void ClearColor(void) override;
+		void ClearDepth(void) override;
+		void SetBlendFunc(void) override;
 		void DrawIndexed(const VertexArray* va, uint32 indices) override;
 		void DrawArray(const VertexArray* va, uint32 offset, uint32 count) override;
 	};

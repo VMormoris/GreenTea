@@ -32,6 +32,12 @@ namespace GTE {
 			auto& ref = GetComponent<Renderable2DComponent>();
 			renderable = ref;
 		}
+		if (HasComponent<MeshComponent>())
+		{
+			auto& mc = newEntity.AddComponent<MeshComponent>();
+			auto& ref = GetComponent<MeshComponent>();
+			mc = ref;
+		}
 		if (HasComponent<PerspectiveCameraComponent>())
 		{
 			auto& camProp = newEntity.AddComponent<PerspectiveCameraComponent>();
@@ -47,6 +53,12 @@ namespace GTE {
 			auto& cam = newEntity.AddComponent<CameraComponent>();
 			auto& ref = GetComponent<CameraComponent>();
 			cam = ref;
+		}
+		if (HasComponent<LightComponent>())
+		{
+			auto& lc = newEntity.AddComponent<LightComponent>();
+			auto& ref = GetComponent<LightComponent>();
+			lc = ref;
 		}
 		if (HasComponent<NativeScriptComponent>())
 		{

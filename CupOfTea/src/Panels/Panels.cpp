@@ -154,7 +154,7 @@ namespace GTE {
 		});
 
 		DrawComponent<LightComponent>("Light Component", entity, [&](auto& lc) {
-			constexpr char* LightTypenames[] = {"Directional Light", "Point Light", "Spot Light", "Area Light"};
+			constexpr char* LightTypenames[] = { "Directional Light", "Point Light", "Spot Light" };// , "Area Light"};
 			UISettings settings;
 			int32 type = static_cast<int32>(lc.Type);
 			DrawComboControl("Type", type, LightTypenames, IM_ARRAYSIZE(LightTypenames), settings);

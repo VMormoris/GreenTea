@@ -129,7 +129,7 @@ namespace GTE {
 		Directional = 0x00,
 		PointLight = 0x01,
 		SpotLight = 0x02,
-		AreaLight = 0x03
+		//AreaLight = 0x03
 	};
 
 	struct ENGINE_API LightComponent {
@@ -142,7 +142,7 @@ namespace GTE {
 		float Near = 0.1f;
 		float Far = 10.0f;
 		float ShadowMapBias = 0.0002f;
-		LightType Type = LightType::PointLight;
+		LightType Type = LightType::SpotLight;
 		
 		LightComponent(void) = default;
 		LightComponent(const LightComponent&) = default;

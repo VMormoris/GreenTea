@@ -38,9 +38,21 @@ namespace GTE::GPU {
 		virtual void SetClearColor(const glm::vec4& color) = 0;
 
 		/**
-		* @brief Clears the Rendering Window
+		* @brief Clears everything the Rendering Window
 		*/
 		virtual void Clear(void) = 0;
+
+		/**
+		* @brief Clears color buffer bits
+		*/
+		virtual void ClearColor(void) = 0;
+
+		/**
+		* @brief Clear depth buffer bits
+		*/
+		virtual void ClearDepth(void) = 0;
+
+		virtual void SetBlendFunc(void) = 0;
 
 		/**
 		* @brief Performs a draw call on VertexArray using it's IndexBuffer

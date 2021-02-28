@@ -33,9 +33,21 @@ namespace GTE {
 			static void SetClearColor(const glm::vec4& color);
 
 			/**
-			* @brief Clears the Rendering Window
+			* @brief Clears everything the Rendering Window
 			*/
 			static void Clear(void);
+
+			/**
+			* @brief Clears color buffer bits
+			*/
+			static void ClearColor(void);
+
+			/**
+			* @brief Clear depth buffer bits
+			*/
+			static void ClearDepth(void);
+
+			static void SetBlendFunc(void);
 
 			/**
 			* @brief Performs a draw call on VertexArray using it's IndexBuffer
