@@ -1,4 +1,4 @@
-workspace "GreenTea"
+workspace "GreenTea3D"
 
 	architecture "x64"
 
@@ -8,7 +8,7 @@ workspace "GreenTea"
 		"Release",
 	}
 
-	startproject  "CupOfTea"
+	startproject  "CupOfTea3D"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
@@ -32,8 +32,8 @@ LibFiles["OpenGL"]="opengl32.lib"
 include "3rdParty/imgui"
 
 
-project "GreenTea"
-	location "GreenTea"
+project "GreenTea3D"
+	location "GreenTea3D"
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++17"
@@ -83,8 +83,8 @@ project "GreenTea"
 	
 	postbuildcommands
 	{
-		("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\CupOfTea"),
-		--("{COPY} %{wks.location}..\\bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}..\\bin\\" .. outputdir .. "\\GreenTeaEditor")
+		("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\CupOfTea3D"),
+		--("{COPY} %{wks.location}..\\bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}..\\bin\\" .. outputdir .. "\\GreenTea3DEditor")
 	}
 	
 	filter "system:windows"
@@ -110,8 +110,8 @@ project "GreenTea"
 		runtime "Release"
 		optimize "on"
 		
-project "CupOfTea"
-	location "CupOfTea"
+project "CupOfTea3D"
+	location "CupOfTea3D"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
@@ -131,7 +131,7 @@ project "CupOfTea"
 	
 	includedirs
 	{
-		"GreenTea/src",
+		"GreenTea3D/src",
 		"Sandbox/src",
 		"%{IncludeDirs.entt}",
 		"%{IncludeDirs.SDL2}",
@@ -145,7 +145,7 @@ project "CupOfTea"
 	
 	links
 	{
-		"GreenTea",
+		"GreenTea3D",
 		"%{wks.location}/%{LibFiles.SDL2}",
 		"%{wks.location}/%{LibFiles.SDL2main}",
 		"%{wks.location}/%{LibFiles.Glew}",
@@ -163,7 +163,7 @@ project "CupOfTea"
 	postbuildcommands
 	{
 		("{COPY} %{wks.location}Assets %{wks.location}bin\\" .. outputdir .. "\\Assets"),
-		("{COPY} %{wks.location}CupOfTea\\imgui.ini %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}"),
+		("{COPY} %{wks.location}CupOfTea3D\\imgui.ini %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}"),
 	}
 	
 	filter "system:windows"

@@ -370,7 +370,7 @@ namespace GTE {
 				PerspectiveCameraComponent, CameraComponent,
 				LightComponent,
 				NativeScriptComponent,
-				ScenePropertiesComponent,
+				ScenePropertiesComponent, EnviromentComponent,
 				RelationshipComponent>(output);
 		}
 	}
@@ -387,7 +387,7 @@ namespace GTE {
 			PerspectiveCameraComponent, CameraComponent,
 			LightComponent,
 			NativeScriptComponent,
-			ScenePropertiesComponent,
+			ScenePropertiesComponent, EnviromentComponent,
 			RelationshipComponent>(input);
 
 		{//Renderable 2D Component's might need Texture Assets to be loaded

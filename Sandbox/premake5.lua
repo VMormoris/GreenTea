@@ -1,39 +1,38 @@
 -- Change Sandbox to your project name
-workspace "Sandbox"
+ProjectName = "Sandbox"
+--Change GreeTeaDir to the absolute path to the GreenTea directory
+GreenTeaDir = "D:/dev/GreenTea3D"
+workspace (ProjectName)
 
 	architecture "x64"
 
 	configurations
 	{
-		"Debug",
 		"Release"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
---Change GreeTeaDir to the absolute path to the GreenTea directory
-GreenTeaDir = "D:/dev/GreenTea"
+
 
 IncludeDirs={}
-IncludeDirs["GreenTea"]=(GreenTeaDir .. "/GreenTea/src")
+IncludeDirs["GreenTea"]=(GreenTeaDir .. "/GreenTea3D/src")
 IncludeDirs["entt"]=(GreenTeaDir .. "/3rdParty/entt/single_include/entt")
 IncludeDirs["SDL2"]=(GreenTeaDir .. "/3rdParty/SDL2/includes")
 IncludeDirs["Glew"]=(GreenTeaDir .. "/3rdParty/Glew/include")
 IncludeDirs["glm"]=(GreenTeaDir .. "/3rdParty/glm/glm")
 IncludeDirs["imgui"]=(GreenTeaDir .. "/3rdParty/imgui")
-IncludeDirs["box2d"]=(GreenTeaDir .. "/3rdParty/box2d/include")
 
 LibFiles={}
-LibFiles["GreenTea"]=(GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib")
+LibFiles["GreenTea"]=(GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea3D/GreenTea3D.lib")
 LibFiles["SDL2"]=(GreenTeaDir .. "/3rdParty/SDL2/libs/SDL2.lib")
 LibFiles["SDL2main"]=(GreenTeaDir .. "/3rdParty/SDL2/libs/SDL2main.lib")
 LibFiles["Glew"]=(GreenTeaDir .. "/3rdParty/Glew/lib/glew32.lib")
-LibFiles["box2d"]=(GreenTeaDir .. "/3rdParty/box2d/include")
 LibFiles["OpenGL"]="opengl32.lib"
 
 
-project "Sandbox"
-	location "Sandbox"
+project (ProjectName)
+	location (ProjectName)
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++17"

@@ -1,0 +1,207 @@
+{
+    "Total Entities": 4,
+    "Entities": [
+        {
+            "ID": 0,
+            "Light Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Direction": {
+                    "x": 0.0,
+                    "y": -1.0,
+                    "z": 0.0
+                },
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 10.0,
+                "Umbra": 60.0,
+                "Penumbra": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 10.0,
+                "Shadow Bias": 0.05999999865889549,
+                "Type": 0
+            },
+            "Enviroment Component": {
+                "Skybox Filepath": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Textures\\Skybox\\Nebula\\Nebula.png"
+            },
+            "Scene Properties Component": {
+                "Shadowmap Resolution": {
+                    "x": 1024.0,
+                    "y": 1024.0
+                },
+                "Camera's Velocity": 5.0
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1,
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": 0.5298833847045898,
+                    "y": 0.8019199371337891,
+                    "z": -5.956809997558594
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 1500.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.5997506380081177,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 1.4298744201660157,
+                    "y": 2.398822069168091,
+                    "z": -13.14853286743164
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1048578,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\Corridor_Straight.obj",
+                "Material Index: ": 1
+            },
+            "Tag Component": {
+                "Tag": "Corridor Straight"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -0.1604609489440918,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 4,
+            "Native Script Component": {
+                "State": 1,
+                "Class Name": "Player"
+            },
+            "Tag Component": {
+                "Tag": "Character"
+            },
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 1500.0
+            },
+            "Light Component": {
+                "Target": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "Direction": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.9999999403953552
+                },
+                "Color": {
+                    "r": 1.0,
+                    "g": 1.0,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "Intensity": 412.29998779296877,
+                "Umbra": 56.0,
+                "Penumbra": 80.0,
+                "Near": 0.009999999776482582,
+                "Far": 20.0,
+                "Shadow Bias": 0.00019999999494757503,
+                "Type": 2
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.8641974925994874,
+                "Primary": true,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": -10.076845169067383
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

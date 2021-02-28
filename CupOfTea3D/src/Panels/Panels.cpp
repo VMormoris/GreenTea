@@ -154,7 +154,7 @@ namespace GTE {
 		});
 
 		DrawComponent<LightComponent>("Light Component", entity, [&](auto& lc) {
-			constexpr char* LightTypenames[] = { "Directional Light", "Point Light", "Spot Light" };// , "Area Light"};
+			constexpr char* LightTypenames[] = { "Directional Light", "Spot Light" };// , "Area Light"};
 			UISettings settings;
 			int32 type = static_cast<int32>(lc.Type);
 			DrawComboControl("Type", type, LightTypenames, IM_ARRAYSIZE(LightTypenames), settings);
@@ -165,8 +165,8 @@ namespace GTE {
 					entity.UpdateMatrices();
 				settings.Clamp.x = -180.0f;
 				settings.Clamp.y = 180.0f;
-				DrawFloatControl("Umbra", lc.Umbra, settings);
-				DrawFloatControl("Penumbra", lc.Penumbra, settings);
+				DrawFloatControl("Cut Off", lc.Umbra, settings);
+				DrawFloatControl("Outter Cut Off", lc.Penumbra, settings);
 				settings.Clamp.x = 0.0f;
 				settings.Clamp.y = FLT_MAX;
 				DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);

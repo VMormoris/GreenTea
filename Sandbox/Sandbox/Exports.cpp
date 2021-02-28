@@ -7,9 +7,5 @@ extern "C" {
 		return static_cast<void*>(new Player());
 	}
 
-	GAME_API void* CreateCameraController(void)
-	{
-		return static_cast<void*>(new CameraController());
-	}
 
 }

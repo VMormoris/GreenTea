@@ -400,7 +400,7 @@ void CupOfTea::Update(float dt)
 		ImGui::PopFont();
 	}
 	ImGui::End();
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 	ImGui::End();//Ending Dockspace
 	m_EditorLayer->End();
 }
@@ -676,7 +676,7 @@ void CupOfTea::OpenScene(void)
 		m_ActiveScene->Load(filepath.c_str());
 		m_ActiveScene->onViewportResize(static_cast<uint32>(m_ViewportSize.x), static_cast<uint32>(m_ViewportSize.y));
 		EditorCameraEntity = m_ActiveScene->GetEditorCamera();
-		std::string project_filepath = pProps.ProjectPath + "/" + pProps.ProjectName + ".gt";
+		std::string project_filepath = pProps.ProjectPath + "/" + pProps.ProjectName + ".gt3d";
 		pProps.WorkingScene = filepath.substr(filepath.find_last_of("/\\"));
 		std::string content = pProps.ProjectName + ".dll\n" + pProps.WorkingScene;
 		utils::writefile(project_filepath.c_str(), content);

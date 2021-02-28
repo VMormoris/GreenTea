@@ -127,7 +127,7 @@ namespace GTE {
 
 	enum class ENGINE_API LightType : char {
 		Directional = 0x00,
-		PointLight = 0x01,
+		//PointLight = 0x01,
 		SpotLight = 0x02,
 		//AreaLight = 0x03
 	};
