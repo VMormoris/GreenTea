@@ -9,7 +9,6 @@ workspace (ProjectName)
 
 	configurations
 	{
-		"Debug",
 		"Release"
 	}
 

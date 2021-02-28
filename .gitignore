@@ -7,6 +7,9 @@ bin-int
 #	Some assets maybe avaliable to be able to follow the wiki
 Assets/Scenes
 
+# Engine's Logs
+**.gtlog
+
 # Visual Studio
 .vs
 **.sln
