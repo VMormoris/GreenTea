@@ -74,10 +74,12 @@ namespace GTE {
 		Renderer::BeginScene(data);
 
 		{//Submit Lights
-			auto view = m_Registry.view<LightComponent, TransformationComponent>();
+			auto view = m_Registry.view<LightComponent>();
 			for (auto enttID : view)
 			{
-				glm::vec3 pos = m_Registry.get<TransformationComponent>(enttID).Transform[3];
+				glm::vec3 pos;
+				if(m_Registry.has<TransformationComponent>(enttID))
+					pos = m_Registry.get<TransformationComponent>(enttID).Transform[3];
 				const auto& lc = view.get<LightComponent>(enttID);
 				Renderer::SubmitLight(pos, lc);
 			}
@@ -329,10 +331,18 @@ namespace GTE {
 		m_Me = m_Registry.create();
 		auto& sceneProp = m_Registry.emplace<ScenePropertiesComponent>(m_Me);
 		m_Registry.emplace<RelationshipComponent>(m_Me);
+
+		//Setup enviroment
 		EnviromentComponent env;
 		env.SkyboxFilepath = "../Assets/Textures/Skybox/DefaultSkybox.png";
 		m_Registry.emplace<EnviromentComponent>(m_Me, env);
 
+		//Setup Directional light
+		m_Registry.emplace<TransformComponent>(m_Me);
+		LightComponent lc;
+		lc.Type = LightType::Directional;
+		lc.Direction = { 0.0f, -1.0f, 0.0f };
+		m_Registry.emplace<LightComponent>(m_Me, lc);
 
 		//Setup Editor's Camera
 		auto EditorCamera = m_Registry.create();

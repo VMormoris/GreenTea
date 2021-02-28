@@ -42,11 +42,12 @@ uniform vec4 u_Ambient;
 uniform float u_Shininess;
 
 uniform bool u_HasTexture;
-uniform bool u_HasLight;
+
 uniform bool u_HasNormal;
 uniform bool u_HasMask;
 uniform bool u_HasEmissive;
 
+uniform int u_LightType;
 uniform vec4 u_LightColor;
 uniform vec3 u_LightPos;
 uniform vec3 u_LightDir;
@@ -124,6 +125,7 @@ float shadow(vec3 pwcs)
 	vec4 plcs = u_LightProjectionMatrix * vec4(pwcs, 1.0);
 	// perspective division
 	plcs /= plcs.w;
+
 	// convert from [-1 1] to [0 1]
 	plcs.xy = (plcs.xy + 1) * 0.5;
 
@@ -216,7 +218,10 @@ vec3 cook_torrance(
 	vec3 kd = (pAlbedo / _PI_) * (1.0 - F) * (1.0 - metallic);
 	float dist = distance(u_LightPos, pPos);
 
-	return (ks + kd) * (u_LightColor.rgb / pow(dist, 2)) * NdotL + pEmission;
+	if(u_LightType == 0)//Directional light
+		return (ks + kd) * u_LightColor.rgb * NdotL + pEmission;
+	else//Spot light
+		return (ks + kd) * (u_LightColor.rgb / pow(dist, 2)) * NdotL + pEmission;
 }
 
 void main()
@@ -251,9 +256,30 @@ void main()
 		normal = normalize(v_TBN * nmap);
 	}
 
-	if(u_HasLight)
+	vec3 surfToEye = normalize(u_CameraPos - v_Position_WCS);
+	vec3 surfToLight = normalize(u_LightPos - v_Position_WCS);
+	float shadow_value = shadow(v_Position_WCS);
+
+	vec3 color;
+	switch(u_LightType){
+	case 0://Directional light
+		color = cook_torrance(surfToEye, -u_LightDir, v_Position_WCS, normal,
+			albedo, vec4(metallic, ao, reflectance, gloss),
+			vec3(emission.r, emission.g, emission.b));
+		break;
+	case 2://Spotlight
+		color = cook_torrance(surfToEye, surfToLight, v_Position_WCS, normal,
+			albedo, vec4(metallic, ao, reflectance, gloss),
+			vec3(emission.r, emission.g, emission.b));
+		float spotEffect = compute_spotlight(surfToLight);
+		color *= spotEffect;
+		break;
+	}
+	//color *= shadow_value;
+	o_Color += vec4(color, 1.0);
+	
+	/*if(u_HasLight)
 	{
-		vec3 surfToEye = normalize(u_CameraPos - v_Position_WCS);
 		vec3 surfToLight = normalize(u_LightPos - v_Position_WCS);
 		float spotEffect = compute_spotlight(surfToLight);
 		float shadow_value = shadow(v_Position_WCS);
@@ -268,7 +294,7 @@ void main()
 		o_Color = vec4(color, 1.0);
 	}
 	else
-		o_Color = vec4(albedo, 1.0);
+		o_Color = vec4(albedo, 1.0);*/
 
 	o_ObjectID = u_ID;
 }

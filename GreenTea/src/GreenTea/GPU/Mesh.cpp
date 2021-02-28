@@ -12,6 +12,8 @@ namespace GTE::GPU {
 		Mesh* gpumesh = new Mesh();
 		gpumesh->m_VAO = VertexArray::Create();
 
+		gpumesh->m_ABB = mesh->GetABB();
+
 		gpumesh->m_PositionVBO = VertexBuffer::Create(mesh->GetPositions(), mesh->GetPositionBufferSize());
 		gpumesh->m_PositionVBO->SetLayout({ {GPU::ShaderDataType::Vec3, "_position"} });
 		gpumesh->m_VAO->AddVertexBuffer(gpumesh->m_PositionVBO);

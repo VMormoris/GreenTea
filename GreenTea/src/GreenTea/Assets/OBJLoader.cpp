@@ -124,6 +124,8 @@ namespace GTE {
 		const glm::vec3 volCenter = (m_Maxes - m_Mins) / 2.0f + m_Mins;
 		for (auto& pos : m_SharedPositions)
 			pos -= volCenter;
+		m_Mesh->m_ABB[0] = m_Mins - volCenter;
+		m_Mesh->m_ABB[1] = m_Maxes - volCenter;
 	}
 
 	inline void OBJLoader::ReadTextCoords(const char* buffer)

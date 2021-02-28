@@ -53,6 +53,7 @@ namespace GTE {
 	const std::vector<MeshPart>& GeometricMesh::GetObjects(void) const { return m_Objects; }
 	const std::vector<Material>& GeometricMesh::GetMaterials(void) const { return m_Materials; }
 
-
+	std::array<glm::vec3, 2>& GeometricMesh::GetABB(void) { return m_ABB; }
+	const std::array<glm::vec3, 2>& GeometricMesh::GetABB(void) const { return m_ABB; }
 
 }

@@ -1,0 +1,133 @@
+{
+    "Total Entities": 3,
+    "Entities": [
+      {
+        "ID": 0,
+        "Transform Component": {
+          "Position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "Rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        "Light Component": {
+          "Target": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "Direction": {
+            "x": 0.0,
+            "y": -1.0,
+            "z": 0.0
+          },
+          "Color": {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          },
+          "Intensity": 10.0,
+          "Umbra": 60.0,
+          "Penumbra": 60.0,
+          "Near": 0.10000000149011612,
+          "Far": 10.0,
+          "Shadow Bias": 0.05999999865889549,
+          "Type": 0
+        },
+        "Enviroment Component": {
+          "Skybox Filepath": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Textures\\Skybox\\Nebula\\Nebula.png"
+        },
+        "Scene Properties Component": {
+          "Shadowmap Resolution": {
+            "x": 1024.0,
+            "y": 1024.0
+          },
+          "Camera's Velocity": 25.0
+        },
+        "Childrens": 0,
+        "Entities": []
+      },
+        {
+            "ID": 1,
+            "Perspective Camera Component": {
+                "Target": {
+                    "x": 0.5853049159049988,
+                    "y": -4.354641914367676,
+                    "z": -8.577102661132813
+                },
+                "Up Vector": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0
+                },
+                "FoV": 60.0,
+                "Near": 0.10000000149011612,
+                "Far": 1500.0
+            },
+            "Camera Component": {
+                "Aspect Ratio": 1.566544532775879,
+                "Primary": false,
+                "Fixed Aspect Ratio": false
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.3482474684715271,
+                    "y": -1.5666934251785279,
+                    "z": -15.451102256774903
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        },
+        {
+            "ID": 1048578,
+            "Mesh Component": {
+                "Mesh": "D:\\dev\\GreenTea3D\\Sandbox\\Assets\\Meshes\\Corridor_Straight.obj",
+                "Material Index: ": 1
+            },
+            "Tag Component": {
+                "Tag": "Corridor Straight"
+            },
+            "Transform Component": {
+                "Position": {
+                    "x": 0.0,
+                    "y": -10.411620140075684,
+                    "z": 0.0
+                },
+                "Scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "Rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            "Childrens": 0,
+            "Entities": []
+        }
+    ]
+}

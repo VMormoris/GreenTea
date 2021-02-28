@@ -6,7 +6,12 @@
 #include <gtc/matrix_transform.hpp>
 
 
+
+
 namespace GTE {
+
+	//Utility function for calculating Projection * View (aka Eye Matrix) matrix of any light
+	glm::mat4 CalculateLightEyeMatrix(const GTE::LightSource& light);
 
 	struct MeshNode {
 		const glm::mat4* Transform = nullptr;
@@ -29,6 +34,8 @@ namespace GTE {
 
 		GPU::FrameBuffer* ShadowmapFBO = nullptr;
 		SceneData SceneData;
+
+		std::array<glm::vec3, 2> ABB = { glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f} };
 		
 		std::vector<MeshNode> Meshes;
 		std::vector<LightSource> Lights;
@@ -58,6 +65,7 @@ namespace GTE {
 		s_RendererData.Shader3D->AddUniform("u_HasEmissive");
 		//s_RendererData.Shader3D->AddUniform("u_IsBump");
 
+		s_RendererData.Shader3D->AddUniform("u_LightType");
 		s_RendererData.Shader3D->AddUniform("u_LightColor");
 		s_RendererData.Shader3D->AddUniform("u_LightPos");
 		s_RendererData.Shader3D->AddUniform("u_LightDir");
@@ -153,53 +161,44 @@ namespace GTE {
 
 	void Renderer::EndScene(const GPU::CubicTexture* skybox)
 	{
-
-		if (s_RendererData.Lights.size() > 0)
+		for (const auto& light : s_RendererData.Lights)
 		{
-			const auto& light = s_RendererData.Lights[0];
 			RenderShadowmaps(light);
-			s_RendererData.Shader3D->Bind();
-			
-			s_RendererData.Shader3D->SetUniform("u_EyeMatrix", s_RendererData.SceneData.EyeMatrix);
-			s_RendererData.Shader3D->SetUniform("u_HasLight", true);
-			s_RendererData.Shader3D->SetUniform("u_LightColor", light.lc->Color * light.lc->Intensity);
-			s_RendererData.Shader3D->SetUniform("u_LightPos", light.Position);
-			s_RendererData.Shader3D->SetUniform("u_LightDir", light.lc->Direction);
-			s_RendererData.Shader3D->SetUniform("u_Umbra", light.lc->Umbra);
-			s_RendererData.Shader3D->SetUniform("u_Penumbra", light.lc->Penumbra);
-			s_RendererData.Shader3D->SetUniform("u_CameraPos", s_RendererData.SceneData.CameraPos);
-			s_RendererData.Shader3D->SetUniform("u_CameraDir", s_RendererData.SceneData.CameraDir);
-			s_RendererData.Shader3D->SetUniform("u_ConstantBias", light.lc->ShadowMapBias);
-
-			const glm::mat4 ViewMatrix = glm::lookAt(light.Position, light.lc->Target, glm::vec3(0.0f, 1.0f, 0.0f));
-			const float h = light.lc->Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
-			const glm::mat4 ProjectionMatrix = glm::frustum(-h, h, -h, h, light.lc->Near, light.lc->Far);
-			const glm::mat4 EyeMatrix = ProjectionMatrix * ViewMatrix;
-
-			s_RendererData.Shader3D->SetUniform("u_LightProjectionMatrix", EyeMatrix);
-			s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
-			s_RendererData.Shader3D->SetUniform("NormalTexture", 1);
-			s_RendererData.Shader3D->SetUniform("MaskTexture", 2);
-			s_RendererData.Shader3D->SetUniform("EmissiveTexture", 3);
-			s_RendererData.Shader3D->SetUniform("ShadowmapTexture", 4);
-			s_RendererData.ShadowmapFBO->BindAttachment(0, 4);
-			RenderGeometry();
-		}
-		else
-		{
-			s_RendererData.Shader3D->Bind();
-			s_RendererData.Shader3D->SetUniform("u_EyeMatrix", s_RendererData.SceneData.EyeMatrix);
-			s_RendererData.Shader3D->SetUniform("u_HasLight", false);
-			s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
-			RenderGeometry();
+			RenderGeometry(light);
 		}
 
 		if (skybox)
 			RenderSkybox(skybox);
 	}
 
-	void Renderer::RenderGeometry(void)
+	void Renderer::RenderGeometry(const LightSource& light)
 	{
+		s_RendererData.Shader3D->Bind();
+
+		//Camera's Uniforms
+		s_RendererData.Shader3D->SetUniform("u_EyeMatrix", s_RendererData.SceneData.EyeMatrix);
+		s_RendererData.Shader3D->SetUniform("u_CameraPos", s_RendererData.SceneData.CameraPos);
+		s_RendererData.Shader3D->SetUniform("u_CameraDir", s_RendererData.SceneData.CameraDir);
+
+		//Light's uniforms
+		s_RendererData.Shader3D->SetUniform("u_LightType", static_cast<int32>(light.lc->Type));
+		s_RendererData.Shader3D->SetUniform("u_LightColor", light.lc->Color * light.lc->Intensity);
+		s_RendererData.Shader3D->SetUniform("u_LightPos", light.Position);
+		s_RendererData.Shader3D->SetUniform("u_LightDir", light.lc->Direction);
+		s_RendererData.Shader3D->SetUniform("u_Umbra", light.lc->Umbra);
+		s_RendererData.Shader3D->SetUniform("u_Penumbra", light.lc->Penumbra);
+		s_RendererData.Shader3D->SetUniform("u_ConstantBias", light.lc->ShadowMapBias);
+		const glm::mat4 LightMatrix = CalculateLightEyeMatrix(light);
+		s_RendererData.Shader3D->SetUniform("u_LightProjectionMatrix", LightMatrix);
+		
+		//Sampler uniforms
+		s_RendererData.Shader3D->SetUniform("DiffuseTexture", 0);
+		s_RendererData.Shader3D->SetUniform("NormalTexture", 1);
+		s_RendererData.Shader3D->SetUniform("MaskTexture", 2);
+		s_RendererData.Shader3D->SetUniform("EmissiveTexture", 3);
+		s_RendererData.Shader3D->SetUniform("ShadowmapTexture", 4);
+		s_RendererData.ShadowmapFBO->BindAttachment(0, 4);
+
 		s_RendererData.SceneData.Target->Bind();
 		const auto& fboSpec = s_RendererData.SceneData.Target->GetSpecification();
 		RenderCommand::SetViewport(0, 0, fboSpec.Width, fboSpec.Height);
@@ -309,11 +308,7 @@ namespace GTE {
 
 		s_RendererData.ShaderShadows->Bind();
 
-		const glm::mat4 ViewMatrix = glm::lookAt(light.Position, light.lc->Target, glm::vec3(0.0f, 1.0f, 0.0f));
-		const float h = light.lc->Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
-		const glm::mat4 ProjectionMatrix = glm::frustum(-h, h, -h, h, light.lc->Near, light.lc->Far);
-		const glm::mat4 EyeMatrix = ProjectionMatrix * ViewMatrix;
-		
+		const glm::mat4 EyeMatrix = CalculateLightEyeMatrix(light);
 		for (const auto& mesh : s_RendererData.Meshes)
 		{
 			mesh.Geometry->Bind();
@@ -344,6 +339,8 @@ namespace GTE {
 		s_RendererData.Meshes.clear();
 		s_RendererData.Lights.clear();
 		s_RendererData.SceneData = data;
+		s_RendererData.ABB[0] = glm::vec3(FLT_MAX);
+		s_RendererData.ABB[1] = glm::vec3(FLT_MIN);
 	}
 
 	void Renderer::Shutdown(void)
@@ -358,8 +355,73 @@ namespace GTE {
 		delete s_RendererData.ShadowmapFBO;
 	}
 
-	void Renderer::SubmitMesh(const glm::mat4& transform, GPU::Mesh* mesh, uint32 ID) { s_RendererData.Meshes.push_back({ transform, mesh, ID }); }
+	void Renderer::SubmitMesh(const glm::mat4& transform, GPU::Mesh* mesh, uint32 ID)
+	{
+		MeshNode node = { transform, mesh, ID };
+		std::array<glm::vec3, 2> abb = mesh->GetABB();
+		abb[0] = transform * glm::vec4(abb[0].x, abb[0].y, abb[0].z, 1.0f/*Dont Care*/);
+		abb[1] = transform * glm::vec4(abb[1].x, abb[1].y, abb[1].z, 1.0f/*Dont Care*/);
+
+		//Now the bounding box is not alligned to the world axis (aka is OBB)
+		//	so we need to make ABB again
+		float temp = abb[0].x;
+		abb[0].x = std::min(temp, abb[1].x);
+		abb[1].x = std::max(temp, abb[1].x);
+
+		temp = abb[0].y;
+		abb[0].y = std::min(temp, abb[1].y);
+		abb[1].y = std::max(temp, abb[1].y);
+
+		temp = abb[0].z;
+		abb[0].z = std::min(temp, abb[1].z);
+		abb[1].z = std::max(temp, abb[1].z);
+
+		s_RendererData.ABB[0].x = std::min(s_RendererData.ABB[0].x, abb[0].x);
+		s_RendererData.ABB[1].x = std::max(s_RendererData.ABB[1].x, abb[1].x);
+
+		s_RendererData.ABB[0].y = std::min(s_RendererData.ABB[0].y, abb[0].y);
+		s_RendererData.ABB[1].y = std::max(s_RendererData.ABB[1].y, abb[1].y);
+
+		s_RendererData.ABB[0].z = std::min(s_RendererData.ABB[0].z, abb[0].z);
+		s_RendererData.ABB[1].z = std::max(s_RendererData.ABB[1].z, abb[1].z);
+
+		s_RendererData.Meshes.push_back(node);	
+	}
 	void Renderer::SubmitLight(const glm::vec3& position, const LightComponent& lc) { s_RendererData.Lights.push_back({ position, lc }); }
 	void Renderer::ResizeShadowmapRes(const glm::vec2& resolution) { s_RendererData.ShadowmapFBO->Resize(static_cast<uint32>(resolution.x), static_cast<uint32>(resolution.y)); }
 
+
+	glm::mat4 CalculateLightEyeMatrix(const GTE::LightSource& light)
+	{
+		glm::mat4 ViewMatrix, ProjectionMatrix;
+		switch (light.lc->Type){
+		case GTE::LightType::Directional:
+		{
+			const float dist = glm::distance(s_RendererData.ABB[0], s_RendererData.ABB[1]);
+			const float halfDist = dist / 2.0f;
+			const glm::vec3 target = (s_RendererData.ABB[1] + s_RendererData.ABB[0]) / 2.0f;//Volumetric Center of ABB
+			const glm::vec3 pos = target - halfDist * light.lc->Direction;
+			if (light.lc->Direction == glm::vec3{ 0.0f, 1.0f, 0.0f })
+				ViewMatrix = glm::lookAt(pos, target, { 0.0f, 0.0f, -1.0f });
+			else if (light.lc->Direction == glm::vec3{ 0.0f, -1.0f, 0.0f })
+				ViewMatrix = glm::lookAt(pos, target, { 0.0f, 0.0f, 1.0f });
+			else
+				ViewMatrix = glm::lookAt(pos, target, { 0.0f, 1.0f, 0.0f });
+			ProjectionMatrix = glm::ortho(-halfDist, halfDist, -halfDist, halfDist, 0.0f, dist);
+			break;
+		}
+		case LightType::SpotLight:
+		{
+			ViewMatrix = glm::lookAt(light.Position, light.lc->Target, { 0.0f, 1.0f, 0.0f });
+			const float h = light.lc->Near * glm::tan(glm::radians(light.lc->Penumbra * 0.5f));
+			ProjectionMatrix = glm::frustum(-h, h, -h, h, light.lc->Near, light.lc->Far);
+			break;
+		}
+		default:
+			ENGINE_ASSERT(false, "Not implemented yet!");
+		}
+		return ProjectionMatrix * ViewMatrix;
+	}
 }
+
+

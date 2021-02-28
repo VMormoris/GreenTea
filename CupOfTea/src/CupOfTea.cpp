@@ -206,10 +206,48 @@ void CupOfTea::Update(float dt)
 	{
 		if (ImGui::Begin("Scene Manager", &m_Panels[1]))
 		{
-			if (ImGui::Button("Add Entity")) m_ActiveScene->CreateEntity();			
+			ImGuiIO& io = ImGui::GetIO();
+			auto boldFont = io.Fonts->Fonts[1];
+			auto iconFont = io.Fonts->Fonts[0];
+			const float width = 24.0f;
+			const float offset = ImGui::GetContentRegionAvailWidth() - width + 4.0f;
+			
+
+			//Enviroment Entity
+			const ImGuiTreeNodeFlags treeflags = (SelectedEntity == m_ActiveScene->GetSceneEntity() ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_Leaf;
+			ImGui::TreeNodeEx("Enviroment", treeflags);
+			if (ImGui::IsItemClicked())
+			{
+				SelectedEntity = m_ActiveScene->GetSceneEntity();
+				m_SceneManagerPanel.SetSelectedEntity(SelectedEntity);
+			}
+			ImGui::TreePop();
+
+
+			//Globe Icon for Enviroment Enity
+			ImGui::PushFont(iconFont);
+			ImGui::SameLine();
+			ImGui::SetCursorPos({ ImGui::GetCursorPosX() - 100.0f, ImGui::GetCursorPosY() + 2.0f });
+			ImGui::Text(ICON_FA_GLOBE);//ICON_FA_CUBE//ICON_FA_CUBES//ICON_FA_LIGHTBULB_O
+			ImGui::PopFont();
 			ImGui::Separator();
+
+			//Button for Creating new Entities
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 31.0f);
+			ImGui::PushFont(boldFont);
+			if (ImGui::Button("+", { width, 0.0f }))
+				m_ActiveScene->CreateEntity();
+			ImGui::PopFont();
+			ImGui::Separator();
+
+			//All other entities
+			ImGui::BeginChild("Entities");
 			m_SceneManagerPanel.Render();
+			ImGui::EndChild();
+			
 			SelectedEntity = m_SceneManagerPanel.GetSelectedEntity();
+			
 		}
 		ImGui::End();
 	}
@@ -299,76 +337,7 @@ void CupOfTea::Update(float dt)
 			ImGui::Image((void*)textID, size, ImVec2(0, 1), ImVec2(1, 0));
 			bool SelectionFlag = ImGui::IsItemClicked();
 
-			//Check whether any entity is Selected to render Guizmo
-			if (SelectedEntity.Valid() && !m_Playing)
-			{
-				if (SelectedEntity.HasComponent<TransformComponent>())
-				{
-					ImGuizmo::SetOrthographic(false);
-					ImGuizmo::SetDrawlist();
-
-					ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowSize.x, windowSize.y);
-
-					const auto& persp = EditorCameraEntity.GetComponent<PerspectiveCameraComponent>();
-					const auto& cam = EditorCameraEntity.GetComponent<CameraComponent>();
-					const auto& camTC = EditorCameraEntity.GetComponent<TransformComponent>();
-					auto& tc = SelectedEntity.GetComponent<TransformComponent>();
-
-					glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(persp.FoV), windowSize.x / windowSize.y, persp.Near, persp.Far);
-					glm::mat4 ViewMatrix = glm::lookAt(camTC.Position, persp.Target, persp.UpVector);
-
-					glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Position) *
-						glm::toMat4(glm::quat(glm::radians(tc.Rotation))) *
-						glm::scale(glm::mat4(1.0f), tc.Scale);
-
-					const auto& rel = SelectedEntity.GetComponent<RelationshipComponent>();
-					
-					bool manipulated;
-
-					if (rel.Parent != entt::null)
-					{
-						Entity Parent = { rel.Parent, m_ActiveScene };
-						glm::mat4 PTransform = Parent.GetComponent<TransformationComponent>().Transform;
-						transform = PTransform * transform;
-
-						manipulated = ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
-							GuizmoOP, ImGuizmo::MODE::LOCAL,
-							glm::value_ptr(transform));
-						transform = glm::inverse(PTransform) * transform;
-					}
-					else
-					{
-						manipulated = ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
-							GuizmoOP, ImGuizmo::MODE::WORLD,
-							glm::value_ptr(transform));
-					}
-
-					if (ImGuizmo::IsUsing())
-					{
-						SelectionFlag = false;
-						if (manipulated)
-						{
-							glm::vec3 Position, Rotation, Scale;
-							ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(Position), glm::value_ptr(Rotation), glm::value_ptr(Scale));
-							//Math::DecomposeTransform(transform, Position, Rotation, Scale);
-							switch (GuizmoOP)
-							{
-							case ImGuizmo::OPERATION::TRANSLATE:
-								tc.Position = Position;
-								break;
-							case ImGuizmo::OPERATION::SCALE:
-								tc.Scale = Scale;
-								break;
-							case ImGuizmo::OPERATION::ROTATE:
-								glm::vec3 delta = Rotation - tc.Rotation;
-								tc.Rotation += delta;
-								break;
-							}
-							SelectedEntity.UpdateMatrices();
-						}
-					}
-				}
-			}
+			GuizmoUpdate(SelectionFlag);
 
 			//Check ther result of mouse picking to change the Selected Entity
 			if (SelectionFlag)
@@ -431,7 +400,7 @@ void CupOfTea::Update(float dt)
 		ImGui::PopFont();
 	}
 	ImGui::End();
-
+	ImGui::ShowDemoWindow();
 	ImGui::End();//Ending Dockspace
 	m_EditorLayer->End();
 }
@@ -439,7 +408,6 @@ void CupOfTea::Update(float dt)
 CupOfTea::CupOfTea(const char* filepath) : Application("Cup Of Tea (GreenTea Editor)", -1, -1)
 {
 	AssetManager::RequestTexture("../Assets/Textures/Editor/Transparency.png");
-	REGISTER(EventType::MouseScroll, this, &CupOfTea::onScroll)
 
 	m_EditorLayer = ImGuiLayer::Create();
 	m_EditorLayer->Init(m_Window->GetPlatformWindow(), m_Window->GetContext());
@@ -557,6 +525,87 @@ void RenderDockspace(void)
 	}
 }
 
+void CupOfTea::GuizmoUpdate(bool& selectionFlag)
+{
+	const ImVec2 windowSize = ImGui::GetWindowSize();
+
+	//Check whether any entity is Selected to render Guizmo
+	if (SelectedEntity.Valid() && !m_Playing)
+	{
+		if (SelectedEntity.HasComponent<TransformComponent>())
+		{
+			const bool isEnv = SelectedEntity == m_ActiveScene->GetSceneEntity();
+
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetDrawlist();
+
+			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowSize.x, windowSize.y);
+
+			const auto& persp = EditorCameraEntity.GetComponent<PerspectiveCameraComponent>();
+			const auto& cam = EditorCameraEntity.GetComponent<CameraComponent>();
+			const auto& camTC = EditorCameraEntity.GetComponent<TransformComponent>();
+			auto& tc = SelectedEntity.GetComponent<TransformComponent>();
+
+			glm::mat4 ProjectionMatrix = glm::perspective(glm::radians(persp.FoV), windowSize.x / windowSize.y, persp.Near, persp.Far);
+			glm::mat4 ViewMatrix = glm::lookAt(camTC.Position, persp.Target, persp.UpVector);
+
+			glm::mat4 transform = glm::toMat4(glm::quat(glm::radians(tc.Rotation)));
+			if (!isEnv)
+			{
+				transform = glm::translate(glm::mat4(1.0f), tc.Position) *
+					transform *
+					glm::scale(glm::mat4(1.0f), tc.Scale);
+			}
+
+			const auto& rel = SelectedEntity.GetComponent<RelationshipComponent>();
+
+			bool manipulated;
+
+			if (rel.Parent != entt::null)
+			{
+				Entity Parent = { rel.Parent, m_ActiveScene };
+				glm::mat4 PTransform = Parent.GetComponent<TransformationComponent>().Transform;
+				transform = PTransform * transform;
+
+				manipulated = ImGuizmo::Manipulate
+				(
+					glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),//Camera's Matrices
+					GuizmoOP, ImGuizmo::MODE::LOCAL,//ImGuizmo properties 
+					glm::value_ptr(transform)//Model Matrix
+				);
+				transform = glm::inverse(PTransform) * transform;
+			}
+			else
+			{
+				manipulated = ImGuizmo::Manipulate
+				(
+					glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),//Camera's Matrices
+					isEnv ? ImGuizmo::OPERATION::ROTATE : GuizmoOP, ImGuizmo::MODE::WORLD,//ImGuizmo properties
+					glm::value_ptr(transform)//Model Matrix
+				);
+			}
+
+			if (ImGuizmo::IsUsing())
+			{
+				selectionFlag = false;
+				if (manipulated)
+				{
+					glm::vec3 Position, Rotation, Scale;
+					ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(Position), glm::value_ptr(Rotation), glm::value_ptr(Scale));
+					//Math::DecomposeTransform(transform, Position, Rotation, Scale);
+
+					tc.Position = Position;
+					tc.Scale = Scale;
+					glm::vec3 delta = Rotation - tc.Rotation;
+					tc.Rotation += delta;
+					
+					SelectedEntity.UpdateMatrices();
+				}
+			}
+		}
+	}
+}
+
 bool CupOfTea::onKeyDown(KeyCode keycode)
 {
 	switch (keycode)
@@ -607,22 +656,7 @@ bool CupOfTea::onKeyDown(KeyCode keycode)
 	}
 }
 
-bool CupOfTea::onScroll(int32 dx, int32 dy)
-{
-	/*auto& ortho = EditorCameraEntity.GetComponent<OrthographicCameraComponent>();
-	ortho.ZoomLevel -= dy * 0.25f;
-	ortho.ZoomLevel = std::max(ortho.ZoomLevel, 0.25f);
 
-	auto& cam = EditorCameraEntity.GetComponent<CameraComponent>();
-
-	glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-	box *= glm::vec2(cam.AspectRatio, 1.0f);
-	cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
-	cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
-	*/
-	GTE_WARN_LOG("Scroll of Editor's Camera is not yet implemented!");
-	return false;
-}
 
 void CupOfTea::NewScene(void)
 {

@@ -23,6 +23,10 @@ namespace GTE{
 			const std::vector<Material>& GetMaterials(void) const { return m_Materials; }
 
 			const GPU::VertexArray* GetVAO(void) const { return m_VAO; }
+
+			std::array<glm::vec3, 2>& GetABB(void) { return m_ABB; }
+			const std::array<glm::vec3, 2>& GetABB(void) const { return m_ABB; }
+
 			static Mesh* Create(GeometricMesh* mesh);
 			
 			Mesh* Clone(void) const;
@@ -41,6 +45,8 @@ namespace GTE{
 			VertexBuffer* m_TextCoordVBO = nullptr;
 			VertexBuffer* m_TangentsVBO = nullptr;
 			VertexBuffer* m_BitangentsVBO = nullptr;
+
+			std::array<glm::vec3, 2> m_ABB;
 			
 		};
 	}

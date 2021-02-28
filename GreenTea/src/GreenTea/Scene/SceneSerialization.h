@@ -374,6 +374,7 @@ namespace GTE {
 		archive(lc.Near);
 		archive(lc.Far);
 		archive(lc.ShadowMapBias);
+		archive(lc.Type);
 	}
 
 	template<typename JSONArchive>
@@ -407,6 +408,7 @@ namespace GTE {
 		archive(cereal::make_nvp("Near", lc.Near));
 		archive(cereal::make_nvp("Far", lc.Far));
 		archive(cereal::make_nvp("Shadow Bias", lc.ShadowMapBias));
+		archive(cereal::make_nvp("Type", lc.Type));
 	}
 
 	template<typename Archive>

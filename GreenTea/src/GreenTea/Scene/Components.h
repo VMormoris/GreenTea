@@ -125,16 +125,27 @@ namespace GTE {
 		operator const glm::mat4& (void) const { return EyeMatrix; }
 	};
 
+	enum class ENGINE_API LightType : char {
+		Directional = 0x00,
+		PointLight = 0x01,
+		SpotLight = 0x02,
+		AreaLight = 0x03
+	};
+
 	struct ENGINE_API LightComponent {
 		glm::vec3 Target{ 0.0f, 0.0f, 0.0f };
-		glm::vec3 Direction{ 0.0f, 0.0f, 0.0f };
+		glm::vec3 Direction{ 0.0f, -1.0f, 0.0f };//12 o'clock directional light
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		float Intensity = 1.0f;
+		float Intensity = 120.0f;
 		float Umbra = 60.0f;
 		float Penumbra = 60.0f;
 		float Near = 0.1f;
 		float Far = 10.0f;
 		float ShadowMapBias = 0.0002f;
+		LightType Type = LightType::PointLight;
+		
+		LightComponent(void) = default;
+		LightComponent(const LightComponent&) = default;
 	};
 
 	enum class ENGINE_API ScriptState : char {

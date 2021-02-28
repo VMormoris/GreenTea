@@ -23,7 +23,6 @@ public:
 
 public:
 
-	bool onScroll(int32 dx, int32 dy);
 	bool onKeyDown(KeyCode keycode) override;
 
 private:
@@ -31,6 +30,7 @@ private:
 	void NewScene(void);
 	void OpenScene(void);
 	void SaveSceneAs(void);
+	void GuizmoUpdate(bool& selectionFlag);
 
 private:
 

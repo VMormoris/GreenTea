@@ -205,7 +205,13 @@ namespace GTE {
 			if (HasComponent<LightComponent>())
 			{
 				auto& lc = GetComponent<LightComponent>();
-				lc.Direction = glm::normalize(lc.Target - glm::vec3(transformation.Transform[3]));
+				if(HasComponent<TagComponent>())
+					lc.Direction = glm::normalize(lc.Target - glm::vec3(transformation.Transform[3]));
+				else
+				{
+					const glm::vec3 pos = transformation.Transform * glm::vec4{0.0f, 1.0f, 0.0f, 1.0f};
+					lc.Direction = glm::normalize(lc.Target - pos);
+				}
 			}
 		}
 

@@ -5,7 +5,7 @@
 #include "Material.h"
 
 #include <vector>
-
+#include <array>
 
 namespace GTE {
 
@@ -58,11 +58,15 @@ namespace GTE {
 		const std::vector<MeshPart>& GetObjects(void) const;
 		const std::vector<Material>& GetMaterials(void) const;
 
+		std::array<glm::vec3, 2>& GetABB(void);
+		const std::array<glm::vec3, 2>& GetABB(void) const;
+
 	private:
 
 		std::vector<MeshPart> m_Objects;
 		std::vector<Material> m_Materials;
 		Vertices m_Vertices;
+		std::array<glm::vec3, 2> m_ABB;
 		friend class OBJLoader;
 	};
 

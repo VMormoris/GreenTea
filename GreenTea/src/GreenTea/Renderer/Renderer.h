@@ -46,7 +46,7 @@ namespace GTE {
 	
 	private:
 
-		static void RenderGeometry(void);
+		static void RenderGeometry(const LightSource& lc);
 
 		static void RenderShadowmaps(const LightSource& lc);
 

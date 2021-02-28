@@ -4,10 +4,52 @@
 
 #include <imgui_internal.h>
 
+#include <IconsFontAwesome4.h>
+
+static constexpr float LightIconOffsets[4] = {127.0f, 0.0f, 252.0f, 0.0f};
+
 namespace GTE {
 
 	void RenderPropertiesPanel(Entity entity)
 	{
+		ImGuiIO& io = ImGui::GetIO();
+		const auto iconFont = io.Fonts->Fonts[0];
+
+		if (!entity.HasComponent<TagComponent>())//Enviroment Entity
+		{
+			DrawComponent<EnviromentComponent>("Skybox", entity, [](auto& env) {
+				const UISettings settings;
+				if (DrawFilePicker("Map", env.SkyboxFilepath, ".png", settings))
+					env.Skybox = AssetManager::RequestCubeMap(env.SkyboxFilepath.c_str());
+			});
+			
+			ImVec2 CursorPos = ImGui::GetCursorPos();
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvailWidth() - 12.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 53.0f);
+			ImGui::PushFont(iconFont);
+			ImGui::Text(ICON_FA_CUBE);
+			ImGui::PopFont();
+			ImGui::SetCursorPos(CursorPos);
+
+
+			DrawComponent<LightComponent>("Directional Light", entity, [](auto& lc) {
+				UISettings settings;
+				DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);
+				settings.Clamp.x = 1.0f;
+				DrawFloatControl("Intensity", lc.Intensity, settings);
+				settings = UISettings();
+				DrawColorPicker("Color", lc.Color, settings);
+			});
+
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvailWidth() - 12.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 103.0f);
+			ImGui::PushFont(iconFont);
+			ImGui::Text(ICON_FA_SUN_O);
+			ImGui::PopFont();
+
+			return;
+		}
+
 		DrawComponentAdder(entity);
 		
 		DrawComponent<TagComponent>("Tag Component", entity, [&](auto& tag) {
@@ -112,23 +154,49 @@ namespace GTE {
 		});
 
 		DrawComponent<LightComponent>("Light Component", entity, [&](auto& lc) {
+			constexpr char* LightTypenames[] = {"Directional Light", "Point Light", "Spot Light", "Area Light"};
 			UISettings settings;
-			if (DrawVec3Control("Target", lc.Target, settings))
-				entity.UpdateMatrices();
-			settings.Clamp.x = -180.0f;
-			settings.Clamp.y = 180.0f;
-			DrawFloatControl("Umbra", lc.Umbra, settings);
-			DrawFloatControl("Penumbra", lc.Penumbra, settings);
-			settings.Clamp.x = 0.0f;
-			settings.Clamp.y = FLT_MAX;
-			DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);
-			settings.Clamp.x = 1.0f;
-			DrawFloatControl("Intensity", lc.Intensity, settings);
-			DrawFloatControl("Near", lc.Near, settings);
-			DrawFloatControl("Far", lc.Far, settings);
+			int32 type = static_cast<int32>(lc.Type);
+			DrawComboControl("Type", type, LightTypenames, IM_ARRAYSIZE(LightTypenames), settings);
+			lc.Type = static_cast<LightType>(type);
+			switch (lc.Type) {
+			case LightType::SpotLight:
+				if (DrawVec3Control("Target", lc.Target, settings))
+					entity.UpdateMatrices();
+				settings.Clamp.x = -180.0f;
+				settings.Clamp.y = 180.0f;
+				DrawFloatControl("Umbra", lc.Umbra, settings);
+				DrawFloatControl("Penumbra", lc.Penumbra, settings);
+				settings.Clamp.x = 0.0f;
+				settings.Clamp.y = FLT_MAX;
+				DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);
+				settings.Clamp.x = 1.0f;
+				DrawFloatControl("Intensity", lc.Intensity, settings);
+				DrawFloatControl("Near", lc.Near, settings);
+				DrawFloatControl("Far", lc.Far, settings);
+				break;
+			case LightType::Directional:
+				DrawFloatControl("Shadow Bias", lc.ShadowMapBias, settings);
+				settings.Clamp.x = 1.0f;
+				DrawFloatControl("Intensity", lc.Intensity, settings);
+				break;
+			}
 			settings = UISettings();
 			DrawColorPicker("Color", lc.Color, settings);
 		});
+
+		if (entity.HasComponent<LightComponent>())//Lightbulb Icon
+		{
+			const ImVec2 cpos = ImGui::GetCursorPos();
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvailWidth() - 12.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - LightIconOffsets[static_cast<int32>(entity.GetComponent<LightComponent>().Type)]);
+
+			ImGui::PushFont(iconFont);
+			ImGui::Text(ICON_FA_LIGHTBULB_O);
+			ImGui::PopFont();
+
+			ImGui::SetCursorPos(cpos);
+		}
 
 		DrawComponent<NativeScriptComponent>("Native Script Component", entity, [](auto& nScript) {
 			UISettings settings;

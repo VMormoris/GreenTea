@@ -5,6 +5,7 @@
 #include <string>
 #include <glm.hpp>
 
+//TODO: Remove AddUniform Function is too hassle for debugging
 namespace GTE::GPU {
 
 	/**
