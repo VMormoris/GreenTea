@@ -12,4 +12,9 @@ extern "C" {
 		return static_cast<void*>(new CameraController());
 	}
 
+	GAME_API void* CreateHorizontalMovingPlatform(void)
+	{
+		return static_cast<void*>(new HorizontalMovingPlatform());
+	}
+
 }

@@ -1,6 +1,7 @@
 # Binaries
 bin
 bin-int
+!3rdParty/Glew/bin
 
 # Assets
 #	Some assets maybe avaliable to be able to follow the wiki

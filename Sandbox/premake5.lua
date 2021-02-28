@@ -1,5 +1,9 @@
 -- Change Sandbox to your project name
-workspace "Sandbox"
+ProjectName = "Sandbox"
+--Change GreeTeaDir to the absolute path to the GreenTea directory
+GreenTeaDir = "D:/dev/GreenTea"
+
+workspace (ProjectName)
 
 	architecture "x64"
 
@@ -10,9 +14,6 @@ workspace "Sandbox"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
---Change GreeTeaDir to the absolute path to the GreenTea directory
-GreenTeaDir = "D:/dev/GreenTea"
 
 IncludeDirs={}
 IncludeDirs["GreenTea"]=(GreenTeaDir .. "/GreenTea/src")
@@ -32,8 +33,8 @@ LibFiles["box2d"]=(GreenTeaDir .. "/3rdParty/box2d/include")
 LibFiles["OpenGL"]="opengl32.lib"
 
 
-project "Sandbox"
-	location "Sandbox"
+project (ProjectName)
+	location (ProjectName)
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++17"

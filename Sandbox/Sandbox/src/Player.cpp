@@ -5,7 +5,10 @@ using namespace GTE;
 void Player::onCollisionStart(ScriptableEntity other)
 {
 	auto& Tag = other.GetComponent<TagComponent>().Tag;
-	if (Tag.compare("Ground") == 0)
+
+	if ((Tag.compare("GravityBoss") == 0) || (Tag.compare("Spikes_0") == 0) || (Tag.compare("Spikes_1") == 0))
+		m_DeathTrigger = true;
+	if ( IsJumping() && ((Tag.compare("Ground") == 0) || (Tag.compare("HorizontalMovingPlatform") == 0)))
 	{
 		const auto& rb = GetComponent<RigidBody2DComponent>();
 		auto& tc = GetComponent<Transform2DComponent>();
@@ -14,9 +17,15 @@ void Player::onCollisionStart(ScriptableEntity other)
 		{
 			sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/IdleSpritesheet.png");
 			if (m_CurrentAnimation == &m_JumpLeft)
+			{
+				m_AnimationState = AnimationState::IdleLeft;
 				m_CurrentAnimation = &m_IdleLeft;
+			}
 			else if (m_CurrentAnimation == &m_JumpRight)
+			{
 				m_CurrentAnimation = &m_IdleRight;
+				m_AnimationState = AnimationState::IdleRight;
+			}
 			m_CurrentAnimation->Reset();
 			tc.Scale.x = 1.0f;
 		}
@@ -24,13 +33,18 @@ void Player::onCollisionStart(ScriptableEntity other)
 		{
 			sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/RunSpritesheet.png");
 			if (m_CurrentAnimation == &m_JumpLeft)
+			{
+				m_AnimationState = AnimationState::RunLeft;
 				m_CurrentAnimation = &m_RunLeft;
+			}
 			else if (m_CurrentAnimation == &m_JumpRight)
+			{
+				m_AnimationState = AnimationState::RunRight;
 				m_CurrentAnimation = &m_RunRight;
+			}
 			m_CurrentAnimation->Reset();
 			tc.Scale.x = 1.5f;
 		}
-		m_OnAir = false;
 	}
 }
 
@@ -40,61 +54,81 @@ void Player::FixedUpdate(void)
 	auto& sprite = GetComponent<Renderable2DComponent>();
 	auto& tc = GetComponent<Transform2DComponent>();
 
+	if (m_DeathTrigger)
+	{
+		tc.Position = { -500.0f, -7.0f, 0.0f };
+		m_DeathTrigger = false;
+	}
+
 	if (m_JumpTrigger)
 	{
 		rb.Velocity = glm::vec2(0.0f, 10.0f);
 		m_JumpTrigger = false;
-		m_OnAir = true;
 		if ((m_CurrentAnimation == &m_IdleLeft) || (m_CurrentAnimation == &m_RunLeft))
+		{
 			m_CurrentAnimation = &m_JumpLeft;
+			m_AnimationState = AnimationState::JumpLeft;
+		}	
 		else
+		{
+			m_AnimationState = AnimationState::JumpRight;
 			m_CurrentAnimation = &m_JumpRight;
+		}
 		m_CurrentAnimation->Reset();
 		sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/JumpSpritesheet.png");
 		tc.Scale.x = 1.5f;
 	}
 	else
 	{
-		if (Input::KeyPressed(KeyCode::D) && Input::KeyPressed(KeyCode::A))
-			rb.Velocity.x = 0.0f;
-		else if (Input::KeyPressed(KeyCode::D))
-			rb.Velocity.x = 8.0f;
+		if (Input::KeyPressed(KeyCode::D))
+		{
+			if (IsJumping() && (m_AnimationState == AnimationState::JumpLeft))
+			{
+				m_AnimationState = AnimationState::JumpRight;
+				m_CurrentAnimation = &m_JumpRight;
+				m_CurrentAnimation->Continue(m_JumpLeft);
+			}
+			else if (!IsJumping() && (m_AnimationState != AnimationState::RunRight))
+			{
+				sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/RunSpritesheet.png");
+				m_AnimationState = AnimationState::RunRight;
+				m_CurrentAnimation = &m_RunRight;
+				m_CurrentAnimation->Reset();
+				tc.Scale.x = 1.5f;
+			}
+			rb.Velocity.x = 12.0f;
+		}
 		else if (Input::KeyPressed(KeyCode::A))
-			rb.Velocity.x = -8.0f;
-		else
-			rb.Velocity.x = 0.0f;
-
-		if ((rb.Velocity.x > 0.0f) && !m_OnAir && (m_CurrentAnimation != &m_RunRight))
 		{
-			sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/RunSpritesheet.png");
-			m_CurrentAnimation = &m_RunRight;
-			m_CurrentAnimation->Reset();
-			tc.Scale.x = 1.5f;
+			if (IsJumping() && (m_AnimationState == AnimationState::JumpRight))
+			{
+				m_AnimationState = AnimationState::JumpLeft;
+				m_CurrentAnimation = &m_JumpLeft;
+				m_CurrentAnimation->Continue(m_JumpRight);
+			}
+			else if (!IsJumping() && (m_AnimationState != AnimationState::RunLeft))
+			{
+				sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/RunSpritesheet.png");
+				m_AnimationState = AnimationState::RunLeft;
+				m_CurrentAnimation = &m_RunLeft;
+				m_CurrentAnimation->Reset();
+				tc.Scale.x = 1.5f;
+			}
+			rb.Velocity.x = -12.0f;
 		}
-		else if ((rb.Velocity.x > 0.0f) && m_OnAir && (m_CurrentAnimation == &m_JumpLeft))
-		{
-			m_CurrentAnimation = &m_JumpRight;
-			m_CurrentAnimation->Continue(m_JumpLeft);
-		}
-		else if ((rb.Velocity.x < 0.0f) && !m_OnAir && (m_CurrentAnimation != &m_RunLeft))
-		{
-			sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/RunSpritesheet.png");
-			m_CurrentAnimation = &m_RunLeft;
-			m_CurrentAnimation->Reset();
-			tc.Scale.x = 1.5f;
-		}
-		else if ((rb.Velocity.x < 0.0f) && m_OnAir && (m_CurrentAnimation == &m_JumpRight))
-		{
-			m_CurrentAnimation = &m_JumpLeft;
-			m_CurrentAnimation->Continue(m_JumpRight);
-		}
-		else if ((rb.Velocity.x == 0.0f) && !m_OnAir && (m_CurrentAnimation != &m_IdleLeft) && (m_CurrentAnimation != &m_IdleRight))
+		else if(IsRunning())
 		{
 			sprite.Texture = AssetManager::RequestTexture("D:/dev/Sandbox/Assets/Textures/Characters/Ninja/IdleSpritesheet.png");
-			if (m_CurrentAnimation == &m_RunLeft)
+			if (m_AnimationState == AnimationState::RunLeft)
+			{
+				m_AnimationState = AnimationState::IdleLeft;
 				m_CurrentAnimation = &m_IdleLeft;
-			else if (m_CurrentAnimation == &m_RunRight)
+			}
+			else if (m_AnimationState == AnimationState::RunRight)
+			{
+				m_AnimationState = AnimationState::IdleRight;
 				m_CurrentAnimation = &m_IdleRight;
+			}
 			m_CurrentAnimation->Reset();
 			tc.Scale.x = 1.0f;
 		}
@@ -113,8 +147,8 @@ bool Player::onKeyDown(GTE::KeyCode keycode)
 	switch (keycode)
 	{
 	case KEY_SPACE:
-		if ((m_CurrentAnimation != &m_JumpLeft) && (m_CurrentAnimation != &m_JumpRight))
-			m_JumpTrigger = m_CurrentAnimation;
+		if (!IsJumping())
+			m_JumpTrigger = true;
 		return true;
 	default:
 		return false;
@@ -172,4 +206,9 @@ Player::Player(void)
 		m_RunLeft = m_RunRight.FlipHorizontally();
 	}
 	m_CurrentAnimation = &m_IdleRight;
+	m_AnimationState = AnimationState::IdleRight;
 }
+
+bool Player::IsIdlying(void) const { return m_AnimationState == AnimationState::IdleLeft || m_AnimationState == AnimationState::IdleRight;  }
+bool Player::IsRunning(void) const { return m_AnimationState == AnimationState::RunLeft || m_AnimationState == AnimationState::RunRight; }
+bool Player::IsJumping(void) const { return m_AnimationState == AnimationState::JumpLeft || m_AnimationState == AnimationState::JumpRight; }

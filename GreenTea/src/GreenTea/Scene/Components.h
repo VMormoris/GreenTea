@@ -11,6 +11,8 @@
 
 #include <box2d/b2_body.h>
 
+//TODO: Creation of Applications Properties Component?
+
 namespace GTE {
 	/**
 	* @brief Tag Component
@@ -210,6 +212,8 @@ namespace GTE {
 
 		int32 VelocityIterations = 6;
 		int32 PositionIterations = 2;
+
+		glm::vec2 CamVelocity {1.0f, 1.0f};
 
 		ScenePropertiesComponent(void) = default;
 		ScenePropertiesComponent(const ScenePropertiesComponent&) = default;

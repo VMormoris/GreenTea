@@ -25,7 +25,7 @@ namespace GTE {
 	{
 		if (!entity.HasComponent<TagComponent>()) return;
 		const auto& Tag = entity.GetComponent<TagComponent>().Tag;
-		ImGuiTreeNodeFlags treeFlags = (m_SelectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Framed;
+		ImGuiTreeNodeFlags treeFlags = (m_SelectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool IsOpen = ImGui::TreeNodeEx((void*)(uint64)&Tag, treeFlags, Tag.c_str());
 		if (ImGui::IsItemClicked())
 			m_SelectedEntity = entity;

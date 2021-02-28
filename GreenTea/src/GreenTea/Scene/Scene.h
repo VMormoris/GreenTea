@@ -70,7 +70,6 @@ namespace GTE {
 		friend class SceneManagerPanel;
 		friend class CollisionDispatcher;
 		friend ENGINE_API std::vector<Entity> GetEntities(const std::string&);
-		//friend Entity RenderSceneManager(Scene& instance);
 	};
 
 	ENGINE_API std::vector<Entity> GetEntities(const std::string& Tag);

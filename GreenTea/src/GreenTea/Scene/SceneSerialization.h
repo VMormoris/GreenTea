@@ -368,6 +368,9 @@ namespace GTE {
 		archive(sceneProps.Rate);
 		archive(sceneProps.VelocityIterations);
 		archive(sceneProps.PositionIterations);
+
+		archive(sceneProps.CamVelocity.x);
+		archive(sceneProps.CamVelocity.y);
 	}
 
 	template<typename JSONArchive>
@@ -378,9 +381,16 @@ namespace GTE {
 		archive(cereal::make_nvp("x", sceneProps.Gravity.x));
 		archive(cereal::make_nvp("y", sceneProps.Gravity.y));
 		archive.finishNode();
+
 		archive(cereal::make_nvp("Rate", sceneProps.Rate));
 		archive(cereal::make_nvp("Velocity Iterations", sceneProps.VelocityIterations));
 		archive(cereal::make_nvp("Position Iterations", sceneProps.PositionIterations));
+
+		archive.setNextName("Camera's Velocity");
+		archive.startNode();
+		archive(cereal::make_nvp("x", sceneProps.CamVelocity.x));
+		archive(cereal::make_nvp("y", sceneProps.CamVelocity.y));
+		archive.finishNode();
 	}
 
 	template<typename Archive>

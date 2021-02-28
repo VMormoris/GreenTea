@@ -14,6 +14,7 @@ static std::string binaries = "/bin/Debug-windows-x86_64/";
 static std::string binaries = "/bin/Release-windows-x86_64/";
 #endif
 
+
 using namespace GTE;
 
 static ImGuizmo::OPERATION GuizmoOP;
@@ -32,24 +33,24 @@ void CupOfTea::Update(float dt)
 		auto& transform = EditorCameraEntity.GetComponent<Transform2DComponent>();
 
 		bool flag = false;
-		if (Input::KeyPressed(KeyCode::UP))
+		if (Input::KeyPressed(KeyCode::UP) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::W)))
 		{
 			transform.Position.y += m_CameraVelocity.y * dt;
 			flag = true;
 		}
-		if (Input::KeyPressed(KeyCode::DOWN))
+		if (Input::KeyPressed(KeyCode::DOWN) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::S)))
 		{
 			transform.Position.y -= m_CameraVelocity.y * dt;
 			flag = true;
 		}
-		if (Input::KeyPressed(KeyCode::RIGHT))
-		{
-			transform.Position.x -= m_CameraVelocity.x * dt;
-			flag = true;
-		}
-		if (Input::KeyPressed(KeyCode::LEFT))
+		if (Input::KeyPressed(KeyCode::RIGHT) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::D)))
 		{
 			transform.Position.x += m_CameraVelocity.x * dt;
+			flag = true;
+		}
+		if (Input::KeyPressed(KeyCode::LEFT) || (Input::MouseButtonPressed(MouseButtonType::Right) && Input::KeyPressed(KeyCode::A)))
+		{
+			transform.Position.x -= m_CameraVelocity.x * dt;
 			flag = true;
 		}
 		if (flag)
@@ -568,6 +569,11 @@ void CupOfTea::OpenScene(void)
 		pProps.WorkingScene = filepath.substr(filepath.find_last_of("/\\"));
 		std::string content = pProps.ProjectName + ".dll\n" + pProps.WorkingScene;
 		utils::writefile(project_filepath.c_str(), content);
+
+		//Load camera's Speed
+		Entity entity = m_ActiveScene->GetSceneEntity();
+		auto& sceneProp = entity.GetComponent<ScenePropertiesComponent>();
+		m_CameraVelocity = sceneProp.CamVelocity;
 	}
 }
 
@@ -577,6 +583,11 @@ void CupOfTea::SaveSceneAs(void)
 	if (!filepath.empty()) {
 		if (filepath.find(".gtscene") == std::string::npos)
 			filepath += ".gtscene";
+		
+		//Update Camera's Speed before saving
+		Entity entity = m_ActiveScene->GetSceneEntity();
+		auto& sceneProp = entity.GetComponent<ScenePropertiesComponent>();
+		sceneProp.CamVelocity = m_CameraVelocity;
 		m_ActiveScene->Save(filepath.c_str());
 	}
 }

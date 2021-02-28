@@ -1,11 +1,19 @@
 #pragma once
 
 #include "EngineCore.h"
-#include <mutex>
-#include <shared_mutex>
+#include <memory>
 
 namespace GTE {
 
+	// My implementation of Ref object is bugged
+	//so I'm using shared_ptr instead for the time being
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+
+	template<typename T, typename ...Args>
+	constexpr Ref<T> CreateRef(Args&& ...args) { return std::make_shared<T>(std::forward<Args>(args)...); }
+	
+	/*
 	template<typename T>
 	class ENGINE_API Ref {
 
@@ -167,7 +175,7 @@ namespace GTE {
 		ref.m_Handle->Pointer = new T(std::forward<Args>(args)...);
 		ref.m_Handle->RefCount = 1;
 		return ref;
-	}
+	}*/
 
 
 }
