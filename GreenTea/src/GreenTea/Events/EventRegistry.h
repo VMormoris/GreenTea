@@ -275,7 +275,7 @@ namespace GTE {
 			EventRegistry& reg = EventRegistry::Get();
 			reg.MapListener(obj_ptr, GTE::EventType::KeyReleased);
 
-			entt::delegate<bool(char)> temp{};
+			entt::delegate<bool(KeyCode)> temp{};
 			temp.connect<Fn>(obj_ptr);
 			reg.m_KeycodeCallbacks[EventType::KeyReleased].push_back(temp);
 		}
