@@ -1,6 +1,12 @@
 #ifndef _SCRIPTABLE_ENTITY
 #define _SCRIPTABLE_ENTITY
 
+#ifdef __clang__
+	#define CLASS(...) class __attribute__((annotate("reflect-class: " #__VA_ARGS__)))
+#elif defined(_WIN32)//Maybe #else
+	#define CLASS(...) class
+#endif
+
 #include "Entity.h"
 
 namespace GTE {

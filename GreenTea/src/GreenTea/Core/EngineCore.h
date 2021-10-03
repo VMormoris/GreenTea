@@ -2,10 +2,14 @@
 #define _ENGINE_CORE
 
 //declspecs for Engine
-#ifdef ENGINE_DLL
-	#define ENGINE_API __declspec(dllexport)
+#ifdef __clang__
+	#define ENGINE_API
 #else
-	#define ENGINE_API __declspec(dllimport)
+	#ifdef ENGINE_DLL
+		#define ENGINE_API __declspec(dllexport)
+	#else
+		#define ENGINE_API __declspec(dllimport)
+	#endif
 #endif
 
 //declspecs for game's logic
