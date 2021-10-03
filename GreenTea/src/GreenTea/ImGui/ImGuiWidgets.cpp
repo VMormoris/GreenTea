@@ -547,7 +547,7 @@ namespace GTE {
 		bool changed = false;
 		if (ImGui::Button("...", buttonSize))
 		{
-			std::string filepath = CreateFileDialog(FileDialogType::Open, "PNG file (*.png)\0*.png\0");
+			std::string filepath = CreateFileDialog(FileDialogType::Open, "All Images(*.png, *jpg)\0*.png;*.jpg; *.jpeg\0PNG file (*.png)\0*.png\0JPG file(*.jpg, *.jpeg)\0*.jpg; *.jpeg\0");
 			if (!filepath.empty() && text.compare(filepath) != 0)
 			{
 				text = filepath;
