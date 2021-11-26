@@ -213,6 +213,17 @@ namespace GTE {
 					const auto& ptransformation = m_Owner->m_Registry.get<TransformationComponent>(rel.Parent);
 					transformation = ptransformation.Transform * transformation.Transform;
 				}
+				else
+				{
+					auto parent = m_Owner->m_Registry.get<RelationshipComponent>(rel.Parent).Parent;
+					while (parent != entt::null && !m_Owner->m_Registry.has<TransformationComponent>(parent))//Search progenitor with transform
+						parent = m_Owner->m_Registry.get<RelationshipComponent>(parent).Parent;
+					if (parent != entt::null)//Found progenitor with transform
+					{
+						const auto& ptransformation = m_Owner->m_Registry.get<TransformationComponent>(parent);
+						transformation = ptransformation.Transform * transformation.Transform;
+					}
+				}
 			}
 
 			if (HasComponent<CameraComponent>())

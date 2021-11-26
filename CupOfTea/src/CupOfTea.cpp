@@ -215,12 +215,31 @@ void CupOfTea::Update(float dt)
 						glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), glm::vec3(0.0f, 0.0f, 1.0f)) *
 						glm::scale(glm::mat4(1.0f), glm::vec3(tc.Scale.x, tc.Scale.y, 1.0f));
 
+					//Check progenitor's for transform and Manipulate accordigly
 					const auto& rel = SelectedEntity.GetComponent<RelationshipComponent>();
-
+					Entity Parent = { rel.Parent, m_ActiveScene };
+					bool fpt = false;//Flag for weither we have found transform on progenitor
 					if (rel.Parent != entt::null)
 					{
-						Entity Parent = { rel.Parent, m_ActiveScene };
-						glm::mat4 PTransform = Parent.GetComponent<TransformationComponent>().Transform;
+						if (!Parent.HasComponent<TransformationComponent>())
+						{
+							auto parent = Parent.GetComponent<RelationshipComponent>().Parent;
+							Parent = { parent, m_ActiveScene };
+							while (parent != entt::null && !Parent.HasComponent<TransformationComponent>())//Search progenitor with transform
+							{
+								parent = Parent.GetComponent<RelationshipComponent>().Parent;
+								Parent = { parent, m_ActiveScene };
+							}
+							if (parent != entt::null)//Found progenitor with transform
+								fpt = true;
+						}
+						else
+							fpt = true;
+					}
+					
+					if (fpt)
+					{
+						const auto& PTransform = Parent.GetComponent<TransformationComponent>().Transform;
 						transform = PTransform * transform;
 						ImGuizmo::Manipulate(glm::value_ptr(ViewMatrix), glm::value_ptr(ProjectionMatrix),
 							GuizmoOP, ImGuizmo::MODE::LOCAL,
