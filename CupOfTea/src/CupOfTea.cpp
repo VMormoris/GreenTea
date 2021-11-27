@@ -17,7 +17,7 @@ static std::string binaries = "/bin/Release-windows-x86_64/";
 
 using namespace GTE;
 
-static ImGuizmo::OPERATION GuizmoOP;
+static ImGuizmo::OPERATION GuizmoOP = ImGuizmo::OPERATION::TRANSLATE;
 static Entity SelectedEntity = { entt::null, nullptr };
 static Entity EditorCameraEntity = { entt::null, nullptr };
 static ProjectProperties pProps;
@@ -539,7 +539,7 @@ bool CupOfTea::onKeyDown(KeyCode keycode)
 		return true;
 	case KeyCode::E:
 		if (!m_GameEvents) return false;
-		GuizmoOP = ImGuizmo::OPERATION::ROTATE;
+		GuizmoOP = ImGuizmo::OPERATION::ROTATE_Z;
 		return true;
 	case KeyCode::R:
 		if (!m_GameEvents) return false;

@@ -1,28 +1,3 @@
-// https://github.com/CedricGuillemet/ImGuizmo
-// v 1.84 WIP
-//
-// The MIT License(MIT)
-//
-// Copyright(c) 2021 Cedric Guillemet
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
 #include "imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
@@ -34,6 +9,7 @@
 #include "ImZoomSlider.h"
 #include "ImCurveEdit.h"
 #include "GraphEditor.h"
+
 #include <math.h>
 #include <vector>
 #include <algorithm>
@@ -227,8 +203,6 @@ void EditTransform(float* cameraView, float* cameraProjection, float* matrix, bo
       ImGui::SameLine();
       if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
          mCurrentGizmoOperation = ImGuizmo::SCALE;
-      if (ImGui::RadioButton("Universal", mCurrentGizmoOperation == ImGuizmo::UNIVERSAL))
-         mCurrentGizmoOperation = ImGuizmo::UNIVERSAL;
       float matrixTranslation[3], matrixRotation[3], matrixScale[3];
       ImGuizmo::DecomposeMatrixToComponents(matrix, matrixTranslation, matrixRotation, matrixScale);
       ImGui::InputFloat3("Tr", matrixTranslation);
@@ -527,7 +501,8 @@ struct Array
    }
 };
 
-template <typename T, typename ... U> Array(T, U...)->Array<T, 1 + sizeof...(U)>;
+template <typename T, typename ... U>
+Array(T, U...) -> Array<T, 1 + sizeof...(U)>;
 
 struct GraphEditorDelegate : public GraphEditor::Delegate
 {
@@ -709,7 +684,7 @@ int main(int, char**)
 
          tempBitmap[index] = 0xFF000000 +
          (int(255 * fabsf(sinf(dv * 3.141592f))) << 16) +
-         (int(255 * fabsf(sinf(dv * 3.141592f + 2 * 3.141592f / 3))) << 8) + 
+         (int(255 * fabsf(sinf(dv * 3.141592f + 2 * 3.141592f / 3))) << 8) +
          (int(255 * fabs(sin(dv * 3.141592f + 4.f * 3.141592f / 3.f))));
 
          index++;
@@ -836,7 +811,7 @@ int main(int, char**)
             ImZoomSlider::ImZoomSlider(0.f, 1.f, vMin, vMax, 0.01f, ImZoomSlider::ImGuiZoomSliderFlags_Vertical);
             ImGui::PopID();
          }
-      
+
          {
             ImGui::PushID(19);
             ImZoomSlider::ImZoomSlider(0.f, 1.f, uMin, uMax);
@@ -899,6 +874,7 @@ int main(int, char**)
 
          ImGui::End();
       }
+
 
       // render everything
       glClearColor(0.45f, 0.4f, 0.4f, 1.f);
