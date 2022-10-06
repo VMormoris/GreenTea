@@ -1,12 +1,10 @@
 [submodule "3rdParty/entt"]
 	path = 3rdParty/entt
 	url = https://github.com/skypjack/entt
+	branch = v3.10.x
 [submodule "3rdParty/imgui"]
 	path = 3rdParty/imgui
 	url = https://github.com/VMormoris/imgui
-[submodule "3rdParty/cereal"]
-	path = 3rdParty/cereal
-	url = https://github.com/USCiLab/cereal
 [submodule "3rdParty/glm"]
 	path = 3rdParty/glm
 	url = https://github.com/g-truc/glm
@@ -19,3 +17,15 @@
 [submodule "3rdParty/box2d"]
 	path = 3rdParty/box2d
 	url = https://github.com/VMormoris/box2d
+[submodule "3rdParty/ImGuizmo"]
+	path = 3rdParty/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo
+[submodule "3rdParty/glfw"]
+	path = 3rdParty/glfw
+	url = https://github.com/VMormoris/glfw
+[submodule "3rdParty/gtreflect"]
+	path = 3rdParty/gtreflect
+	url = https://github.com/VMormoris/gtreflect
+[submodule "3rdParty/yaml-cpp"]
+	path = 3rdParty/yaml-cpp
+	url = https://github.com/VMormoris/yaml-cpp
