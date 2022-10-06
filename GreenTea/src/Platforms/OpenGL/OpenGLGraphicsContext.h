@@ -1,10 +1,8 @@
-#ifndef _OPEN_GL_GRAPHICS_CONTEXT
-#define _OPEN_GL_GRAPHICS_CONTEXT
+#pragma once
+#include <Engine/GPU/GraphicsContext.h>
+#include <GLFW/glfw3.h>
 
-#include "GreenTea/GPU/GraphicsContext.h"
-#include <SDL.h>
-
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
 	/**
 	* @brief Class for representing Graphics Context on OpenGL API
@@ -13,27 +11,12 @@ namespace GTE::GPU::OpenGL {
 	public:
 
 		OpenGLGraphicsContext(void) = default;
-		~OpenGLGraphicsContext(void);
 
-		void Init(void* window) override;
-		void SwapBuffers(void) override;
-
-		void* Get(void);
-		const void* Get(void) const;
+		void Init(void* window) noexcept override;
+		void SwapBuffers(void) noexcept override;
 
 	private:
-
-		/**
-		* @brief Pointer to the window where Graphics are being drawn
-		*/
-		SDL_Window* m_Window = nullptr;
-
-		/**
-		* @brief OpenGL Context for an SDL Window
-		*/
-		SDL_GLContext m_Context = nullptr;
+		GLFWwindow* mWindow = nullptr;
 	};
 
 }
-
-#endif

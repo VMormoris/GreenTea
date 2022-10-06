@@ -1,16 +1,16 @@
-#ifndef _OPENGL_TEXTURE
-#define _OPENGL_TEXTURE
+#pragma once
 
-#include "GreenTea/GPU/Texture.h"
+#include <Engine/GPU/Texture.h>
 
-#include <GL/glew.h>
+#include <glad/glad.h>
+
 #include <string>
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
-	std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format);
+	[[nodiscard]] std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format) noexcept;
 
-	GLenum GetTextureInternalType(TextureFormat format);
+	[[nodiscard]] GLenum GetTextureInternalType(TextureFormat format) noexcept;
 
 	/**
 	* @brief Class for representing a 2D Texture on OpenGL API
@@ -19,41 +19,41 @@ namespace GTE::GPU::OpenGL {
 	public:
 
 		//Constructor(s) & Destructor
-		OpenGLTexture2D(uint32 width, uint32 height);
-		OpenGLTexture2D(const Image& image);
-		virtual ~OpenGLTexture2D(void);
+		OpenGLTexture2D(uint32 width, uint32 height) noexcept;
+		OpenGLTexture2D(const Image& image) noexcept;
+		virtual ~OpenGLTexture2D(void) noexcept;
 
-		uint32 GetHeight(void) const override { return m_Height; }
-		uint32 GetWidth(void) const override { return m_Width; }
-		void* GetID(void) const override { return (void*)(uint64)m_ID; }
+		[[nodiscard]] uint32 GetHeight(void) const noexcept override { return mHeight; }
+		[[nodiscard]] uint32 GetWidth(void) const noexcept override { return mWidth; }
+		[[nodiscard]] void* GetID(void) const noexcept override { return (void*)(uint64)mID; }
 
-		void Bind(uint32 slot = 0) const;
-		void SetData(void* data, size_t size) override;
-		void SetData(const Image& image) override;
+		void Bind(uint32 slot = 0) const noexcept;
+		void SetData(void* data, size_t size) noexcept override;
+		void SetData(const Image& image) noexcept override;
 
 	private:
 
 		/**
 		* Texture's Width
 		*/
-		uint32 m_Width;
+		uint32 mWidth;
 
 		/**
 		* Texture's Height
 		*/
-		uint32 m_Height;
+		uint32 mHeight;
 
 		/**
 		* internal Format used for the texture
 		*/
-		GLenum m_InternalFormat;
+		GLenum mInternalFormat;
 
 		/**
 		* Format that will be used during Rendering the Texture
 		*/
-		GLenum m_DataFormat;
+		GLenum mDataFormat;
 
-		uint32 m_ID;
+		uint32 mID;
 
 	public:
 		//ALLOC
@@ -61,5 +61,3 @@ namespace GTE::GPU::OpenGL {
 	};
 
 }
-
-#endif

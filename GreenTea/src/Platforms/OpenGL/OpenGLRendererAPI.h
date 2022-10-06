@@ -1,19 +1,18 @@
-#ifndef _OPENGL_RENDERER_API
-#define _OPENGL_RENDERER_API
+#pragma once
 
-#include "GreenTea/GPU/RendererAPI.h"
+#include <Engine/GPU/RendererAPI.h>
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
 	class ENGINE_API OpenGLRendererAPI : public RendererAPI {
 	public:
-		void Init(void) override;
-		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) override;
-		void SetClearColor(const glm::vec4& color) override;
-		void Clear(void) override;
-		void DrawIndexed(const VertexArray* va, uint32 indices) override;
+		void Init(void) noexcept override;
+		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) noexcept override;
+		void SetClearColor(const glm::vec4& color) noexcept override;
+		void Clear(void) noexcept override;
+		void DrawIndexed(const VertexArray* va, uint32 indices) noexcept override; 
+		void DrawLines(const VertexArray* va, uint32 lines) noexcept override;
+		void SetLineThickness(float thickness) noexcept override;
 	};
 
 }
-
-#endif

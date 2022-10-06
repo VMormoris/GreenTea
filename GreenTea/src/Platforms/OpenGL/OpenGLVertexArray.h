@@ -1,9 +1,8 @@
-#ifndef _OPENGL_VERTEX_ARRAY
-#define _OPENGL_VERTEX_ARRAY
+#pragma once
 
-#include "GreenTea/GPU/VertexArray.h"
+#include <Engine/GPU/VertexArray.h>
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
 	/**
 	* @brief Class to Represent a VertexArray on OpenGL API
@@ -12,40 +11,40 @@ namespace GTE::GPU::OpenGL {
 	public:
 
 		//Constructor(s) & Destructor
-		OpenGLVertexArray();
-		virtual ~OpenGLVertexArray();
+		OpenGLVertexArray() noexcept;
+		virtual ~OpenGLVertexArray() noexcept;
 
-		void Bind(void) const override;
-		void Unbind(void) const override;
+		void Bind(void) const noexcept override;
+		void Unbind(void) const noexcept override;
 
-		void AddVertexBuffer(const VertexBuffer* vb) override;
+		void AddVertexBuffer(const VertexBuffer* vb) noexcept override;
 
-		void SetIndexBuffer(const IndexBuffer* ib) override;
+		void SetIndexBuffer(const IndexBuffer* ib) noexcept override;
 
-		const std::vector<VertexBuffer*>& GetVertexBuffers(void) const override { return m_VertexBuffers; }
-		const IndexBuffer* GetIndexBuffer(void) const override { return m_IndexBuffer; }
+		[[nodiscard]] const std::vector<VertexBuffer*>& GetVertexBuffers(void) const noexcept override { return mVertexBuffers; }
+		[[nodiscard]] const IndexBuffer* GetIndexBuffer(void) const noexcept override { return mIndexBuffer; }
 
 	private:
 
 		/**
 		* ID used to distinguish each VertexArrays in OpenGL
 		*/
-		uint32 m_ID;
+		uint32 mID;
 
 		/**
 		* Index of the next VertexBuffer
 		*/
-		uint32 m_VbIndex;
+		uint32 mVbIndex;
 
 		/**
 		* Placeholder for the VertexBuffers
 		*/
-		std::vector<VertexBuffer*> m_VertexBuffers;
+		std::vector<VertexBuffer*> mVertexBuffers;
 
 		/**
 		* Pointer to an IndexBuffer
 		*/
-		IndexBuffer* m_IndexBuffer;
+		IndexBuffer* mIndexBuffer;
 
 	public:
 		//ALLOC
@@ -54,4 +53,3 @@ namespace GTE::GPU::OpenGL {
 
 }
 
-#endif

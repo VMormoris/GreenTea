@@ -1,56 +1,46 @@
-#ifndef CUP_OF_TEA
-#define CUO_OF_TEA
+#pragma once
 
 #include <GreenTea.h>
+#include "Panels/ContentBrowserPanel.h"
+#include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ConsoleLogPanel.h"
 
-#include "Panels/SceneManagerPanel.h"
-
-struct ProjectProperties {
-	std::string ProjectPath;
-	std::string ProjectName;
-	std::string WorkingScene;
-};
-
-using namespace GTE;
-
-class CupOfTea : public Application {
+class CupOfTea : public gte::Application {
 public:
-	
-	CupOfTea(const char* filepath = nullptr);
+	CupOfTea(const std::string& filepath);
 	~CupOfTea(void);
-
-	void Update(float dt) override;
-
-public:
-
-	bool onScroll(int32 dx, int32 dy);
-	bool onKeyDown(KeyCode keycode) override;
+	void Update(float) override;
 
 private:
+
+	void RenderGUI(void);
 
 	void NewScene(void);
-	void OpenScene(void);
-	void SaveSceneAs(void);
+	void OpenScene(const std::filesystem::path& path);
+	void SaveScene(void);
+	void SaveSceneAs(const std::filesystem::path& path);
+
+	bool DrawGuizmo(void);
+
+	void OnOverlayRenderer(void);
+
+	void Start(void);
+	void Stop(void);
+
+	bool OnKeyDown(gte::KeyCode keycode);
+	bool OnScroll(float dx, float dy);
 
 private:
+	gte::Scene* mSnapshot = nullptr;
+	std::string mScenePath = "";
+	gte::gui::ImGuiLayer* gui = nullptr;
 
-	ImGuiLayer* m_EditorLayer = nullptr;
+	gte::SceneHierarchyPanel mSceneHierarchyPanel;
+	ContentBrowserPanel mBrowserPanel;
+	ConsoleLogPanel mConsolePanel;
 
-	GPU::FrameBuffer* m_ViewportFBO = nullptr;
-	GPU::FrameBuffer* m_CamFBO = nullptr;
+	gte::GPU::FrameBuffer* mViewportFBO = nullptr;
 
-	glm::vec2 m_ViewportSize;
-	glm::vec2 m_CamViewportSize;
-	glm::vec2 m_CameraVelocity = glm::vec2{ 1.0f, 1.0f };
-
-	bool m_Playing = false;
-
-	bool m_Panels[5] = {true , true, true, true, true};
-	SceneManagerPanel m_SceneManagerPanel;
-
-	Scene* m_ActiveScene;
-
+	bool mPanels[7] = { true/*Viewport*/, true/*Content Browser*/, true/*Hierarchy*/, true/*Properties*/, true/*Console Log*/, false/*About*/, true/*Settings*/};
+	bool mShowColliders = true;
 };
-
-
-#endif

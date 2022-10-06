@@ -1,8 +1,10 @@
 #include "OpenGLShader.h"
-#include "GreenTea/Core/utils.h"
-#include "GreenTea/Core/Logger.h"
-#include <GL/glew.h>
+//#include "GreenTea/Core/utils.h"
+#include <glad/glad.h>
+
 #include <gtc/type_ptr.hpp>
+
+#include <fstream>
 
 static void PrintLog(GLuint object)
 {
@@ -28,7 +30,7 @@ static void PrintLog(GLuint object)
 	delete[] log;
 }
 
-static uint32 GenerateShader(const char* filename, GLenum shaderType) {
+static [[nodiscard]] uint32 GenerateShader(const char* filename, GLenum shaderType) {
 
 	uint32 res = glCreateShader(shaderType);
 
@@ -48,75 +50,76 @@ static uint32 GenerateShader(const char* filename, GLenum shaderType) {
 
 }
 
-namespace GTE::GPU::OpenGL {
+static [[nodiscard]] const char* readfile(const char* filepath) noexcept;
 
+namespace gte::GPU::OpenGL {
 
-
-	OpenGLShader::OpenGLShader(const char* shader_file) {
-		const char* data = utils::readfile(shader_file);
+	OpenGLShader::OpenGLShader(const char* shader_file) noexcept {
+		const char* data = readfile(shader_file);
 		PreProcess(std::string(data));
 		delete[] data;
 		CreateProgram();
 	}
 
-	bool OpenGLShader::CreateProgram(void) {
+	bool OpenGLShader::CreateProgram(void) noexcept {
 
-		if (m_ProgramID != 0) glDeleteProgram(m_ProgramID);
-		m_ProgramID = glCreateProgram();
+		if (mProgramID != 0) glDeleteProgram(mProgramID);
+		mProgramID = glCreateProgram();
 
-		if ((m_VsID = GenerateShader(m_VertexShader.c_str(), GL_VERTEX_SHADER)) == 0) return false;
-		glAttachShader(m_ProgramID, m_VsID);
+		if ((mVsID = GenerateShader(mVertexShader.c_str(), GL_VERTEX_SHADER)) == 0) return false;
+		glAttachShader(mProgramID, mVsID);
 
-		if ((m_FsID = GenerateShader(m_FragmentShader.c_str(), GL_FRAGMENT_SHADER)) == 0) {
-			glDeleteShader(m_ProgramID);
+		if ((mFsID = GenerateShader(mFragmentShader.c_str(), GL_FRAGMENT_SHADER)) == 0) {
+			glDeleteShader(mProgramID);
 			return false;
 		}
-		glAttachShader(m_ProgramID, m_FsID);
+		glAttachShader(mProgramID, mFsID);
 
 		// link them
 		GLint link_ok = GL_FALSE;
 		GLint validate_ok = GL_FALSE;
-		glLinkProgram(m_ProgramID);
-		glGetProgramiv(m_ProgramID, GL_LINK_STATUS, &link_ok);
+		glLinkProgram(mProgramID);
+		glGetProgramiv(mProgramID, GL_LINK_STATUS, &link_ok);
 		if (!link_ok) {
 			GTE_ERROR_LOG("Failed to Link Shaders");
-			PrintLog(m_ProgramID);
-			glDeleteShader(m_VsID);
-			glDeleteShader(m_FsID);
+			PrintLog(mProgramID);
+			glDeleteShader(mVsID);
+			glDeleteShader(mFsID);
 			return false;
 		}
-		glValidateProgram(m_ProgramID);
-		glGetProgramiv(m_ProgramID, GL_VALIDATE_STATUS, &validate_ok);
+		glValidateProgram(mProgramID);
+		glGetProgramiv(mProgramID, GL_VALIDATE_STATUS, &validate_ok);
 		if (!validate_ok) {
 			GTE_ERROR_LOG("Failed to Validate Shaders");
-			glDeleteShader(m_VsID);
-			glDeleteShader(m_FsID);
+			glDeleteShader(mVsID);
+			glDeleteShader(mFsID);
 			return false;
 		}
-		glDeleteShader(m_VsID);
-		glDeleteShader(m_FsID);
+		glDeleteShader(mVsID);
+		glDeleteShader(mFsID);
 		return true;
 
 	}
 
-	bool OpenGLShader::ReloadProgram(void)
+	bool OpenGLShader::ReloadProgram(void) noexcept
 	{
 		if (!CreateProgram()) return false;
-		for (auto it : m_Uniforms) {
-			it.second = glGetUniformLocation(m_ProgramID, it.first.c_str());
+		for (auto it : mUniforms) {
+			it.second = glGetUniformLocation(mProgramID, it.first.c_str());
 		}
 		return true;
 	}
 
-	void OpenGLShader::SetUniform(const std::string& uniform, int32 value) { glUniform1i((m_Uniforms[uniform]), value); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const float value) { glUniform1f(m_Uniforms[uniform], value); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec2& value) { glUniform2f(m_Uniforms[uniform], value[0], value[1]); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec3& value) { glUniform3f(m_Uniforms[uniform], value[0], value[1], value[2]); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec4& value) { glUniform4f(m_Uniforms[uniform], value[0], value[1], value[2], value[3]); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const glm::mat4& value) { glUniformMatrix4fv(m_Uniforms[uniform], 1, GL_FALSE, glm::value_ptr(value)); }
-	void OpenGLShader::SetUniform(const std::string& uniform, const int32* values, uint32 count) { glUniform1iv(m_Uniforms[uniform], count, values); }
+	void OpenGLShader::SetUniform(const std::string& uniform, int32 value) noexcept { glUniform1i((mUniforms[uniform]), value); }
+	void OpenGLShader::SetUniform(const std::string& uniform, const float value) noexcept { glUniform1f(mUniforms[uniform], value); }
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec2& value) noexcept { glUniform2f(mUniforms[uniform], value[0], value[1]); }
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec3& value) noexcept { glUniform3f(mUniforms[uniform], value[0], value[1], value[2]); }
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::vec4& value) noexcept { glUniform4f(mUniforms[uniform], value[0], value[1], value[2], value[3]); }
+	void OpenGLShader::SetUniform(const std::string& uniform, const glm::mat4& value) noexcept { glUniformMatrix4fv(mUniforms[uniform], 1, GL_FALSE, glm::value_ptr(value)); }
+	void OpenGLShader::SetUniform(const std::string& uniform, const int32* values, uint32 count) noexcept { glUniform1iv(mUniforms[uniform], count, values); }
 
-	void OpenGLShader::PreProcess(std::string& content) {
+	void OpenGLShader::PreProcess(std::string& content) noexcept
+	{
 		constexpr char* token = "#type";
 		size_t token_size = strlen(token);
 		size_t pos = content.find(token, 0);
@@ -129,17 +132,39 @@ namespace GTE::GPU::OpenGL {
 			pos = content.find(token, nextLine);
 
 			if (type.compare("vertex") == 0) {
-				m_VertexShader = (pos == std::string::npos) ? content.substr(nextLine) : content.substr(nextLine, pos - nextLine);
+				mVertexShader = (pos == std::string::npos) ? content.substr(nextLine) : content.substr(nextLine, pos - nextLine);
 			}
 			else {
-				m_FragmentShader = (pos == std::string::npos) ? content.substr(nextLine) : content.substr(nextLine, pos - nextLine);
+				mFragmentShader = (pos == std::string::npos) ? content.substr(nextLine) : content.substr(nextLine, pos - nextLine);
 			}
 		}
 	}
 
-	void OpenGLShader::Bind(void) const { glUseProgram(m_ProgramID); }
-	void OpenGLShader::Unbind(void) const { glUseProgram(0); }
-	OpenGLShader::~OpenGLShader(void) { glDeleteProgram(m_ProgramID); }
+	void OpenGLShader::Bind(void) const noexcept { glUseProgram(mProgramID); }
+	void OpenGLShader::Unbind(void) const noexcept { glUseProgram(0); }
+	OpenGLShader::~OpenGLShader(void) noexcept { glDeleteProgram(mProgramID); }
 
-	void OpenGLShader::AddUniform(const std::string& uniform) { m_Uniforms[uniform] = glGetUniformLocation(m_ProgramID, uniform.c_str()); }
+	void OpenGLShader::AddUniform(const std::string& uniform) noexcept { mUniforms[uniform] = glGetUniformLocation(mProgramID, uniform.c_str()); }
+}
+
+static [[nodiscard]] const char* readfile(const char* filepath) noexcept
+{
+	std::ifstream in(filepath, std::ifstream::ate | std::ifstream::binary);
+	if (!in.is_open())
+		return nullptr;
+
+	size_t length = in.tellg();
+	in.seekg(0, in.beg);
+
+	char* buffer = new char[length + 1];
+	in.read(buffer, length);
+	buffer[length] = '\0';
+
+	if (!in) {
+		delete[]buffer;
+		buffer = nullptr;
+	}
+
+	in.close();
+	return buffer;
 }

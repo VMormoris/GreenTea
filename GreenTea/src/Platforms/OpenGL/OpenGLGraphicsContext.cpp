@@ -1,29 +1,24 @@
 #include "OpenGLGraphicsContext.h"
-#include "GreenTea/Core/Logger.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
-	void OpenGLGraphicsContext::Init(void* window)
+	void OpenGLGraphicsContext::Init(void* window) noexcept
 	{
-		m_Window = static_cast<SDL_Window*>(window);
-		m_Context = SDL_GL_CreateContext(m_Window);
-		ENGINE_ASSERT((SDL_GL_MakeCurrent(m_Window, m_Context) == 0), "Couldn't make Context Current!\n\t\tError code: ", SDL_GetError(), '\n');
-		GLenum flag = glewInit();
-		ENGINE_ASSERT(flag == GLEW_OK, "Glew failed to initialize: (", flag, ") ", glewGetErrorString(flag));
+		mWindow = static_cast<GLFWwindow*>(window);
+		glfwMakeContextCurrent(mWindow);
+		
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		ENGINE_ASSERT(status, "Failed to initialize Glad!");
+
+		GTE_INFO_LOG("OpenGL Info:");
+		GTE_INFO_LOG("  Vendor: ", glGetString(GL_VENDOR));
+		GTE_INFO_LOG("  Renderer: ", glGetString(GL_RENDERER));
+		GTE_INFO_LOG("  Version: ", glGetString(GL_VERSION));
+
+		ENGINE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "GreenTea requires at least OpenGL version 4.5!");
 	}
 
-	OpenGLGraphicsContext::~OpenGLGraphicsContext(void)
-	{
-		SDL_GL_DeleteContext(m_Context);
-	}
-
-	void OpenGLGraphicsContext::SwapBuffers(void)
-	{
-		SDL_GL_SwapWindow(m_Window);
-	}
-
-	void* OpenGLGraphicsContext::Get(void) { return m_Context; }
-	const void* OpenGLGraphicsContext::Get(void) const { return Get(); }
+	void OpenGLGraphicsContext::SwapBuffers(void) noexcept { glfwSwapBuffers(mWindow); }
 
 }

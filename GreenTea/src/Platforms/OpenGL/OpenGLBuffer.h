@@ -1,9 +1,8 @@
-#ifndef _OPEN_GL_BUFFER
-#define _OPEN_GL_BUFFER
+#pragma once
 
-#include "GreenTea/GPU/Buffer.h"
+#include <Engine/GPU/Buffer.h>
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
 	/**
 	* @brief Class for Representing an Vertex Buffer when using OpenGL API
@@ -12,23 +11,22 @@ namespace GTE::GPU::OpenGL {
 	public:
 
 		//Contructor(s) & Destructor
-		OpenGLVertexBuffer(const void* vertices, size_t size);
-		virtual ~OpenGLVertexBuffer(void);
+		OpenGLVertexBuffer(const void* vertices, size_t size) noexcept;
+		virtual ~OpenGLVertexBuffer(void) noexcept;
 
-		void Bind(void) const override;
-		void Unbind(void) const override;
+		void Bind(void) const noexcept override;
+		void Unbind(void) const noexcept override;
 
+		void FillBuffer(const void* vertices, size_t size) noexcept override;
 
-		void FillBuffer(const void* vertices, size_t size) override;
-
-		void SetLayout(const BufferLayout& layout) override { m_Layout = layout; }
-		const BufferLayout& GetLayout(void) const override { return m_Layout; }
+		void SetLayout(const BufferLayout& layout) noexcept override { mLayout = layout; }
+		[[nodiscard]] const BufferLayout& GetLayout(void) const noexcept override { return mLayout; }
 
 	private:
 
-		uint32 m_ID;
+		uint32 mID;
 
-		BufferLayout m_Layout;
+		BufferLayout mLayout;
 
 	public:
 		//ALLOC
@@ -43,26 +41,24 @@ namespace GTE::GPU::OpenGL {
 	public:
 
 		//Constructor(s) & Destructor
-		OpenGLIndexBuffer(const uint32* indices, size_t length);
-		virtual ~OpenGLIndexBuffer(void);
+		OpenGLIndexBuffer(const uint32* indices, size_t length) noexcept;
+		virtual ~OpenGLIndexBuffer(void) noexcept;
 
-		void Bind(void) const override;
-		void Unbind(void) const override;
+		void Bind(void) const noexcept override;
+		void Unbind(void) const noexcept override;
 
-		void FillBuffer(const uint32* indices, size_t length) override;
+		void FillBuffer(const uint32* indices, size_t length) noexcept override;
 
-		size_t GetCount(void) const override { return m_Count; }
+		[[nodiscard]] size_t GetCount(void) const noexcept override { return mCount; }
 
 	private:
 
-		uint32 m_ID;
+		uint32 mID;
 
-		size_t m_Count;
+		size_t mCount;
 
 	public:
 		//ALLOC
 		//DEALLOC
 	};
 }
-
-#endif

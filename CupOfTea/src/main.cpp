@@ -1,29 +1,17 @@
 #include "CupOfTea.h"
-#include <filesystem>
-#include <fstream>
+#include "ProjectManagment.h"
 
-int main(int argc, char** argv)
-{	
-	std::ofstream err("error.gtlog");
-	Logger::Init(std::cout, err);
-	//AssetManager::Init();
-	
-	Application* app = nullptr;
-	if (argc == 2)
+#define GREEN_TEA_ENTRY_POINT
+#include <Engine/Core/EntryPoint.h>
+
+gte::Application* CreateApplication(int argc, char** argv)
+{
+	if (argc == 1)
+		return new ProjectManagment();
+	else if (argc == 2)
 	{
-		std::string app_filepath(argv[0]);
-		size_t pos = app_filepath.find_last_of("/\\");
-		std::filesystem::path app_path = app_filepath.substr(0, pos);
-		std::filesystem::current_path(app_path);
-		app = new CupOfTea(argv[1]);
+		std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
+		return new CupOfTea(argv[1]);
 	}
-	else
-		app = new CupOfTea();
-
-	app->Run();
-	delete app;
-	
-	AssetManager::Clear();
-	err.close();
-	return 0;
+	return nullptr;
 }

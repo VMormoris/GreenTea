@@ -1,27 +1,29 @@
-#ifndef _GREEN_TEA
-#define _GREEN_TEA
+#pragma once
 
-#include "GreenTea/Core/Application.h"
-#include "GreenTea/Core/Logger.h"
-#include "GreenTea/Core/FileDialog.h"
+#include <Engine/Core/Application.h>
+#include <Engine/Core/Context.h>
+#include <Engine/Core/FileDialog.h>
+#include <Engine/Core/Math.h>
+#include <Engine/Core/Random.h>
 
-#include "GreenTea/Events/Input.h"
+#include <Engine/Events/Input.h>
 
-#include "GreenTea/Assets/AssetManager.h"
+#include <Engine/GPU/FrameBuffer.h>
+#include <Engine/GPU/Texture.h>//Maybe remove?
 
-#include "GreenTea/Events/EventDispatcher.h"
-#include "GreenTea/Events/EventRegistry.h"
+#include <Engine/ImGui/ImGuiLayer.h>
+#include <Engine/ImGui/ImGuiWidgets.h>
 
-#include "GreenTea/ImGui/ImGuiLayer.h"
-#include "GreenTea/ImGui/ImGuiWidgets.h"
+#include <Engine/NativeScripting/ScriptableEntity.h>
+#include <Engine/NativeScripting/System.h>
 
-#include "GreenTea/GPU/FrameBuffer.h"
+#include <Engine/Renderer/RenderCommand.h>
 
-#include "GreenTea/Renderer/Renderer2D.h"
-#include "GreenTea/Renderer/RenderCommand.h"
+#include <Engine/Scene/Components.h>
+#include <Engine/Scene/Entity.h>
+#include <Engine/Scene/SceneSerializer.h>
 
-#include "GreenTea/Scene/Entity.h"
-#include "GreenTea/Scene/Components.h"
-#include "GreenTea/Scene/ScriptableEntity.h"
 
+#ifdef GREEN_TEA_ENTRY_POINT
+	#include <Engine/Core/EntryPoint.h>
 #endif

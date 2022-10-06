@@ -1,0 +1,16 @@
+# Folder containing cached files
+.gt
+
+# Binaries
+bin
+bin-int
+
+# Engine's Logs
+**.gtlog
+
+# Visual Studio
+.vs
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user

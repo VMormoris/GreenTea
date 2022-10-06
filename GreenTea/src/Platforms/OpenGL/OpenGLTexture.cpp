@@ -1,9 +1,8 @@
 #include "OpenGLTexture.h"
-#include "GreenTea/Core/Logger.h"
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
-	std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format)
+	[[nodiscard]] std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format) noexcept
 	{
 		switch (format)
 		{
@@ -23,7 +22,7 @@ namespace GTE::GPU::OpenGL {
 		}
 	}
 
-	GLenum GetTextureInternalType(TextureFormat format)
+	[[nodiscard]] GLenum GetTextureInternalType(TextureFormat format) noexcept
 	{
 		switch (format)
 		{
@@ -47,62 +46,65 @@ namespace GTE::GPU::OpenGL {
 		}
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(uint32 width, uint32 height) {
-		m_Width = width; m_Height = height;
-		m_InternalFormat = GL_RGBA8; m_DataFormat = GL_RGBA;
+	OpenGLTexture2D::OpenGLTexture2D(uint32 width, uint32 height) noexcept
+	{
+		mWidth = width; mHeight = height;
+		mInternalFormat = GL_RGBA8; mDataFormat = GL_RGBA;
 
-		glGenTextures(1, &m_ID);
-		glTextureStorage2D(m_ID, 1, m_InternalFormat, m_Width, m_Height);
+		glGenTextures(1, &mID);
+		glTextureStorage2D(mID, 1, mInternalFormat, mWidth, mHeight);
 
-		glTextureParameteri(m_ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(mID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTextureParameteri(m_ID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTextureParameteri(m_ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTextureParameteri(mID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(mID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	}
 
-	void OpenGLTexture2D::SetData(const Image& image) {
+	void OpenGLTexture2D::SetData(const Image& image) noexcept
+	{
 		uint32 texture_format;
-		m_InternalFormat = image.GetBytePerPixel();
+		mInternalFormat = image.GetBytePerPixel();
 		switch (image.GetBytePerPixel())
 		{
 		case 4: // contains alpha channel
 			texture_format = GL_RGBA;
-			m_InternalFormat = GL_RGBA8;
+			mInternalFormat = GL_RGBA8;
 			break;
 		case 3: // no alpha channel
 			texture_format = GL_RGB;
-			m_InternalFormat = GL_RGB8;
+			mInternalFormat = GL_RGB8;
 			break;
 		case 1://Grey image
 			texture_format = GL_RED;
-			m_InternalFormat = GL_RED;
+			mInternalFormat = GL_RED;
 		default:
-			ENGINE_ASSERT(false, "Not acceptable pixel format: ", (int)m_InternalFormat);
+			ENGINE_ASSERT(false, "Not acceptable pixel format: ", (int)mInternalFormat);
 			//GTE_ERROR_LOG("Error Bytes per pixel was: ", (int)surface->format->BytesPerPixel, " at ", utils::strip_path(_filename));
 		}
 
-		m_Width = image.GetWidth();
-		m_Height = image.GetHeight();
-		m_DataFormat = texture_format;
+		mWidth = image.GetWidth();
+		mHeight = image.GetHeight();
+		mDataFormat = texture_format;
 		unsigned char* data = new unsigned char[image.Size()];
 		ENGINE_ASSERT(data != NULL, "Erorr occuried while Allocating memory on the Heap!");
 
 		// flip image
-		for (uint32 y = 0; y < m_Height; y++)
+		/*for (uint32 y = 0; y < mHeight; y++)
 		{
-			size_t row_size = (size_t)m_Width * image.GetBytePerPixel() * sizeof(unsigned char);
+			size_t row_size = (size_t)mWidth * image.GetBytePerPixel() * sizeof(unsigned char);
 			memcpy
 			(
-				&data[(m_Height - y - 1) * m_Width * image.GetBytePerPixel()],
-				&static_cast<const unsigned char*>(image.Data())[y * m_Width * image.GetBytePerPixel()],
+				&data[(mHeight - y - 1) * mWidth * image.GetBytePerPixel()],
+				&static_cast<const unsigned char*>(image.Data())[y * mWidth * image.GetBytePerPixel()],
 				row_size
 			);
-		}
-		glGenTextures(1, &m_ID);
-		glBindTexture(GL_TEXTURE_2D, m_ID);
-		glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, GL_UNSIGNED_BYTE, data);
+		}*/
+		memcpy(data, image.Data(), image.Size());
+		glGenTextures(1, &mID);
+		glBindTexture(GL_TEXTURE_2D, mID);
+		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, data);
 		delete[] data;
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -110,26 +112,23 @@ namespace GTE::GPU::OpenGL {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-		//if (m_hasMipmaps)
+		//if (mhasMipmaps)
 		//{
 		//	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		//	glGenerateMipmap(GL_TEXTURE_2D);
 		//}
 	}
 
-	OpenGLTexture2D::~OpenGLTexture2D(void) {
-		glDeleteTextures(1, &m_ID);
+	OpenGLTexture2D::~OpenGLTexture2D(void) noexcept { glDeleteTextures(1, &mID); }
+
+	void OpenGLTexture2D::Bind(uint32 slot) const noexcept { glBindTextureUnit(slot, mID); }
+
+	void OpenGLTexture2D::SetData(void* data, size_t size) noexcept
+	{
+		glBindTexture(GL_TEXTURE_2D, mID);
+		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, data);
 	}
 
-	void OpenGLTexture2D::Bind(uint32 slot) const {
-		glBindTextureUnit(slot, m_ID);
-	}
-
-	void OpenGLTexture2D::SetData(void* data, size_t size) {
-		glBindTexture(GL_TEXTURE_2D, m_ID);
-		glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, GL_UNSIGNED_BYTE, data);
-	}
-
-	OpenGLTexture2D::OpenGLTexture2D(const Image& image) { SetData(image); }
+	OpenGLTexture2D::OpenGLTexture2D(const Image& image) noexcept { SetData(image); }
 
 }

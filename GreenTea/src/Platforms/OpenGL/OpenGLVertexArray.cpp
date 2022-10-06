@@ -1,40 +1,39 @@
 #include "OpenGLVertexArray.h"
-#include "GreenTea/Core/Logger.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
-static GLenum GTEtoOpenGL(GTE::GPU::ShaderDataType type)
+static [[nodiscard]] GLenum GTEtoOpenGL(gte::GPU::ShaderDataType type) noexcept
 {
 	switch(type)
 	{
-		case GTE::GPU::ShaderDataType::Float:	return GL_FLOAT;
-		case GTE::GPU::ShaderDataType::Boolean:	return GL_BOOL;
-		case GTE::GPU::ShaderDataType::Int:		return GL_INT;
-		case GTE::GPU::ShaderDataType::Vec2:	return GL_FLOAT;
-		case GTE::GPU::ShaderDataType::Vec3:	return GL_FLOAT;
-		case GTE::GPU::ShaderDataType::Vec4:	return GL_FLOAT;
-		case GTE::GPU::ShaderDataType::Mat3:	return GL_FLOAT;
-		case GTE::GPU::ShaderDataType::Mat4:	return GL_FLOAT;
-		case GTE::GPU::ShaderDataType::IVec2:	return GL_INT;
-		case GTE::GPU::ShaderDataType::IVec3:	return GL_INT;
-		case GTE::GPU::ShaderDataType::IVec4:	return GL_INT;
+		case gte::GPU::ShaderDataType::Float:	return GL_FLOAT;
+		case gte::GPU::ShaderDataType::Boolean:	return GL_BOOL;
+		case gte::GPU::ShaderDataType::Int:		return GL_INT;
+		case gte::GPU::ShaderDataType::Vec2:	return GL_FLOAT;
+		case gte::GPU::ShaderDataType::Vec3:	return GL_FLOAT;
+		case gte::GPU::ShaderDataType::Vec4:	return GL_FLOAT;
+		case gte::GPU::ShaderDataType::Mat3:	return GL_FLOAT;
+		case gte::GPU::ShaderDataType::Mat4:	return GL_FLOAT;
+		case gte::GPU::ShaderDataType::IVec2:	return GL_INT;
+		case gte::GPU::ShaderDataType::IVec3:	return GL_INT;
+		case gte::GPU::ShaderDataType::IVec4:	return GL_INT;
 	}
 	GTE_ERROR_LOG("Unkown Shader Data type!");
 	return GL_FLOAT;
 }
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
 
-	void OpenGLVertexArray::AddVertexBuffer(const VertexBuffer* vb)
+	void OpenGLVertexArray::AddVertexBuffer(const VertexBuffer* vb) noexcept
 	{
 		Bind();
 		vb->Bind();
 		const BufferLayout& layout = vb->GetLayout();
 		for (const BufferElement& element : layout.GetElements())
 		{
-			glEnableVertexAttribArray(m_VbIndex);
-			switch (element.type)
+			glEnableVertexAttribArray(mVbIndex);
+			switch (element.Type)
 			{
 			case ShaderDataType::Float:
 			case ShaderDataType::Mat3:
@@ -44,12 +43,12 @@ namespace GTE::GPU::OpenGL {
 			case ShaderDataType::Vec4:
 				glVertexAttribPointer
 				(
-					m_VbIndex,
+					mVbIndex,
 					element.Count(),
-					GTEtoOpenGL(element.type),
-					element.normalized,
+					GTEtoOpenGL(element.Type),
+					element.Normalized,
 					layout.GetStride(),
-					(const void*)(uint64)element.offset
+					(const void*)(uint64)element.Offset
 				);
 				break;
 			case ShaderDataType::Int:
@@ -58,42 +57,52 @@ namespace GTE::GPU::OpenGL {
 			case ShaderDataType::IVec4:
 				glVertexAttribIPointer
 				(
-					m_VbIndex,
+					mVbIndex,
 					element.Count(),
-					GTEtoOpenGL(element.type),
+					GTEtoOpenGL(element.Type),
 					layout.GetStride(),
-					(const void*)(uint64)element.offset
+					(const void*)(uint64)element.Offset
+				);
+				break;
+			case ShaderDataType::Boolean:
+				glVertexAttribIPointer
+				(
+					mVbIndex,
+					element.Count(),
+					GTEtoOpenGL(element.Type),
+					layout.GetStride(),
+					(const void*)(uint64)element.Offset
 				);
 				break;
 			default:
 				ENGINE_ASSERT(false, "Not supported ShaderDataType");
 			}
 			
-			m_VbIndex++;
+			mVbIndex++;
 		}
 
-		m_VertexBuffers.push_back((VertexBuffer*)vb);
+		mVertexBuffers.push_back((VertexBuffer*)vb);
 
 	}
 
-	OpenGLVertexArray::OpenGLVertexArray(void)
+	OpenGLVertexArray::OpenGLVertexArray(void) noexcept
 	{
-		m_VbIndex = 0;
-		m_IndexBuffer = nullptr;
-		glGenVertexArrays(1, &m_ID);
+		mVbIndex = 0;
+		mIndexBuffer = nullptr;
+		glGenVertexArrays(1, &mID);
 	}
 
-	void OpenGLVertexArray::SetIndexBuffer(const IndexBuffer* ib)
+	void OpenGLVertexArray::SetIndexBuffer(const IndexBuffer* ib) noexcept
 	{
 		Bind();
 		ib->Bind();
-		m_IndexBuffer = (IndexBuffer*)ib;
+		mIndexBuffer = (IndexBuffer*)ib;
 	}
 
-	void OpenGLVertexArray::Bind(void) const { glBindVertexArray(m_ID); }
-	void OpenGLVertexArray::Unbind(void) const { glBindVertexArray(0); }
+	void OpenGLVertexArray::Bind(void) const noexcept  { glBindVertexArray(mID); }
+	void OpenGLVertexArray::Unbind(void) const noexcept { glBindVertexArray(0); }
 
 	//TODO: Delete Buffer as well?
-	OpenGLVertexArray::~OpenGLVertexArray(void) { glDeleteVertexArrays(1, &m_ID); }
+	OpenGLVertexArray::~OpenGLVertexArray(void) noexcept { glDeleteVertexArrays(1, &mID); }
 
 }

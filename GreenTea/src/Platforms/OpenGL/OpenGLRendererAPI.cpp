@@ -1,7 +1,6 @@
 #include "OpenGLRendererAPI.h"
-#include "GreenTea/Core/Logger.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 void OpenGLMessageCallback(
 	unsigned source,
@@ -23,20 +22,33 @@ void OpenGLMessageCallback(
 	ENGINE_ASSERT(false, "Unknown severity level!");
 }
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
-	void OpenGLRendererAPI::Init()
+	void OpenGLRendererAPI::Init(void) noexcept
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
 
 		glDebugMessageCallback(OpenGLMessageCallback, NULL);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 	}
 
-	void OpenGLRendererAPI::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) { glViewport(x, y, width, height); }
-	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color) { glClearColor(color.r, color.g, color.b, color.a); }
-	void OpenGLRendererAPI::Clear(void) { glClear(GL_COLOR_BUFFER_BIT); }
-	void OpenGLRendererAPI::DrawIndexed(const VertexArray* va, uint32 indices) { glDrawElements(GL_TRIANGLES, indices, GL_UNSIGNED_INT, NULL); }
+	void OpenGLRendererAPI::DrawIndexed(const VertexArray* va, uint32 indices) noexcept
+	{
+		va->Bind();
+		glDrawElements(GL_TRIANGLES, indices, GL_UNSIGNED_INT, NULL);
+	}
 
+	void OpenGLRendererAPI::DrawLines(const VertexArray* va, uint32 lines) noexcept
+	{
+		va->Bind();
+		glDrawArrays(GL_LINES, 0, lines);
+	}
+
+	void OpenGLRendererAPI::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) noexcept { glViewport(x, y, width, height); }
+	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color) noexcept { glClearColor(color.r, color.g, color.b, color.a); }
+	void OpenGLRendererAPI::Clear(void) noexcept { glClear(GL_COLOR_BUFFER_BIT); }
+
+	void OpenGLRendererAPI::SetLineThickness(float thickness) noexcept { glLineWidth(thickness); }
 }

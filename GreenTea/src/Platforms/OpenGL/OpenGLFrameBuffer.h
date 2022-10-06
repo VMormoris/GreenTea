@@ -1,38 +1,35 @@
-#ifndef _OPEN_GL_FRAME_BUFFER
-#define _OPEN_GL_FRAME_BUFFER
+#pragma once
 
-#include "GreenTea/GPU/FrameBuffer.h"
+#include <Engine/GPU/FrameBuffer.h>
 
-namespace GTE::GPU::OpenGL {
+namespace gte::GPU::OpenGL {
 
 	class ENGINE_API OpenGLFrameBuffer : public FrameBuffer {
 	public:
 
-		OpenGLFrameBuffer(const FrameBufferSpecification& specification);
-		~OpenGLFrameBuffer(void);
+		OpenGLFrameBuffer(const FrameBufferSpecification& specification) noexcept;
+		~OpenGLFrameBuffer(void) noexcept;
 
-		void Bind(void) const override;
-		void Unbind(void) const override;
+		void Bind(void) const noexcept override;
+		void Unbind(void) const noexcept override;
 
-		void Resize(uint32 width, uint32 height) override;
+		void Resize(uint32 width, uint32 height) noexcept override;
 
-		const FrameBufferSpecification& GetSpecification(void) const override;
+		[[nodiscard]] const FrameBufferSpecification& GetSpecification(void) const noexcept override;
 
-		uint64 GetColorAttachmentID(uint32 attachement) const override;
-		void Clear(uint32 attachment, const void* data) const override;
+		[[nodiscard]] uint64 GetColorAttachmentID(uint32 attachement) const noexcept override;
+		void Clear(uint32 attachment, const void* data) const noexcept override;
 
-		void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const override;
+		void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept override;
 
 	private:
 
-		void Invalidate(void);
+		void Invalidate(void) noexcept;
 
-		uint32 m_ID = 0;
-		uint32* m_ColorAttachmentID = nullptr;
-		FrameBufferSpecification m_Specification;
+		uint32 mID = 0;
+		uint32* mColorAttachmentID = nullptr;
+		FrameBufferSpecification mSpecification;
 
 	};
 
 }
-
-#endif
