@@ -421,6 +421,7 @@ void CupOfTea::RenderGUI(void)
 			ImGui::PopFont();
 			ImGui::BulletText("Fork Awesome");
 			ImGui::BulletText("Open Sans");
+			ImGui::BulletText("Papirus icon theme");
 		}
 		ImGui::End();
 	}

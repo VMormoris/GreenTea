@@ -20,8 +20,9 @@
 
 The following third party assets are being used by the editor:
 
-  * _[Open Sans](https://fonts.google.com/specimen/Open+Sans?query=open+s&preview.text_type=custom) Font designed by Steve Matteson._
   * _[ForkAwesome](https://forkaweso.me/Fork-Awesome/) Use for the Icons of the editor._
+  * _[Open Sans](https://fonts.google.com/specimen/Open+Sans?query=open+s&preview.text_type=custom) Font designed by Steve Matteson._
+  * _[papirus-icon-theme](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme) Icons for content browser panel_
 
 ## Contributing
   * _For reporting a bug please open an issue describing the bug as well a way to recreate it._
