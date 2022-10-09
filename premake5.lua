@@ -24,6 +24,8 @@ IncludeDirs["IconHeader"]="3rdParty/IconFontCppHeaders"
 IncludeDirs["cereal"]="3rdParty/cereal/include"
 IncludeDirs["box2d"]="3rdParty/box2d/include"
 IncludeDirs["ImGuizmo"]="3rdParty/ImGuizmo"
+IncludeDirs["libsndfile"]="3rdParty/libsndfile/include"
+IncludeDirs["openal-soft"]="3rdParty/openal-soft/include"
 
 LibFiles={}
 LibFiles["GLFW"]="3rdParty/glfw/libs/SDL2.lib"
@@ -33,6 +35,7 @@ include "3rdParty/box2d"
 include "3rdParty/glad"
 include "3rdParty/yaml-cpp"
 include "3rdParty/glfw"
+include "3rdParty/libsndfile"
 
 project "GreenTea"
 	location "GreenTea"
@@ -78,6 +81,7 @@ project "GreenTea"
 		"GLFW",
         "yaml-cpp",
 		"Glad",
+		"libsndfile",
 		"opengl32.lib"
 	}
 		
@@ -86,6 +90,7 @@ project "GreenTea"
 		"ENGINE_DLL",
 		"_CRT_SECURE_NO_WARNINGS",
 		"GLFW_INCLUDE_NONE",
+		"AL_LIBTYPE_STATIC",
 	}
 	
 	postbuildcommands
@@ -100,6 +105,7 @@ project "GreenTea"
 		defines
 		{
 			"PLATFORM_WINDOWS",
+			"Winmm.lib",
 		}
 
 
@@ -109,13 +115,19 @@ project "GreenTea"
 
 		defines
 		{
-			"DEBUG_BUILD"
+			"DEBUG_BUILD",
+			"3rdParty/openal-soft/Debug/OpenAl32.lib",
 		}
 		
 
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
+
+		links
+        {
+            "3rdParty/openal-soft/Release/OpenAl32.lib",
+        }
 		
 project "CupOfTea"
 	location "CupOfTea"

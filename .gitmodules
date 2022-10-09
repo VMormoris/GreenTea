@@ -29,3 +29,6 @@
 [submodule "3rdParty/yaml-cpp"]
 	path = 3rdParty/yaml-cpp
 	url = https://github.com/VMormoris/yaml-cpp
+[submodule "3rdParty/libsndfile"]
+	path = 3rdParty/libsndfile
+	url = https://github.com/VMormoris/libsndfile.git
