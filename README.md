@@ -10,8 +10,10 @@
   * _[glad](https://glad.dav1d.de/) Is used for loading OpenGL functions._
   * _[GLFW](https://github.com/glfw/glfw) Is used for window creation and event polling._
   * _[glm](https://github.com/g-truc/glm) Is used as a math library._
-  * _[IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) For using Icon fonts_
+  * _[IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) For using Icon fonts._
   * _[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) Is used for Guizmo controls._
+  * _[libsndfile](https://github.com/libsndfile/libsndfile) For reading audio files._
+  * _[openal-soft](https://github.com/kcat/openal-soft) For playing back audio._
   * _[premake5](https://github.com/premake/premake-core) Is used for project generation both by the engine as well it's projects._
   * _[stb](https://github.com/nothings/stb) Is used for reading image files._
   * _[yaml-cpp](https://github.com/jbeder/yaml-cpp) Is used for (de)serialization._

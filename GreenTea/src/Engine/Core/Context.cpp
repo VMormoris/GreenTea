@@ -1,5 +1,6 @@
 #include "Context.h"
 
+#include <Engine/Scene/CollisionDispatcher.h>
 
 namespace gte::internal {
 
@@ -24,5 +25,16 @@ namespace gte::internal {
 	}
 
 	[[nodiscard]] Context* GetContext(void) noexcept { return sContext; }
+
+	void DestroyContext(Context* context) noexcept
+	{
+		delete context->CDispatcher;
+		delete context->Renderer;
+		delete context->ScriptEngine;
+		delete context->GlobalWindow;
+		delete context->AudioDevice;
+
+		delete context;
+	}
 
 }

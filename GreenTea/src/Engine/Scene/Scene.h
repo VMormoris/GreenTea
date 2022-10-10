@@ -59,6 +59,7 @@ namespace gte {
 		void FixedUpdate(void);
 		void Movement(float dt, bool physics);
 
+		void InformAudioEngine(void);
 		void InformEngine(entt::entity entityID, Rigidbody2DComponent& rb, TransformationComponent& tc);
 		void InformPhysicsWorld(Rigidbody2DComponent& rb, Collider* collider, const glm::vec3& pos, float angle);
 		//All Components expect relationship that needs special handling

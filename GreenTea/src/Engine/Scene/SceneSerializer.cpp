@@ -104,6 +104,9 @@ namespace gte::internal {
 					auto& cam = entity.GetComponent<CameraComponent>();
 					cam.Primary = camera["Primary"].as<bool>();
 					cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
+					cam.MasterVolume = camera["MasterVolume"].as<float>();
+					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
+
 
 					const auto& settings = entityNode["Settings"];
 					auto& sett = entity.GetComponent<Settings>();
@@ -168,6 +171,9 @@ namespace gte::internal {
 					cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
 					if (cam.FixedAspectRatio)
 						cam.AspectRatio = camera["AspectRatio"].as<float>();
+					cam.MasterVolume = camera["MasterVolume"].as<float>();
+					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
+
 					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 					ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
 					ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
@@ -422,6 +428,19 @@ namespace gte::internal {
 						}
 					}
 				}
+
+				const auto& speaker = entityNode["SpeakerComponent"];
+				if (speaker)
+				{
+					auto& sc = entity.AddComponent<SpeakerComponent>();
+					sc.AudioClip->ID = speaker["AudioClip"].as<std::string>();
+					sc.Volume = speaker["Volume"].as<float>();
+					sc.Pitch = speaker["Pitch"].as<float>();
+					sc.RollOffFactor = speaker["RollOffFactor"].as<float>();
+					sc.RefDistance = speaker["RefDistance"].as<float>();
+					sc.MaxDistance = speaker["MaxDistance"].as<float>();
+					sc.Looping = speaker["Looping"].as<bool>();
+				}
 			}
 
 			mScene->UpdateMatrices();
@@ -531,6 +550,8 @@ namespace gte::internal {
 				out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
 			out << YAML::Key << "Primary" << YAML::Value << cam.Primary;
 			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cam.FixedAspectRatio;
+			out << YAML::Key << "MasterVolume" << YAML::Value << cam.MasterVolume;
+			out << YAML::Key << "DistanceModel" << YAML::Value << (uint16)cam.Model;
 			out << YAML::EndMap;
 		}
 
@@ -663,6 +684,21 @@ namespace gte::internal {
 				out << YAML::EndMap;
 			}
 			out << YAML::EndSeq;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<SpeakerComponent>())
+		{
+			const auto& speaker = entity.GetComponent<SpeakerComponent>();
+			out << YAML::Key << "SpeakerComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "AudioClip" << YAML::Value << speaker.AudioClip->ID.str();
+			out << YAML::Key << "Volume" << YAML::Value << speaker.Volume;
+			out << YAML::Key << "Pitch" << YAML::Value << speaker.Pitch;
+			out << YAML::Key << "RollOffFactor" << YAML::Value << speaker.RollOffFactor;
+			out << YAML::Key << "RefDistance" << YAML::Value << speaker.RefDistance;
+			out << YAML::Key << "MaxDistance" << YAML::Value << speaker.MaxDistance;
+			out << YAML::Key << "Looping" << YAML::Value << speaker.Looping;
 			out << YAML::EndMap;
 		}
 

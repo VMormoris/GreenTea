@@ -15,14 +15,18 @@
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
 #include <box2d/b2_circle_shape.h>
+//openal-sofr
+#include <AL/al.h>
 
 static void CreateTransform2D(entt::registry& reg, entt::entity entityID);
 static void DestroyTransform2D(entt::registry& reg, entt::entity entityID);
 
 static void CreateCamera(entt::registry& reg, entt::entity entityID);
 static void DestroyCamera(entt::registry& reg, entt::entity entityID);
+
 static b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, float angle);
 static bool HasParentTransform(const gte::RelationshipComponent& relc, const entt::registry& reg, glm::mat4& pTransform);
+static void SetListener(entt::registry& reg, entt::entity entity);
 
 namespace gte {
 
@@ -69,6 +73,7 @@ namespace gte {
 			DestroyEntity({ entityID, this });
 
 		UpdateMatrices();
+		InformAudioEngine();
 
 		//Find primary camera for rendering
 		bool found = false;
@@ -80,6 +85,7 @@ namespace gte {
 			{
 				eyeMatrix = cam;
 				found = true;
+				SetListener(mReg, entityID);
 				break;
 			}
 		}
@@ -458,6 +464,12 @@ namespace gte {
 			const auto& cc = source.GetComponent<CircleColliderComponent>();
 			destination.AddComponent<CircleColliderComponent>(cc);
 		}
+
+		if (source.HasComponent<SpeakerComponent>())
+		{
+			const auto& speaker = source.GetComponent<SpeakerComponent>();
+			destination.AddComponent<SpeakerComponent>(speaker);
+		}
 	}
 
 	template<typename... Component>
@@ -528,6 +540,7 @@ namespace gte {
 
 	void Scene::OnStart(void)
 	{
+		InformAudioEngine();
 		std::vector<entt::entity> bin;
 		auto scripts = mReg.view<NativeScriptComponent>();
 		for (auto&& [entityID, nc] : scripts.each())
@@ -564,6 +577,7 @@ namespace gte {
 		}
 
 		UpdateMatrices();
+		InformAudioEngine();
 		OnPhysicsStart();
 	}
 
@@ -680,6 +694,32 @@ namespace gte {
 				tc.Position = { pos.x, pos.y, tc.Position.z };
 				tc.Rotation = glm::degrees(rotation.z);
 			}
+		}
+	}
+
+	void Scene::InformAudioEngine(void)
+	{
+		auto view = mReg.view<SpeakerComponent>();
+		for (auto&& [entityID, speaker] : view.each())
+		{
+			speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(speaker.AudioClip->ID);
+			speaker.Source.SetProperties(&speaker);
+
+			if (mReg.all_of<TransformationComponent>(entityID))
+			{
+				const auto& tc = mReg.get<TransformationComponent>(entityID);
+				speaker.Source.SetPosition(glm::vec3(tc.Transform[3]));
+			}
+			else
+				speaker.Source.SetPosition({ 0.0f, 0.0f, 0.0f });
+
+			if (mReg.all_of<Rigidbody2DComponent>(entityID))
+			{
+				const auto& rb = mReg.get<Rigidbody2DComponent>(entityID);
+				speaker.Source.SetVelocity(rb.Velocity);
+			}
+			else
+				speaker.Source.SetVelocity({ 0.0f, 0.0f });
 		}
 	}
 
@@ -931,4 +971,43 @@ bool HasParentTransform(const gte::RelationshipComponent& relc, const entt::regi
 		}
 	}
 	return hasParent;
+}
+
+void SetListener(entt::registry& reg, entt::entity entity)
+{
+	const auto& cam = reg.get<gte::CameraComponent>(entity);
+	alListenerf(AL_GAIN, cam.MasterVolume);
+	switch(cam.Model)
+	{
+	case gte::DistanceModel::None:
+		alDistanceModel(AL_NONE);
+		break;
+	case gte::DistanceModel::Inverse:
+		alDistanceModel(AL_INVERSE_DISTANCE);
+		break;
+	case gte::DistanceModel::InverseClamp:
+		alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+		break;
+	case gte::DistanceModel::Linear:
+		alDistanceModel(AL_LINEAR_DISTANCE);
+		break;
+	case gte::DistanceModel::LinearClamp:
+		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		break;
+	case gte::DistanceModel::Exponent:
+		alDistanceModel(AL_EXPONENT_DISTANCE);
+		break;
+	case gte::DistanceModel::ExponentClamp:
+		alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+		break;
+	}
+
+	if (auto* tc = reg.try_get<gte::TransformationComponent>(entity))
+		alListener3f(AL_POSITION, tc->Transform[3].x, tc->Transform[3].y, tc->Transform[3].z);
+	else
+		alListener3f(AL_POSITION, 0.0f, 0.0f, 0.0f);
+	if (auto* rb = reg.try_get<gte::Rigidbody2DComponent>(entity))
+		alListener3f(AL_VELOCITY, rb->Velocity.x, rb->Velocity.y, 0.0f);
+	else
+		alListener3f(AL_VELOCITY, 0.0f, 0.0f, 0.0f);
 }

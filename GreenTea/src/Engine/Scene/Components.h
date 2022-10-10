@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Core/Ref.h>
+#include <Engine/Audio/Source.h>
 #include <Engine/Assets/Asset.h>
 #include <Engine/Assets/NativeScript.h>
 #include <Engine/GPU/Texture.h>
@@ -132,6 +133,17 @@ namespace gte {
 
 	};
 
+
+	enum class ENGINE_API DistanceModel : byte {
+		None = 0,
+		Inverse,
+		InverseClamp,
+		Linear,
+		LinearClamp,
+		Exponent,
+		ExponentClamp
+	};
+
 	struct ENGINE_API CameraComponent {
 		float AspectRatio = 1.0f;
 
@@ -141,6 +153,9 @@ namespace gte {
 		glm::mat4 ProjectionMatrix{ 1.0f };
 		glm::mat4 ViewMatrix{ 1.0f };
 		glm::mat4 EyeMatrix{ 1.0f };
+
+		float MasterVolume = 1.0f;
+		DistanceModel Model = DistanceModel::None;
 
 		CameraComponent(void) = default;
 		CameraComponent(const CameraComponent&) = default;
@@ -171,7 +186,7 @@ namespace gte {
 		NativeScriptComponent& operator=(const NativeScriptComponent&) = default;
 	};
 
-	enum class ENGINE_API BodyType {
+	enum class ENGINE_API BodyType : byte {
 		Static = 0,
 		Dynamic,
 		Kinematic
@@ -232,8 +247,22 @@ namespace gte {
 		Settings(const Settings&) = default;
 	};
 
+	struct ENGINE_API SpeakerComponent {
+		audio::Source Source;
+		Ref<Asset> AudioClip = CreateRef<Asset>();
+		float Volume = 1.0f;
+		float Pitch = 1.0f;
+		float RollOffFactor = 1.0f;
+		float RefDistance = 1.0f;
+		float MaxDistance = 500.0f;
+		bool Looping = false;
+
+		SpeakerComponent(void) = default;
+		SpeakerComponent(const SpeakerComponent&) = default;
+	};
+
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent>;
+	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent>;
 }

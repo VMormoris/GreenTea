@@ -14,5 +14,5 @@ int main(int argc, char** argv)
 	gte::Application* app = CreateApplication(argc, argv);
 	app->Run();
 	delete app;
-	delete context;
+	gte::internal::DestroyContext(context);
 }

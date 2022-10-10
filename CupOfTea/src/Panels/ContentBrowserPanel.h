@@ -15,8 +15,12 @@ public:
 	void DeleteSelected(void);
 
 private:
-	void CreateScript(const std::string& name);
+	
+	void CreateScript(const std::string& name) const;
 	void CreateFolder(const std::filesystem::path& parent, std::string _template);
+	
+	void CreateTextureAsset(const std::filesystem::path& filepath) const;
+	void CreateAudioAsset(const std::filesystem::path& filepath) const;
 
 private:
 	std::vector<std::filesystem::path> mHistory;

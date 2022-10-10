@@ -5,6 +5,7 @@
 
 #include <Engine/Assets/ProjectManager.h>
 #include <Engine/Assets/AssetManager.h>
+#include <Engine/Audio/AudioDevice.h>
 #include <Engine/Core/Window.h>
 #include <Engine/Core/DynamicLoader.h>
 #include <Engine/Events/EventDispatcher.h>
@@ -38,6 +39,7 @@ namespace gte::internal {
 
 		GPU::GraphicsAPI G_API = GPU::GraphicsAPI::OpenGL;
 		GPU::RendererAPI* Renderer = nullptr;
+		audio::AudioDevice* AudioDevice = nullptr;
 
 		CollisionDispatcher* CDispatcher = nullptr;
 		bool Playing = false;
@@ -46,4 +48,5 @@ namespace gte::internal {
 	ENGINE_API Context* CreateContext(void) noexcept;
 	ENGINE_API [[nodiscard]] Context* GetContext(void) noexcept;
 	ENGINE_API void SetContext(Context* context) noexcept;
+	ENGINE_API void DestroyContext(Context* context) noexcept;
 }

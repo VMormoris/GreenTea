@@ -24,6 +24,12 @@ namespace gte {
 		{
 			if (ImGui::MenuItem("Add empty Entity"))
 				scene->CreateEntity("Unnamed Entity");
+			if (ImGui::MenuItem("Camera Entity"))
+			{
+				Entity entity = scene->CreateEntity("Camera");
+				entity.AddComponent<Transform2DComponent>();
+				entity.AddComponent<CameraComponent>();
+			}
 			ImGui::EndPopup();
 		}
 		
@@ -35,6 +41,12 @@ namespace gte {
 		{
 			if (ImGui::MenuItem("Add empty Entity"))
 				scene->CreateEntity("Unnamed Entity");
+			if (ImGui::MenuItem("Camera Entity"))
+			{
+				Entity entity = scene->CreateEntity("Camera");
+				entity.AddComponent<Transform2DComponent>();
+				entity.AddComponent<CameraComponent>();
+			}
 			ImGui::EndPopup();
 		}
 			
@@ -224,6 +236,14 @@ namespace gte {
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			if (!entity.HasComponent<SpeakerComponent>())
+			{
+				if (gui::DrawMenuItem(ICON_FK_VOLUME_UP, "Speaker Component", "", biggest))
+				{
+					entity.AddComponent<SpeakerComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!entity.HasComponent<NativeScriptComponent>())
 			{
 				if (gui::DrawMenuItem(ICON_FK_CODE, "Native Script Component", "", biggest))
@@ -410,7 +430,24 @@ namespace gte {
 				settings.MinFloat = 0.1f;
 				settings.MaxFloat = FLT_MAX;
 				if (cam.FixedAspectRatio)
-					changed = changed || gui::DrawFloatControl("Aspect Ratio", cam.AspectRatio, settings);
+				{
+					if (gui::DrawFloatControl("Aspect Ratio", cam.AspectRatio, settings))
+						changed = true;
+				}
+
+				ImGui::SetCursorPosX(0.0f);
+				if (ImGui::TreeNodeEx("Audio Listener", ImGuiTreeNodeFlags_OpenOnArrow))
+				{
+					static constexpr char* typestr[] = { "None", "Inverse", "Inverse Clamp", "Linear", "Linear Clamp", "Exponent", "Exponent Clamp" };
+					int32 index = static_cast<int32>(cam.Model);
+					if (gui::DrawComboControl("Distance Model", index, typestr, 7, settings))
+						cam.Model = static_cast<DistanceModel>(index);
+					settings.MinFloat = 0.0f;
+					settings.MaxFloat = 1.0f;
+					gui::DrawFloatControl("Master Volume", cam.MasterVolume, settings);
+					ImGui::TreePop();
+				}
+
 				if (changed)
 				{
 					glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
@@ -468,6 +505,24 @@ namespace gte {
 				gui::DrawFloatControl("Restitution", cc.Restitution, settings);
 				gui::DrawFloatControl("Rest. Threshold", cc.RestitutionThreshold, settings);
 				gui::DrawBoolControl("Sensor", cc.Sensor, settings);
+			});
+		}
+
+		if (entity.HasComponent<SpeakerComponent>())
+		{
+			gui::DrawComponent<SpeakerComponent>(ICON_FK_VOLUME_UP, "Speaker Component", entity, [](auto& speaker) {
+				gui::UISettings settings;
+				uuid id = speaker.AudioClip->ID;
+				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings))
+					speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(id);
+				settings.MinFloat = 0.0f;
+				settings.MaxFloat = FLT_MAX;
+				gui::DrawFloatControl("Volume", speaker.Volume, settings);
+				gui::DrawFloatControl("Pitch", speaker.Pitch, settings);
+				gui::DrawFloatControl("Roll off factor", speaker.RollOffFactor, settings);
+				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings);
+				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings);
+				gui::DrawBoolControl("Looping", speaker.Looping, settings);
 			});
 		}
 

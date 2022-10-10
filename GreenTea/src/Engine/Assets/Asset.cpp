@@ -2,8 +2,9 @@
 #include "NativeScript.h"
 #include "Image.h"
 
-#include <fstream>
+#include <Engine/Audio/AudioBuffer.h>
 
+#include <fstream>
 #include <yaml-cpp/yaml.h>
 
 namespace gte::internal {
@@ -59,11 +60,17 @@ namespace gte::internal {
 			asset.Data = img;
 			break;
 		}
-		case AssetType::MUSIC:
-		case AssetType::SOUND:
-			//ADD assertion for not implemented yet
+		case AssetType::AUDIO:
+			int32 format;
+			int32 samplerate;
+			memcpy(&format, buffer, sizeof(int32));
+			memcpy(&samplerate, buffer + 4, sizeof(int32));
+			asset.Data = new audio::AudioBuffer(buffer + 8, asset.Size - 8, format, samplerate);
+			break;
+		case AssetType::ANIMATION:
 			break;
 		case AssetType::FONT_IMAGE:
+			break;
 		case AssetType::FONT_TEXTURE:
 		case AssetType::TEXTURE:
 		case AssetType::LOADING:

@@ -16,3 +16,6 @@ Assets/Scenes
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
+
+#NextCloud
+**/Thumbs.db

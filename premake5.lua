@@ -25,7 +25,7 @@ IncludeDirs["cereal"]="3rdParty/cereal/include"
 IncludeDirs["box2d"]="3rdParty/box2d/include"
 IncludeDirs["ImGuizmo"]="3rdParty/ImGuizmo"
 IncludeDirs["libsndfile"]="3rdParty/libsndfile/include"
-IncludeDirs["openal-soft"]="3rdParty/openal-soft/include"
+IncludeDirs["openal"]="3rdParty/openal-soft/include"
 
 LibFiles={}
 LibFiles["GLFW"]="3rdParty/glfw/libs/SDL2.lib"
@@ -72,6 +72,7 @@ project "GreenTea"
 		"%{IncludeDirs.imgui}/backends",
 		"%{IncludeDirs.IconHeader}",
 		"%{IncludeDirs.box2d}",
+		"%{IncludeDirs.openal}",
 	}
 	
 	links
@@ -81,7 +82,6 @@ project "GreenTea"
 		"GLFW",
         "yaml-cpp",
 		"Glad",
-		"libsndfile",
 		"opengl32.lib"
 	}
 		
@@ -105,6 +105,10 @@ project "GreenTea"
 		defines
 		{
 			"PLATFORM_WINDOWS",
+		}
+
+		links
+		{
 			"Winmm.lib",
 		}
 
@@ -116,6 +120,10 @@ project "GreenTea"
 		defines
 		{
 			"DEBUG_BUILD",
+		}
+
+		links
+		{
 			"3rdParty/openal-soft/Debug/OpenAl32.lib",
 		}
 		
@@ -162,12 +170,15 @@ project "CupOfTea"
 		"%{IncludeDirs.imgui}",
 		"%{IncludeDirs.IconHeader}",
 		"%{IncludeDirs.ImGuizmo}",
+		"%{IncludeDirs.libsndfile}",
+		"%{IncludeDirs.openal}",
 	}
 
 	links
 	{
 		"GreenTea",
 		"ImGui",
+		"libsndfile",
 		"opengl32.lib",
 	}
 
@@ -200,7 +211,6 @@ project "CupOfTea"
 			"PLATFORM_WINDOWS",
 		}
 
-
 	filter "configurations:Debug"
 		runtime "Debug"
 		symbols "on"
@@ -209,7 +219,6 @@ project "CupOfTea"
 		{
 			"DEBUG_BUILD"
 		}
-		
 		
 	filter "configurations:Release"
 		runtime "Release"

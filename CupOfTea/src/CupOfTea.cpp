@@ -412,6 +412,8 @@ void CupOfTea::RenderGUI(void)
 			ImGui::BulletText("glm");
 			ImGui::BulletText("IconFontCppHeaders");
 			ImGui::BulletText("ImGuizmo");
+			ImGui::BulletText("libsndfile");
+			ImGui::BulletText("openal-soft");
 			ImGui::BulletText("premake5");
 			ImGui::BulletText("stb");
 			ImGui::BulletText("yaml-cpp");

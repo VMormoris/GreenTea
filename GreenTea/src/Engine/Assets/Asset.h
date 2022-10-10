@@ -30,10 +30,11 @@ namespace gte {
 		// with specific size on GPU memory
 		FONT_TEXTURE = 7,
 
-		//A music file asset
-		MUSIC = 8,
-		//A sound file asset
-		SOUND = 9,
+		//A audio file asset
+		AUDIO = 8,
+
+		//An animation asset
+		ANIMATION = 9,
 
 		//Scene Description
 		SCENE = 10

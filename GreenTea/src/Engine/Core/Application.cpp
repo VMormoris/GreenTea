@@ -37,6 +37,8 @@ namespace gte {
 
 		RenderCommand::Init();
 		Renderer2D::Init();
+
+		auto* device = audio::AudioDevice::Get();//Create audio device
 	}
 
 	Application::~Application(void)
