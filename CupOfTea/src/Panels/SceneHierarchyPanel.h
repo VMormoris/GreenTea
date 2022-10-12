@@ -15,6 +15,8 @@ namespace gte {
 
 		void DeleteSelected(void);
 
+		void SetDirectory(const std::filesystem::path& dir) noexcept { mDirectory = dir; }
+
 	private:
 
 		void DrawEntityNode(Entity entity);
@@ -23,6 +25,7 @@ namespace gte {
 
 		Entity mSelectionContext;
 		std::string mFilter;
+		std::filesystem::path mDirectory;
 
 	};
 }

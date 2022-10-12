@@ -50,9 +50,10 @@ namespace gte {
 		{
 			if (mRAM.at(id)->Type == AssetType::LOADING)//Still loading asset
 				asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
-			if (mRAM.at(id)->Type == AssetType::IMAGE)//ID doesn't much an Image Asset
+			if (mRAM.at(id)->Type == AssetType::IMAGE)
 			{
 				Image* img = (Image*)mRAM.at(id)->Data;
+				//img->Save("Test.png");
 				GPU::Texture2D* texture = GPU::Texture2D::Create(*img);
 				asset = CreateRef<Asset>(texture, id, AssetType::TEXTURE, img->Size());
 				mVRAM.insert({ id, asset });

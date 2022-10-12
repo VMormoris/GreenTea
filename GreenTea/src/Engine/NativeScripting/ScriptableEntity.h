@@ -35,4 +35,10 @@ namespace gte {
 		friend class Scene;
 	};
 
+	ENGINE_API void SpawnEntity(Ref<Asset> prefab);
+	ENGINE_API void SpawnEntity(Entity parent, Ref<Asset>prefab);
+	ENGINE_API void SpawnEntity(ScriptableEntity* parent, Ref<Asset>prefab);
+
+	ENGINE_API void DestroyEntity(Entity entity);
+	ENGINE_API void DestroyEntity(ScriptableEntity* entity);
 }

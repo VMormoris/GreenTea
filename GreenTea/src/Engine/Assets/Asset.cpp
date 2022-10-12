@@ -1,6 +1,7 @@
 #include "Asset.h"
-#include "NativeScript.h"
 #include "Image.h"
+#include "NativeScript.h"
+#include "Prefab.h"
 
 #include <Engine/Audio/AudioBuffer.h>
 
@@ -43,7 +44,15 @@ namespace gte::internal {
 		{
 			YAML::Node data;
 			try { data = YAML::Load(buffer); }
-			catch(YAML::ParserException e) { ASSERT(false, "Failed to load file: ", filepath.c_str(), "\n\t", e.what());}
+			catch (YAML::ParserException e)
+			{
+				ASSERT(false, "Failed to load file: ", filepath.c_str(), "\n\t", e.what());
+				asset.Type = AssetType::INVALID;
+				asset.Size = 0;
+				asset.ID = {};
+				delete[] buffer;
+				return asset;
+			}
 			internal::NativeScript* script = new NativeScript();
 			script->Load(data);
 			if (asset.Data)
@@ -61,12 +70,30 @@ namespace gte::internal {
 			break;
 		}
 		case AssetType::AUDIO:
+		{
 			int32 format;
 			int32 samplerate;
 			memcpy(&format, buffer, sizeof(int32));
 			memcpy(&samplerate, buffer + 4, sizeof(int32));
 			asset.Data = new audio::AudioBuffer(buffer + 8, asset.Size - 8, format, samplerate);
 			break;
+		}
+		case AssetType::PREFAB:
+		{
+			YAML::Node data;
+			try { data = YAML::Load(buffer); }
+			catch (YAML::ParserException e)
+			{
+				ASSERT(false, "Failed to load file: ", filepath.c_str(), "\n\t", e.what());
+				asset.Type = AssetType::INVALID;
+				asset.Size = 0;
+				asset.ID = {};
+				delete[] buffer;
+				return asset;
+			}
+			asset.Data = new Prefab(data);
+			break;
+		}
 		case AssetType::ANIMATION:
 			break;
 		case AssetType::FONT_IMAGE:

@@ -87,8 +87,8 @@ namespace gte::GPU::OpenGL {
 		mWidth = image.GetWidth();
 		mHeight = image.GetHeight();
 		mDataFormat = texture_format;
-		unsigned char* data = new unsigned char[image.Size()];
-		ENGINE_ASSERT(data != NULL, "Erorr occuried while Allocating memory on the Heap!");
+		//unsigned char* data = new unsigned char[image.Size()];
+		//ENGINE_ASSERT(data != NULL, "Erorr occuried while Allocating memory on the Heap!");
 
 		// flip image
 		/*for (uint32 y = 0; y < mHeight; y++)
@@ -101,11 +101,11 @@ namespace gte::GPU::OpenGL {
 				row_size
 			);
 		}*/
-		memcpy(data, image.Data(), image.Size());
+		//memcpy(data, image.Data(), image.Size());
 		glGenTextures(1, &mID);
 		glBindTexture(GL_TEXTURE_2D, mID);
-		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, data);
-		delete[] data;
+		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, image.Data());
+		//delete[] data;
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

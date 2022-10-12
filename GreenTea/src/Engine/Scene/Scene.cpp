@@ -3,6 +3,7 @@
 #include "CollisionDispatcher.h"
 #include "Entity.h"
 
+#include <Engine/Assets/Prefab.h>
 #include <Engine/Core/Context.h>
 #include <Engine/Core/Math.h>
 #include <Engine/NativeScripting/ScriptableEntity.h>
@@ -32,7 +33,8 @@ namespace gte {
 
 	void Scene::Update(float dt)
 	{
-		const float STEP = 1.0f / FindEntityWithUUID({}).GetComponent<Settings>().Rate;
+		std::unique_lock lock(mRegMutex);
+		const float STEP = 1.0f / FindEntityWithUUID({}, false).GetComponent<Settings>().Rate;
 		mAccumulator += dt;
 		bool physics = false;
 		while (mAccumulator >= STEP)
@@ -70,9 +72,9 @@ namespace gte {
 			}
 		}
 		for (auto entityID : bin)
-			DestroyEntity({ entityID, this });
+			DestroyEntity({ entityID, this }, false);
 
-		UpdateMatrices();
+		UpdateMatrices(false);
 		InformAudioEngine();
 
 		//Find primary camera for rendering
@@ -91,20 +93,23 @@ namespace gte {
 		}
 		
 		if (found)
-			Render(eyeMatrix);
+			Render(eyeMatrix, false);
 	}
 
 	void Scene::UpdateEditor()
 	{
+		std::unique_lock lock(mRegMutex);
 		auto view = mReg.view<CameraComponent>(entt::exclude<TagComponent>);
 		glm::mat4 eyeMatrix;
-		for (auto entityID : view)//Only one should be inside
-			eyeMatrix = view.get<CameraComponent>(entityID).EyeMatrix;
-		Render(eyeMatrix);
+		for (auto&& [entityID, cam]: view.each())//Only one should be inside
+			eyeMatrix = cam;
+		Render(eyeMatrix, false);
 	}
 
-	void Scene::Render(const glm::mat4& eyematrix)
+	void Scene::Render(const glm::mat4& eyematrix, bool useLock)
 	{
+		if (useLock)
+			mRegMutex.lock();
 		entt::insertion_sort algo;
 		mReg.sort<TransformationComponent>([](const auto& lhs, const auto& rhs) { return lhs.Transform[3].z < rhs.Transform[3].z; }, algo);
 		Renderer2D::BeginScene(eyematrix);
@@ -146,23 +151,30 @@ namespace gte {
 				Renderer2D::DrawCircle(tc.Transform, circle->Color, (uint32)entityID, circle->Thickness, circle->Fade);
 		}
 		Renderer2D::EndScene();
+		if (useLock)
+			mRegMutex.unlock();
 	}
 
-	Entity Scene::CreateEntity(const std::string& name) { return CreateEntityWithUUID(uuid::Create(), name); }
+	Entity Scene::CreateEntity(const std::string& name, bool useLock) { return CreateEntityWithUUID(uuid::Create(), name, useLock); }
 
-	Entity Scene::CreateEntityWithUUID(const uuid& id, const std::string& name)
+	Entity Scene::CreateEntityWithUUID(const uuid& id, const std::string& name, bool useLock)
 	{
+		if (useLock)
+			mRegMutex.lock();
 		auto entityID = mReg.create();
 		const auto tag = name.empty() ? "Unnamed Enity" : name;
 		mReg.emplace<IDComponent>(entityID, id);
 		mReg.emplace<TagComponent>(entityID, tag);
 		mReg.emplace<RelationshipComponent>(entityID);
+		if (useLock)
+			mRegMutex.unlock();
 		return { entityID, this };
 	}
 
 	Entity Scene::CreateChildEntity(Entity parent)
 	{
-		Entity entity = CreateEntity();
+		std::unique_lock lock(mRegMutex);
+		Entity entity = CreateEntity({}, false);
 		auto& prel = parent.GetComponent<RelationshipComponent>();
 		auto nextID = prel.FirstChild;
 		prel.FirstChild = entity;
@@ -200,8 +212,450 @@ namespace gte {
 		*/
 	}
 
+	Entity Scene::CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent, bool useLock)
+	{
+		if (useLock)
+			mRegMutex.lock();
+		Prefab* fab = (Prefab*)prefab->Data;
+		const YAML::Node& entities = fab->GetNode();
+
+		std::unordered_map<uuid, Entity> map;
+		for (const auto& entityNode : entities)
+		{
+			uuid id = entityNode["Entity"].as<std::string>();
+			std::string name = entityNode["TagComponent"]["Tag"].as<std::string>();
+			Entity entity = CreateEntity(name, false);
+			map.insert({ id, entity });
+
+			const auto& transform = entityNode["Transform2DComponent"];
+			if (transform)
+			{
+				auto& tc = entity.AddComponent<Transform2DComponent>();
+				tc.Position = transform["Position"].as<glm::vec3>();
+				tc.Scale = transform["Scale"].as<glm::vec2>();
+				tc.Rotation = transform["Rotation"].as<float>();
+			}
+
+			const auto& renderable = entityNode["SpriteRendererComponent"];
+			if (renderable)
+			{
+				auto& sprite = entity.AddComponent<SpriteRendererComponent>();
+				sprite.Color = renderable["Color"].as<glm::vec4>();
+				uuid texID = renderable["Texture"].as<std::string>();
+				if (id.IsValid())
+				{
+					sprite.Texture->ID = texID;
+					sprite.TilingFactor = renderable["TilingFactor"].as<float>();
+					sprite.FlipX = renderable["FlipX"].as<bool>();
+					sprite.FlipY = renderable["FlipY"].as<bool>();
+					const auto& coords = renderable["TextureCoordinates"];
+					sprite.Coordinates.BottomLeft = coords["BottomLeft"].as<glm::vec2>();
+					sprite.Coordinates.BottomRight = coords["BottomRight"].as<glm::vec2>();
+					sprite.Coordinates.TopRight = coords["TopRight"].as<glm::vec2>();
+					sprite.Coordinates.TopLeft = coords["TopLeft"].as<glm::vec2>();
+				}
+			}
+
+			const auto& circleRenderable = entityNode["CircleRendererComponent"];
+			if (circleRenderable)
+			{
+				auto& circle = entity.AddComponent<CircleRendererComponent>();
+				circle.Color = circleRenderable["Color"].as<glm::vec4>();
+				circle.Thickness = circleRenderable["Thickness"].as<float>();
+				circle.Fade = circleRenderable["Fade"].as<float>();
+			}
+
+			const auto& camera = entityNode["CameraComponent"];
+			if (camera)
+			{
+				auto& cam = entity.AddComponent<CameraComponent>();
+				cam.Primary = camera["Primary"].as<bool>();
+				cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
+				if (cam.FixedAspectRatio)
+					cam.AspectRatio = camera["AspectRatio"].as<float>();
+				cam.MasterVolume = camera["MasterVolume"].as<float>();
+				cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
+
+				auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
+				ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
+				ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
+			}
+
+			const auto& rigidbody = entityNode["Rigidbody2DComponent"];
+			if (rigidbody)
+			{
+				auto& rb = entity.AddComponent<Rigidbody2DComponent>();
+				rb.Type = (BodyType)rigidbody["Type"].as<uint64>();
+				rb.Velocity = rigidbody["Velocity"].as<glm::vec2>();
+				rb.AngularVelocity = rigidbody["AngularVelocity"].as<float>();
+				rb.GravityFactor = rigidbody["GravityFactor"].as<float>();
+				rb.FixedRotation = rigidbody["FixedRotation"].as<bool>();
+				rb.Bullet = rigidbody["Bullet"].as<bool>();
+			}
+
+			const auto& boxcollider = entityNode["BoxColliderComponent"];
+			if (boxcollider)
+			{
+				auto& bc = entity.AddComponent<BoxColliderComponent>();
+				bc.Offset = boxcollider["Offset"].as<glm::vec2>();
+				bc.Size = boxcollider["Size"].as<glm::vec2>();
+				bc.Density = boxcollider["Density"].as<float>();
+				bc.Friction = boxcollider["Friction"].as<float>();
+				bc.Restitution = boxcollider["Restitution"].as<float>();
+				bc.RestitutionThreshold = boxcollider["RestitutionThreshold"].as<float>();
+				bc.Sensor = boxcollider["Sensor"].as<bool>();
+			}
+
+			const auto& circlecollider = entityNode["CircleColliderComponent"];
+			if (circlecollider)
+			{
+				auto& cc = entity.AddComponent<CircleColliderComponent>();
+				cc.Radius = circlecollider["Radius"].as<float>();
+				cc.Density = circlecollider["Density"].as<float>();
+				cc.Friction = circlecollider["Friction"].as<float>();
+				cc.Restitution = circlecollider["Restitution"].as<float>();
+				cc.RestitutionThreshold = circlecollider["RestitutionThreshold"].as<float>();
+				cc.Sensor = circlecollider["Sensor"].as<bool>();
+			}
+
+			const auto& speaker = entityNode["SpeakerComponent"];
+			if (speaker)
+			{
+				auto& sc = entity.AddComponent<SpeakerComponent>();
+				sc.AudioClip->ID = speaker["AudioClip"].as<std::string>();
+				sc.Volume = speaker["Volume"].as<float>();
+				sc.Pitch = speaker["Pitch"].as<float>();
+				sc.RollOffFactor = speaker["RollOffFactor"].as<float>();
+				sc.RefDistance = speaker["RefDistance"].as<float>();
+				sc.MaxDistance = speaker["MaxDistance"].as<float>();
+				sc.Looping = speaker["Looping"].as<bool>();
+			}
+		}
+
+		//Second iteration to create relationships & Native Scripts
+		Entity toReturn;
+		for (const auto& entityNode : entities)
+		{
+			uuid id = entityNode["Entity"].as<std::string>();
+			Entity entity = map[id];
+
+			const auto& relationship = entityNode["RelationshipComponent"];
+			if (!relationship)//Special entity for Scene stuff
+				continue;
+
+			auto& rc = entity.GetComponent<RelationshipComponent>();
+			rc.Childrens = relationship["Childrens"].as<uint64>();
+			uuid candidate = relationship["FirstChild"].as<std::string>();
+			if (candidate.IsValid())
+				rc.FirstChild = (entt::entity)map[candidate];
+				
+			candidate = relationship["Previous"].as<std::string>();
+			if (candidate.IsValid())
+				rc.Previous = (entt::entity)map[candidate];
+
+			candidate = relationship["Next"].as<std::string>();
+			if (candidate.IsValid())
+				rc.Next = (entt::entity)map[candidate];
+
+			candidate = relationship["Parent"].as<std::string>();
+			if (candidate.IsValid())
+				rc.Parent = (entt::entity)map[candidate];
+			else
+				toReturn = entity;
+
+			const auto& nativescript = entityNode["NativeScriptComponent"];
+			if (nativescript)
+			{
+				const auto& props = nativescript["Properties"];
+				auto& nc = entity.AddComponent<NativeScriptComponent>();
+				uuid id = nativescript["Asset"].as<std::string>();
+				nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
+				uint64 oldversion = nativescript["Version"].as<uint64>();
+				if (((internal::NativeScript*)nc.ScriptAsset->Data)->GetVersion() > oldversion)
+				{
+					nc.Description = *(internal::NativeScript*)nc.ScriptAsset->Data;
+					const auto& specs = nc.Description.GetFieldsSpecification();
+					void* buffer = nc.Description.GetBuffer();
+					for (const auto& prop : props)
+					{
+						const auto name = prop["Name"].as<std::string>();
+						internal::FieldType type = (internal::FieldType)prop["Type"].as<uint64>();
+						for (const auto& spec : specs)
+						{
+							void* ptr = (byte*)buffer + spec.BufferOffset;
+							if (spec.Name.compare(name) == 0 && type == spec.Type)
+							{
+								switch (type)
+								{
+								using namespace internal;
+								case FieldType::Bool:
+									*(bool*)ptr = prop["Default"].as<bool>();
+									break;
+								case FieldType::Char:
+								case FieldType::Enum_Char:
+									*(char*)ptr = (char)prop["Default"].as<int16>();
+									break;
+								case FieldType::Enum_Byte:
+								case FieldType::Byte:
+									*(byte*)ptr = (byte)prop["Default"].as<byte>();
+									break;
+								case FieldType::Enum_Int16:
+								case FieldType::Int16:
+									*(int16*)ptr = prop["Default"].as<int16>();
+									break;
+								case FieldType::Enum_Int32:
+								case FieldType::Int32:
+									*(int32*)ptr = prop["Default"].as<int32>();
+									break;
+								case FieldType::Enum_Int64:
+								case FieldType::Int64:
+									*(int64*)ptr = prop["Default"].as<int64>();
+									break;
+								case FieldType::Enum_Uint16:
+								case FieldType::Uint16:
+									*(uint16*)ptr = prop["Default"].as<uint16>();
+									break;
+								case FieldType::Enum_Uint32:
+								case FieldType::Uint32:
+									*(uint32*)ptr = prop["Default"].as<uint32>();
+									break;
+								case FieldType::Enum_Uint64:
+								case FieldType::Uint64:
+									*(uint64*)ptr = prop["Default"].as<uint64>();
+									break;
+								case FieldType::Float32:
+									*(float*)ptr = prop["Default"].as<float>();
+									break;
+								case FieldType::Float64:
+									*(double*)ptr = prop["Default"].as<double>();
+									break;
+								case FieldType::Vec2:
+									*(glm::vec2*)ptr = prop["Default"].as<glm::vec2>();
+									break;
+								case FieldType::Vec3:
+									*(glm::vec3*)ptr = prop["Default"].as<glm::vec3>();
+									break;
+								case FieldType::Vec4:
+									*(glm::vec4*)ptr = prop["Default"].as<glm::vec4>();
+									break;
+								case FieldType::String:
+									*(std::string*)ptr = prop["Default"].as<std::string>();
+									break;
+								case FieldType::Asset:
+								{
+									uuid assetID = prop["Default"].as<std::string>();
+									Ref<Asset>& ref = *((Ref<Asset>*)ptr);
+									ref->ID = assetID;
+									break;
+								}
+								case FieldType::Entity:
+								{
+									uuid entityID = prop["Default"].as<std::string>();
+									if (map.find(entityID) == map.end())
+										*(Entity*)ptr = FindEntityWithUUID(entityID, false);
+									else
+										*(Entity*)ptr = map[entityID];
+									break;
+								}
+								case FieldType::Unknown:
+									break;
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					nc.Description = *(internal::NativeScript*)nc.ScriptAsset->Data;
+					const auto& specs = nc.Description.GetFieldsSpecification();
+					void* buffer = nc.Description.GetBuffer();
+					for (size_t i = 0; i < specs.size(); i++)
+					{
+						const auto& spec = specs[i];
+						const auto& prop = props[i];
+						void* ptr = (byte*)buffer + spec.BufferOffset;
+						switch (spec.Type)
+						{
+						using namespace internal;
+						case FieldType::Bool:
+							*(bool*)ptr = prop["Default"].as<bool>();
+							break;
+						case FieldType::Char:
+						case FieldType::Enum_Char:
+							*(char*)ptr = (char)prop["Default"].as<int16>();
+							break;
+						case FieldType::Int16:
+						case FieldType::Enum_Int16:
+							*(int16*)ptr = prop["Default"].as<int16>();
+							break;
+						case FieldType::Int32:
+						case FieldType::Enum_Int32:
+							*(int32*)ptr = prop["Default"].as<int32>();
+							break;
+						case FieldType::Int64:
+						case FieldType::Enum_Int64:
+							*(int64*)ptr = prop["Default"].as<int64>();
+							break;
+						case FieldType::Byte:
+						case FieldType::Enum_Byte:
+							*(byte*)ptr = (byte)prop["Default"].as<uint16>();
+							break;
+						case FieldType::Uint16:
+						case FieldType::Enum_Uint16:
+							*(uint16*)ptr = prop["Default"].as<uint16>();
+							break;
+						case FieldType::Uint32:
+						case FieldType::Enum_Uint32:
+							*(uint32*)ptr = prop["Default"].as<uint32>();
+							break;
+						case FieldType::Uint64:
+						case FieldType::Enum_Uint64:
+							*(uint64*)ptr = prop["Default"].as<uint64>();
+							break;
+						case FieldType::Float32:
+							*(float*)ptr = prop["Default"].as<float>();
+							break;
+						case FieldType::Float64:
+							*(double*)ptr = prop["Default"].as<double>();
+							break;
+						case FieldType::Vec2:
+							*(glm::vec2*)ptr = prop["Default"].as<glm::vec2>();
+							break;
+						case FieldType::Vec3:
+							*(glm::vec3*)ptr = prop["Default"].as<glm::vec3>();
+							break;
+						case FieldType::Vec4:
+							*(glm::vec4*)ptr = prop["Default"].as<glm::vec4>();
+							break;
+						case FieldType::String:
+							*(std::string*)ptr = prop["Default"].as<std::string>();
+							break;
+						case FieldType::Asset:
+						{
+							uuid assetID = prop["Default"].as<std::string>();
+							Ref<Asset>& ref = *((Ref<Asset>*)ptr);
+							ref->ID = assetID;
+							break;
+						}
+						case FieldType::Entity:
+						{
+							uuid entityID = prop["Default"].as<std::string>();
+							if (map.find(entityID) == map.end())
+								*(Entity*)ptr = FindEntityWithUUID(entityID, false);
+							else
+								*(Entity*)ptr = map[entityID];
+							break;
+						}
+						case FieldType::Unknown:
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (parent)
+		{
+			auto& relc = toReturn.GetComponent<RelationshipComponent>();
+			relc.Parent = parent;
+
+			auto& prel = parent.GetComponent<RelationshipComponent>();
+			prel.Childrens++;
+			relc.Next = prel.FirstChild;
+			prel.FirstChild = toReturn;
+			if (relc.Next != entt::null)
+				mReg.get<RelationshipComponent>(relc.Next).Previous = toReturn;
+		}
+
+
+		if (internal::GetContext()->Playing)
+		{
+			auto scripts = mReg.view<NativeScriptComponent>();
+			for (auto [id, entity] : map)
+			{
+				if (!scripts.contains(entity))
+					continue;
+
+				auto [nsc] = scripts.get(entity);
+				if (nsc.State == ScriptState::MustBeInitialized)
+				{
+					auto name = nsc.Description.GetName();
+					std::replace(name.begin(), name.end(), ' ', '_');
+					nsc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
+					internal::GetContext()->ScriptEngine->Instantiate(nsc.Instance, nsc.Description);
+					nsc.Instance->mEntity = entity;
+					nsc.Instance->Start();
+					nsc.State = ScriptState::Active;
+				}
+			}
+		}
+
+		GTE_TRACE_LOG("Updating Transform of entity: ", toReturn.GetComponent<IDComponent>().ID);
+		UpdateTransform(toReturn, false);
+
+		if (mPhysicsWorld)
+		{
+			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			for (auto [id, entity] : map)
+			{
+				if (!circles.contains(entity))
+					continue;
+
+				auto [cc, rb, tc] = circles.get(entity);
+				glm::vec3 pos, scale, rotation;
+				gte::math::DecomposeTransform(tc, pos, scale, rotation);
+				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
+				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
+				rb.Body = body;
+				b2CircleShape shape;
+				shape.m_p.Set(cc.Offset.x, cc.Offset.y);
+				shape.m_radius = scale.x * cc.Radius;
+				b2FixtureDef fixtureDef;
+				fixtureDef.userData.pointer = static_cast<uintptr_t>((entt::entity)entity);
+				fixtureDef.shape = &shape;
+				fixtureDef.density = cc.Density;
+				fixtureDef.friction = cc.Friction;
+				fixtureDef.restitution = cc.Restitution;
+				fixtureDef.restitutionThreshold = cc.RestitutionThreshold;
+				fixtureDef.isSensor = cc.Sensor;
+				cc.Fixure = body->CreateFixture(&fixtureDef);
+			}
+
+			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			for (auto [id, entity] : map)
+			{
+				if (!boxes.contains(entity))
+					continue;
+
+				auto [bc, rb, tc] = boxes.get(entity);
+				glm::vec3 pos, scale, rotation;
+				gte::math::DecomposeTransform(tc, pos, scale, rotation);
+				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
+				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
+				rb.Body = body;
+				b2PolygonShape shape;
+				shape.SetAsBox(scale.x * bc.Size.x, scale.y * bc.Size.y, { bc.Offset.x, bc.Offset.y }, 0.0f);
+				b2FixtureDef fixtureDef;
+				fixtureDef.userData.pointer = static_cast<uintptr_t>((entt::entity)entity);
+				fixtureDef.shape = &shape;
+				fixtureDef.density = bc.Density;
+				fixtureDef.friction = bc.Friction;
+				fixtureDef.restitution = bc.Restitution;
+				fixtureDef.restitutionThreshold = bc.RestitutionThreshold;
+				fixtureDef.isSensor = bc.Sensor;
+				bc.Fixure = body->CreateFixture(&fixtureDef);
+			}
+		}
+
+		if (useLock)
+			mRegMutex.unlock();
+
+		return toReturn;
+	}
+
 	void Scene::MoveEntity(Entity parent, Entity toMove)
 	{
+		std::unique_lock lock(mRegMutex);
 		auto& prel = parent.GetComponent<RelationshipComponent>();
 		auto nextID = prel.FirstChild;
 		prel.FirstChild = toMove;
@@ -231,12 +685,15 @@ namespace gte {
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = toMove;
 
-		UpdateTransform(toMove);
+		UpdateTransform(toMove, false);
 	}
 
 	Entity Scene::Clone(Entity toClone, bool recursive)
 	{
-		Entity entity = CreateEntity();
+		if (!recursive)
+			mRegMutex.lock();
+
+		Entity entity = CreateEntity({}, false);
 		CopyComponents(toClone, entity);
 
 		const auto& relationship = toClone.GetComponent<RelationshipComponent>();
@@ -276,12 +733,16 @@ namespace gte {
 			oldChild = child;
 		}
 
-		UpdateTransform(entity);
+		UpdateTransform(entity, false);
+		if (!recursive)
+			mRegMutex.unlock();
 		return entity;
 	}
 
-	void Scene::DestroyEntity(Entity entity)
+	void Scene::DestroyEntity(Entity entity, bool useLock)
 	{
+		if (useLock)
+			mRegMutex.lock();
 		//We need to start from the bottom up
 		auto& relc = entity.GetComponent<RelationshipComponent>();
 		const size_t childrens = relc.Childrens;
@@ -291,11 +752,11 @@ namespace gte {
 			entt::entity next = mReg.get<RelationshipComponent>(curr).Next;
 			for (size_t i = 0; i < childrens - 1; i++)
 			{
-				DestroyEntity({ curr, this });
+				DestroyEntity({ curr, this }, false);
 				curr = next;
 				next = mReg.get<RelationshipComponent>(curr).Next;
 			}
-			DestroyEntity({ curr, this });
+			DestroyEntity({ curr, this }, false);
 		}
 
 		//Now need to inform neighbours & parent
@@ -310,23 +771,41 @@ namespace gte {
 			if (relc.Previous == entt::null)
 				prel.FirstChild = relc.Next;
 		}
+		uuid id = mReg.get<IDComponent>(entity);
 		mReg.destroy(entity);
+		if (useLock)
+			mRegMutex.unlock();
 	}
 
-	[[nodiscard]] Entity Scene::FindEntityWithUUID(const uuid& id)
+	[[nodiscard]] Entity Scene::FindEntityWithUUID(const uuid& id, bool useLock)
 	{
+		try
+		{
+			if (useLock)
+				mRegMutex.lock();
+		}
+		catch(std::system_error err) { GTE_TRACE_LOG("Caught error with code: ", err.code(), " meaning: ", err.what()); }
+
 		auto view = mReg.view<IDComponent>();
 		for (auto entityID : view)
 		{
 			const uuid& candidate = view.get<IDComponent>(entityID).ID;
 			if (candidate == id)
+			{
+				if(useLock)
+					mRegMutex.unlock();
 				return { entityID, this };
+			}
 		}
+		if (useLock)
+			mRegMutex.unlock();
 		return {};
 	}
 
-	void Scene::UpdateTransform(Entity entity)
+	void Scene::UpdateTransform(Entity entity, bool useLock)
 	{
+		if (useLock)
+			mRegMutex.lock();
 		const auto& tc = entity.GetComponent<Transform2DComponent>();
 		auto& transform = entity.GetComponent<TransformationComponent>();
 		transform.Transform = glm::translate(glm::mat4(1.0f), tc.Position) * glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
@@ -342,7 +821,7 @@ namespace gte {
 			for (size_t i = 0; i < rel.Childrens; i++)
 			{
 				if(child.HasComponent<Transform2DComponent>())
-					UpdateTransform(child);
+					UpdateTransform(child, false);
 				auto next = child.GetComponent<RelationshipComponent>().Next;
 				child = { next, this };
 			}
@@ -355,6 +834,9 @@ namespace gte {
 			cam.ViewMatrix = glm::inverse(transform.Transform);
 			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 		}
+
+		if (useLock)
+			mRegMutex.unlock();
 	}
 
 	Scene::Scene(void)
@@ -373,6 +855,7 @@ namespace gte {
 
 	void Scene::OnViewportResize(uint32 width, uint32 height)
 	{
+		std::unique_lock lock(mRegMutex);
 		const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 		auto view = mReg.view<CameraComponent>();
 		for (auto entityID : view)
@@ -390,8 +873,10 @@ namespace gte {
 		}
 	}
 
-	void Scene::UpdateMatrices(void)
+	void Scene::UpdateMatrices(bool useLock)
 	{
+		if (useLock)
+			mRegMutex.lock();
 		//TODO(Vasilis): Could use a thread pool to make this run in pararel
 		auto view = mReg.view<RelationshipComponent, Transform2DComponent>();
 		for (auto entityID: view)
@@ -399,11 +884,15 @@ namespace gte {
 			const auto& rel = view.get<RelationshipComponent>(entityID);
 			if (HasParentTransform(rel, mReg, glm::mat4()))
 				continue;
-			UpdateTransform({ entityID, this });
+			UpdateTransform({ entityID, this }, false);
 		}
 
-		Entity me = FindEntityWithUUID({});//Special Entity for scene stuff
-		UpdateTransform(me);
+		Entity me = FindEntityWithUUID({}, false);//Special Entity for scene stuff
+		UpdateTransform(me, false);
+		if (useLock) {
+			//GTE_TRACE_LOG(mRegMutex.try_lock());
+			mRegMutex.unlock();
+		}
 	}
 
 	void Scene::CopyComponents(Entity source, Entity destination)
@@ -416,7 +905,7 @@ namespace gte {
 			const auto& tc = source.GetComponent<Transform2DComponent>();
 			destination.AddComponent<Transform2DComponent>(tc);
 
-			UpdateTransform(destination);
+			UpdateTransform(destination, false);
 		}
 
 		if (source.HasComponent<SpriteRendererComponent>())
@@ -497,13 +986,14 @@ namespace gte {
 	[[nodiscard]] Scene* Scene::Copy(Scene* other)
 	{
 		Scene* newScene = new Scene();
-	
+		std::unique_lock lock1(other->mRegMutex);
+		std::unique_lock lock2(newScene->mRegMutex);
 		auto& dstReg = newScene->mReg;
 		auto& srcReg = other->mReg;
 		
 		{//Special entity for scene stuff
-			auto dstEntityID = (entt::entity)newScene->FindEntityWithUUID({});
-			auto srcEntityID = (entt::entity)other->FindEntityWithUUID({});
+			auto dstEntityID = (entt::entity)newScene->FindEntityWithUUID({}, false);
+			auto srcEntityID = (entt::entity)other->FindEntityWithUUID({}, false);
 			dstReg.emplace_or_replace<Transform2DComponent>(dstEntityID, srcReg.get<Transform2DComponent>(srcEntityID));
 			dstReg.emplace_or_replace<CameraComponent>(dstEntityID, srcReg.get<CameraComponent>(srcEntityID));
 			dstReg.emplace_or_replace<OrthographicCameraComponent>(dstEntityID, srcReg.get<OrthographicCameraComponent>(srcEntityID));
@@ -515,7 +1005,7 @@ namespace gte {
 			auto view = srcReg.view<IDComponent, TagComponent>();
 			for (auto&& [entityID, id, tag] : view.each())
 			{
-				entt::entity entity = newScene->CreateEntityWithUUID(id, tag.Tag);
+				entt::entity entity = newScene->CreateEntityWithUUID(id, tag.Tag, false);
 				enttMap.insert({ id, entity });
 				//entt ids' won't be valid since they are pointing source registry but they will be patch afterwards
 				dstReg.emplace_or_replace<RelationshipComponent>(entity, srcReg.get<RelationshipComponent>(entityID));
@@ -534,12 +1024,13 @@ namespace gte {
 		}
 
 		CopyComponent(AllComponents{}, dstReg, srcReg, enttMap);
-		newScene->UpdateMatrices();
+		newScene->UpdateMatrices(false);
 		return newScene;
 	}
 
 	void Scene::OnStart(void)
 	{
+		std::unique_lock lock(mRegMutex);
 		InformAudioEngine();
 		std::vector<entt::entity> bin;
 		auto scripts = mReg.view<NativeScriptComponent>();
@@ -565,7 +1056,7 @@ namespace gte {
 			}
 		}
 		for (auto entityID : bin)
-			DestroyEntity({ entityID, this });
+			DestroyEntity({ entityID, this }, false);
 
 		auto cameras = mReg.view<OrthographicCameraComponent, CameraComponent>();
 		for (auto&& [entityID, ortho, cam] : cameras.each())
@@ -576,13 +1067,14 @@ namespace gte {
 			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 		}
 
-		UpdateMatrices();
+		UpdateMatrices(false);
 		InformAudioEngine();
 		OnPhysicsStart();
 	}
 
 	void Scene::OnStop(void)
 	{
+		std::unique_lock lock(mRegMutex);
 		OnPhysicsStop();
 
 		auto scripts = mReg.view<NativeScriptComponent>();
@@ -597,7 +1089,7 @@ namespace gte {
 
 	void Scene::FixedUpdate(void)
 	{
-		Entity me = FindEntityWithUUID({});
+		Entity me = FindEntityWithUUID({}, false);
 		auto& settings = me.GetComponent<Settings>();
 		const float STEP = 1.0f / settings.Rate;
 
@@ -625,7 +1117,7 @@ namespace gte {
 			if (script.State == ScriptState::Active)
 				script.Instance->FixedUpdate();
 		});
-		UpdateMatrices();
+		UpdateMatrices(false);
 
 		{// Infrom physics world about changes by game engine
 			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
@@ -656,7 +1148,7 @@ namespace gte {
 
 	void Scene::Movement(float dt, bool physics)
 	{
-		glm::vec2 gravity = FindEntityWithUUID({}).GetComponent<Settings>().Gravity;
+		glm::vec2 gravity = FindEntityWithUUID({}, false).GetComponent<Settings>().Gravity;
 		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>);
 		for (auto&& [entityID, rb, tc, transform] : group.each())
 		{
@@ -711,7 +1203,14 @@ namespace gte {
 				speaker.Source.SetPosition(glm::vec3(tc.Transform[3]));
 			}
 			else
-				speaker.Source.SetPosition({ 0.0f, 0.0f, 0.0f });
+			{
+				glm::mat4 transform;
+				if (HasParentTransform(mReg.get<RelationshipComponent>(entityID), mReg, transform))
+					speaker.Source.SetPosition(glm::vec3(transform[3]));
+				else
+					speaker.Source.SetPosition({ 0.0f, 0.0f, 0.0f });
+			}
+				
 
 			if (mReg.all_of<Rigidbody2DComponent>(entityID))
 			{
@@ -769,7 +1268,7 @@ namespace gte {
 
 	void Scene::OnPhysicsStart(void)
 	{
-		Entity me = FindEntityWithUUID({});
+		Entity me = FindEntityWithUUID({}, false);
 		const glm::vec2& g = me.GetComponent<Settings>().Gravity;
 		mPhysicsWorld = new b2World({ g.x, g.y });
 		mPhysicsWorld->SetContactListener(CollisionDispatcher::Get());
@@ -826,6 +1325,7 @@ namespace gte {
 
 	void Scene::PatchScripts(void)
 	{
+		std::unique_lock lock(mRegMutex);
 		using namespace internal;
 		auto scripts = mReg.view<NativeScriptComponent>();
 		for (auto&& [entityID, nc] : scripts.each())

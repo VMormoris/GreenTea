@@ -1,9 +1,13 @@
 #include "SceneHierarchyPanel.h"
 
+//#include <Engine/NativeScripting/ScriptableEntity.h>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <IconsForkAwesome.h>
 #include <gtc/matrix_transform.hpp>
+
+#include "ContentBrowserPanel.h"
 
 namespace gte {
 
@@ -55,6 +59,8 @@ namespace gte {
 			auto view = scene->mReg.view<RelationshipComponent>();
 			for (auto entityID : view)
 			{
+				if (!scene->mReg.valid(entityID))
+					continue;
 				const auto [relc] = view.get(entityID);
 				if (relc.Parent == entt::null)
 					DrawEntityNode({ entityID, scene });
@@ -77,6 +83,20 @@ namespace gte {
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			mSelectionContext = {};
 		ImGui::EndChild();
+		
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			{
+				std::filesystem::path filepath = (const char*)payload->Data;
+				if (filepath.extension() == ".gtprefab")
+				{
+					uuid id = internal::GetContext()->AssetWatcher.GetID(filepath.string());
+					Ref<Asset> prefab = CreateRef<Asset>(id);
+					SpawnEntity(prefab);
+				}
+			}
+		}
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -101,6 +121,17 @@ namespace gte {
 				Entity toMove = scene->FindEntityWithUUID(id);
 				scene->MoveEntity(entity, toMove);
 			}
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			{
+				std::filesystem::path filepath = (const char*)payload->Data;
+				if (filepath.extension() == ".gtprefab")
+				{
+					uuid id = internal::GetContext()->AssetWatcher.GetID(filepath.string());
+					Ref<Asset> prefab = CreateRef<Asset>(id);
+					SpawnEntity(entity, prefab);
+				}
+			}
+			ImGui::EndDragDropTarget();
 		}
 		if (ImGui::BeginDragDropSource())
 		{
@@ -118,9 +149,11 @@ namespace gte {
 			if (ImGui::MenuItem("Add Child Entity"))
 				scene->CreateChildEntity(entity);
 			if (gte::gui::DrawMenuItem(ICON_FK_TRASH, "Delete Entity", "Delete", biggest))
-				shouldDestroy = true;
+				shouldDestroy = true;			
 			if (gte::gui::DrawMenuItem(ICON_FK_CLONE, "Clone Entity", nullptr, biggest))
 				scene->Clone(entity);
+			if (gte::gui::DrawMenuItem(ICON_FK_CUBE, "Create Prefab", nullptr, biggest))
+				CreatePrefab(entity, mDirectory);
 			ImGui::EndPopup();
 		}
 		
@@ -141,10 +174,16 @@ namespace gte {
 
 		if (shouldDestroy)
 		{
-			uuid id = mSelectionContext.GetComponent<IDComponent>().ID;
+			uuid id;
+			if(mSelectionContext)
+				id = mSelectionContext.GetComponent<IDComponent>().ID;
 			scene->DestroyEntity(entity);
-			mSelectionContext = scene->FindEntityWithUUID(id);
+			if(mSelectionContext)
+				mSelectionContext = scene->FindEntityWithUUID(id);
 		}
+
+		if (mSelectionContext && !scene->mReg.valid(mSelectionContext))
+			mSelectionContext = {};
 	}
 
 	void SceneHierarchyPanel::DrawComponents(Entity entity)

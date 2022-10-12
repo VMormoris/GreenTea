@@ -6,6 +6,7 @@
 
 #include <entt.hpp>
 #include <glm.hpp>
+#include <mutex>
 
 //Forward declaration(s)
 class b2World;
@@ -27,21 +28,22 @@ namespace gte {
 
 		void UpdateEditor();
 		void Update(float dt);
-		void Render(const glm::mat4& eyematrix);
+		void Render(const glm::mat4& eyematrix, bool useLock = true);
 
 		void OnViewportResize(uint32 width, uint32 height);
 
-		Entity CreateEntity(const std::string& name = std::string());
-		Entity CreateEntityWithUUID(const uuid& id, const std::string& name = std::string());
+		Entity CreateEntity(const std::string& name = std::string(), bool useLock = true);
+		Entity CreateEntityWithUUID(const uuid& id, const std::string& name = std::string(), bool useLock = true);
 		Entity CreateChildEntity(Entity parent);
+		Entity CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent, bool useLock = true);
 		void MoveEntity(Entity parent, Entity toMove);
 		Entity Clone(Entity toClone, bool recursive = false);
-		void DestroyEntity(Entity entity);
+		void DestroyEntity(Entity entity, bool useLock = true);
 
-		[[nodiscard]] Entity FindEntityWithUUID(const uuid& id);
+		[[nodiscard]] Entity FindEntityWithUUID(const uuid& id, bool useLock = true);
 
-		void UpdateTransform(Entity entity);
-		void UpdateMatrices(void);//Update Transform for all entities
+		void UpdateTransform(Entity entity, bool useLock = true);
+		void UpdateMatrices(bool useLock = true);//Update Transform for all entities
 
 		void OnStart(void);
 		void OnStop(void);
@@ -51,7 +53,12 @@ namespace gte {
 		[[nodiscard]] static Scene* Copy(Scene* other);
 
 		template<typename ...Components>
-		[[nodiscard]] auto GetAllEntitiesWith(void) { return mReg.view<Components...>(); }
+		[[nodiscard]] auto GetAllEntitiesWith(void)
+		{
+			std::unique_lock lock(mRegMutex);
+			return mReg.view<Components...>();
+		}
+
 	private:
 
 		void OnPhysicsStart(void);
@@ -70,10 +77,9 @@ namespace gte {
 		entt::registry mReg;
 		b2World* mPhysicsWorld = nullptr;
 		float mAccumulator = 0.0f;
+		std::mutex mRegMutex;
 		friend class Entity;
 		friend class SceneHierarchyPanel;
 		friend class internal::SceneSerializer;
 	};
-
-
 }

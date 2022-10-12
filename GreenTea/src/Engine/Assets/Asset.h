@@ -37,7 +37,9 @@ namespace gte {
 		ANIMATION = 9,
 
 		//Scene Description
-		SCENE = 10
+		SCENE = 10,
+
+		PREFAB = 11
 	};
 
 	struct ENGINE_API Asset {

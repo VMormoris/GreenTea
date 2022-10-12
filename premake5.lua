@@ -178,6 +178,7 @@ project "CupOfTea"
 	{
 		"GreenTea",
 		"ImGui",
+		"yaml-cpp",
 		"libsndfile",
 		"opengl32.lib",
 	}

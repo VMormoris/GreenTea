@@ -14,6 +14,8 @@ public:
 
 	void DeleteSelected(void);
 
+	const std::filesystem::path& GetCurrentPath(void) const { return mCurrentPath; }
+
 private:
 	
 	void CreateScript(const std::string& name) const;
@@ -34,4 +36,6 @@ private:
 
 	bool mShouldFocus = false;
 };
+
+void CreatePrefab(gte::Entity entity, const std::filesystem::path& dir);
 

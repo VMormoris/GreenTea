@@ -225,17 +225,18 @@ namespace gte::internal {
 
 	NativeScript::NativeScript(const NativeScript& other)
 	{
-		mName = other.mName;
-		mVersion = other.mVersion;
-		mFieldSpecs = other.mFieldSpecs;
-		mBufferSize = other.mBufferSize;
 		if (mBuffer)
 		{
 			CleanValues();
 			delete[] mBuffer;
 			mBuffer = nullptr;
 		}
-			
+	
+		mName = other.mName;
+		mVersion = other.mVersion;
+		mFieldSpecs = other.mFieldSpecs;
+		mBufferSize = other.mBufferSize;
+
 		if (other.mBuffer)
 		{
 			mBuffer = new byte[other.mBufferSize];
@@ -247,16 +248,18 @@ namespace gte::internal {
 	{
 		if (this == &rhs)
 			return *this;
-		mName = rhs.mName;
-		mVersion = rhs.mVersion;
-		mFieldSpecs = rhs.mFieldSpecs;
-		mBufferSize = rhs.mBufferSize;
+
 		if (mBuffer)
 		{
 			CleanValues();
 			delete[] mBuffer;
 			mBuffer = nullptr;
 		}
+
+		mName = rhs.mName;
+		mVersion = rhs.mVersion;
+		mFieldSpecs = rhs.mFieldSpecs;
+		mBufferSize = rhs.mBufferSize;
 
 		if (rhs.mBuffer)
 		{

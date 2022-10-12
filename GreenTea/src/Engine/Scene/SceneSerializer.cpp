@@ -140,9 +140,8 @@ namespace gte::internal {
 					sprite.Color = renderable["Color"].as<glm::vec4>();
 					uuid id = renderable["Texture"].as<std::string>();
 					if (id.IsValid())
-						sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
-					if (sprite.Texture->ID.IsValid())
 					{
+						sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
 						sprite.TilingFactor = renderable["TilingFactor"].as<float>();
 						sprite.FlipX = renderable["FilpX"].as<bool>();
 						sprite.FlipY = renderable["FlipY"].as<bool>();
@@ -216,6 +215,19 @@ namespace gte::internal {
 					cc.Sensor = circlecollider["Sensor"].as<bool>();
 				}
 
+				const auto& speaker = entityNode["SpeakerComponent"];
+				if (speaker)
+				{
+					auto& sc = entity.AddComponent<SpeakerComponent>();
+					sc.AudioClip->ID = speaker["AudioClip"].as<std::string>();
+					sc.Volume = speaker["Volume"].as<float>();
+					sc.Pitch = speaker["Pitch"].as<float>();
+					sc.RollOffFactor = speaker["RollOffFactor"].as<float>();
+					sc.RefDistance = speaker["RefDistance"].as<float>();
+					sc.MaxDistance = speaker["MaxDistance"].as<float>();
+					sc.Looping = speaker["Looping"].as<bool>();
+				}
+
 			}
 
 			//Second iteration to create relationships & Native Scripts
@@ -232,19 +244,19 @@ namespace gte::internal {
 				rc.Childrens = relationship["Childrens"].as<uint64>();
 				uuid candidate = relationship["FirstChild"].as<std::string>();
 				if (candidate.IsValid())
-					rc.FirstChild = (entt::entity)(uint32)mScene->FindEntityWithUUID(candidate);
+					rc.FirstChild = (entt::entity)mScene->FindEntityWithUUID(candidate);
 
 				candidate = relationship["Previous"].as<std::string>();
 				if (candidate.IsValid())
-					rc.Previous = (entt::entity)(uint32)mScene->FindEntityWithUUID(candidate);
+					rc.Previous = (entt::entity)mScene->FindEntityWithUUID(candidate);
 
 				candidate = relationship["Next"].as<std::string>();
 				if (candidate.IsValid())
-					rc.Next = (entt::entity)(uint32)mScene->FindEntityWithUUID(candidate);
+					rc.Next = (entt::entity)mScene->FindEntityWithUUID(candidate);
 
 				candidate = relationship["Parent"].as<std::string>();
 				if (candidate.IsValid())
-					rc.Parent = (entt::entity)(uint32)mScene->FindEntityWithUUID(candidate);
+					rc.Parent = (entt::entity)mScene->FindEntityWithUUID(candidate);
 
 				const auto& nativescript = entityNode["NativeScriptComponent"];
 				if (nativescript)
@@ -429,18 +441,6 @@ namespace gte::internal {
 					}
 				}
 
-				const auto& speaker = entityNode["SpeakerComponent"];
-				if (speaker)
-				{
-					auto& sc = entity.AddComponent<SpeakerComponent>();
-					sc.AudioClip->ID = speaker["AudioClip"].as<std::string>();
-					sc.Volume = speaker["Volume"].as<float>();
-					sc.Pitch = speaker["Pitch"].as<float>();
-					sc.RollOffFactor = speaker["RollOffFactor"].as<float>();
-					sc.RefDistance = speaker["RefDistance"].as<float>();
-					sc.MaxDistance = speaker["MaxDistance"].as<float>();
-					sc.Looping = speaker["Looping"].as<bool>();
-				}
 			}
 
 			mScene->UpdateMatrices();

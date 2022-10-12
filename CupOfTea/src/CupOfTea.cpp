@@ -177,7 +177,7 @@ void CupOfTea::OnOverlayRenderer(void)
 
 	if (gte::Entity entity = mSceneHierarchyPanel.GetSelectedEntity())
 	{
-		if (entity.HasComponent<gte::TransformationComponent>())
+		if (!gte::internal::GetContext()->Playing && entity.HasComponent<gte::TransformationComponent>())
 			gte::Renderer2D::DrawRect(entity.GetComponent<gte::TransformationComponent>(), { 1.0f, 0.5f, 0.0f, 1.0f });
 	}
 	gte::Renderer2D::EndScene();
@@ -364,6 +364,7 @@ void CupOfTea::RenderGUI(void)
 	{
 		if (ImGui::Begin("Scene Hierarchy", &mPanels[2], ImGuiWindowFlags_NoCollapse))
 		{
+			mSceneHierarchyPanel.SetDirectory(mBrowserPanel.GetCurrentPath());
 			mSceneHierarchyPanel.Draw();
 			if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
 				mSceneHierarchyPanel.DeleteSelected();
@@ -731,6 +732,7 @@ void CupOfTea::Start(void)
 	gte::uuid id = mSceneHierarchyPanel.GetSelectedEntity().GetID();
 	mSnapshot = gte::internal::GetContext()->ActiveScene;
 	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);
+	gte::internal::GetContext()->Playing = true;
 	gte::internal::GetContext()->ActiveScene->OnStart();
 	if (id.IsValid())
 	{
@@ -740,7 +742,6 @@ void CupOfTea::Start(void)
 
 	const glm::vec2& viewportSize = gte::internal::GetContext()->ViewportSize;
 	gte::internal::GetContext()->ActiveScene->OnViewportResize(static_cast<uint32>(viewportSize.x), static_cast<uint32>(viewportSize.y));
-	gte::internal::GetContext()->Playing = !gte::internal::GetContext()->Playing;
 }
 
 void CupOfTea::Stop(void)
@@ -758,7 +759,7 @@ void CupOfTea::Stop(void)
 
 	const glm::vec2& viewportSize = gte::internal::GetContext()->ViewportSize;
 	gte::internal::GetContext()->ActiveScene->OnViewportResize(static_cast<uint32>(viewportSize.x), static_cast<uint32>(viewportSize.y));
-	gte::internal::GetContext()->Playing = !gte::internal::GetContext()->Playing;
+	gte::internal::GetContext()->Playing = false;
 }
 
 #include <gtc/type_ptr.hpp>
