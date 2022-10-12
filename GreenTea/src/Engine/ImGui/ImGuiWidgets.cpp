@@ -852,6 +852,48 @@ namespace gte::gui {
 		return changed;
 	}
 
+	bool DrawVec2BoolControl(const char* label, bool& x, bool& y, const UISettings& settings)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[1];
+		const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize(lineHeight, lineHeight);
+
+		DrawPrefix(label, settings.ColumnWidth);
+		ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x + 20.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
+		
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.1f, 0.15f, 1.0f));
+		ImGui::PushFont(boldFont);
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::Button("X", buttonSize);
+		ImGui::PopItemFlag();
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::SameLine();
+		bool changed = ImGui::Checkbox("##x", &x);
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.7f, 0.3f, 1.0f));
+		ImGui::PushFont(boldFont);
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::Button("Y", buttonSize);
+		ImGui::PopItemFlag();
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##y", &y))
+			changed = true;
+
+		ImGui::PopStyleVar();
+		DrawPostfix();
+		return changed;
+	}
+
 	bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings)
 	{
 		const float colWidth = settings.ColumnWidth - 20.0f;

@@ -428,8 +428,7 @@ namespace gte {
 					settings.MinFloat = 1.0f;
 					settings.MaxFloat = FLT_MAX;
 					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings);
-					gui::DrawBoolControl("Flip X", sprite.FlipX, settings);
-					gui::DrawBoolControl("Flip Y", sprite.FlipY, settings);
+					gui::DrawVec2BoolControl("Flip", sprite.FlipX, sprite.FlipY, settings);
 					ImGui::SetCursorPosX(0.0f);
 					if (ImGui::TreeNodeEx("Texture Coordinates", ImGuiTreeNodeFlags_OpenOnArrow))
 					{
