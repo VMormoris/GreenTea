@@ -118,6 +118,8 @@ namespace gte {
 		{
 			if (auto* sprite = mReg.try_get<SpriteRendererComponent>(entityID))
 			{
+				if (!sprite->Visible)
+					continue;
 				sprite->Texture = internal::GetContext()->AssetManager.RequestAsset(sprite->Texture->ID);
 				if (sprite->Texture->Type == AssetType::INVALID)
 					Renderer2D::DrawQuad(tc.Transform, (uint32)entityID, sprite->Color);
@@ -147,8 +149,12 @@ namespace gte {
 					Renderer2D::DrawQuad(tc.Transform, (GPU::Texture*)sprite->Texture->Data, coords, (uint32)entityID, sprite->Color, sprite->TilingFactor);
 				}
 			}
-			else if(auto* circle = mReg.try_get<CircleRendererComponent>(entityID))
-				Renderer2D::DrawCircle(tc.Transform, circle->Color, (uint32)entityID, circle->Thickness, circle->Fade);
+			else if (auto* circle = mReg.try_get<CircleRendererComponent>(entityID))
+			{
+				if(circle->Visible)
+					Renderer2D::DrawCircle(tc.Transform, circle->Color, (uint32)entityID, circle->Thickness, circle->Fade);
+			}
+				
 		}
 		Renderer2D::EndScene();
 		if (useLock)
@@ -241,6 +247,7 @@ namespace gte {
 			{
 				auto& sprite = entity.AddComponent<SpriteRendererComponent>();
 				sprite.Color = renderable["Color"].as<glm::vec4>();
+				sprite.Visible = renderable["Visible"].as<bool>();
 				uuid texID = renderable["Texture"].as<std::string>();
 				if (id.IsValid())
 				{
@@ -263,6 +270,7 @@ namespace gte {
 				circle.Color = circleRenderable["Color"].as<glm::vec4>();
 				circle.Thickness = circleRenderable["Thickness"].as<float>();
 				circle.Fade = circleRenderable["Fade"].as<float>();
+				circle.Visible = circleRenderable["Visible"].as<bool>();
 			}
 
 			const auto& camera = entityNode["CameraComponent"];
@@ -590,7 +598,6 @@ namespace gte {
 			}
 		}
 
-		GTE_TRACE_LOG("Updating Transform of entity: ", toReturn.GetComponent<IDComponent>().ID);
 		UpdateTransform(toReturn, false);
 
 		if (mPhysicsWorld)

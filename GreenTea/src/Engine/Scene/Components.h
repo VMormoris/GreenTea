@@ -108,6 +108,7 @@ namespace gte {
 		bool FlipX = false;
 		bool FlipY = false;
 
+		bool Visible = true;
 		TextureCoordinates Coordinates;
 		SpriteRendererComponent(void) = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -118,6 +119,7 @@ namespace gte {
 		float Thickness = 1.0f;
 		float Fade = 0.005f;
 
+		bool Visible = true;
 		CircleRendererComponent(void) = default;
 		CircleRendererComponent(const CircleRendererComponent&) = default;
 	};

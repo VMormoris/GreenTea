@@ -641,6 +641,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 		const auto& sprite = entity.GetComponent<SpriteRendererComponent>();
 		out << YAML::Key << "Color" << YAML::Value << sprite.Color;
+		out << YAML::Key << "Visible" << YAML::Value << sprite.Visible;
 		out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->ID.str();
 		if (sprite.Texture->ID.IsValid())
 		{
@@ -666,6 +667,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "Color" << YAML::Value << circle.Color;
 		out << YAML::Key << "Thickness" << YAML::Value << circle.Thickness;
 		out << YAML::Key << "Fade" << YAML::Value << circle.Fade;
+		out << YAML::Key << "Visible" << YAML::Value << circle.Visible;
 		out << YAML::EndMap;
 	}
 

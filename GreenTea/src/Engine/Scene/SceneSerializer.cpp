@@ -138,6 +138,7 @@ namespace gte::internal {
 				{
 					auto& sprite = entity.AddComponent<SpriteRendererComponent>();
 					sprite.Color = renderable["Color"].as<glm::vec4>();
+					sprite.Visible = renderable["Visible"].as<bool>();
 					uuid id = renderable["Texture"].as<std::string>();
 					if (id.IsValid())
 					{
@@ -160,6 +161,7 @@ namespace gte::internal {
 					circle.Color = circleRenderable["Color"].as<glm::vec4>();
 					circle.Thickness = circleRenderable["Thickness"].as<float>();
 					circle.Fade = circleRenderable["Fade"].as<float>();
+					circle.Visible = circleRenderable["Visible"].as<bool>();
 				}
 
 				const auto& camera = entityNode["CameraComponent"];
@@ -510,6 +512,7 @@ namespace gte::internal {
 
 			const auto& sprite = entity.GetComponent<SpriteRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << sprite.Color;
+			out << YAML::Key << "Visible" << YAML::Value << sprite.Visible;
 			out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->ID.str();
 			if (sprite.Texture->ID.IsValid())
 			{
@@ -535,6 +538,7 @@ namespace gte::internal {
 			out << YAML::Key << "Color" << YAML::Value << circle.Color;
 			out << YAML::Key << "Thickness" << YAML::Value << circle.Thickness;
 			out << YAML::Key << "Fade" << YAML::Value << circle.Fade;
+			out << YAML::Key << "Visible" << YAML::Value << circle.Visible;
 			out << YAML::EndMap;
 		}
 

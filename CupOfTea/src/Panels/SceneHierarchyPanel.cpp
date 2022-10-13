@@ -429,6 +429,11 @@ namespace gte {
 					settings.MaxFloat = FLT_MAX;
 					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings);
 					gui::DrawVec2BoolControl("Flip", sprite.FlipX, sprite.FlipY, settings);
+				}
+				gui::DrawBoolControl("Visible", sprite.Visible, settings);
+				if(sprite.Texture->Type == AssetType::TEXTURE)
+				{
+					GPU::Texture* texture = (GPU::Texture*)sprite.Texture->Data;
 					ImGui::SetCursorPosX(0.0f);
 					if (ImGui::TreeNodeEx("Texture Coordinates", ImGuiTreeNodeFlags_OpenOnArrow))
 					{
@@ -448,6 +453,7 @@ namespace gte {
 				gui::DrawFloatControl("Thickness", circle.Thickness, settings);
 				settings.MaxFloat = FLT_MAX;
 				gui::DrawFloatControl("Fade", circle.Fade, settings);
+				gui::DrawBoolControl("Visible", circle.Visible, settings);
 			});
 		}
 
