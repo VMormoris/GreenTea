@@ -283,6 +283,14 @@ namespace gte {
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			if (!entity.HasComponent<ParticleSystemComponent>())
+			{
+				if (gui::DrawMenuItem(ICON_FK_SPINNER, "Particle System Component", "", biggest))
+				{
+					entity.AddComponent<ParticleSystemComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!entity.HasComponent<NativeScriptComponent>())
 			{
 				if (gui::DrawMenuItem(ICON_FK_CODE, "Native Script Component", "", biggest))
@@ -499,6 +507,38 @@ namespace gte {
 					cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
 					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 				}
+			});
+		}
+
+		if (entity.HasComponent<ParticleSystemComponent>())
+		{
+			gui::DrawComponent<ParticleSystemComponent>(ICON_FK_SPINNER, "Particle System Component", entity, [](auto& psc) {
+				gui::UISettings settings;
+
+				gui::DrawColorPicker("ColorBegin", psc.Props.ColorBegin, settings);
+				gui::DrawColorPicker("ColorEnd", psc.Props.ColorEnd, settings);
+
+				gui::DrawVec2Control("Position", psc.Props.Position, settings);
+				settings.MinFloat = 0.0f;
+				settings.MaxFloat = FLT_MAX;
+				gui::DrawVec2Control("Size Begin", psc.Props.SizeBegin, settings);
+				gui::DrawVec2Control("Size End", psc.Props.SizeEnd, settings);
+				settings.MaxFloat = 0.0f;
+				gui::DrawVec2Control("Velocity", psc.Props.Velocity, settings);
+				gui::DrawVec2Control("Velocity Variation", psc.Props.VelocityVariation, settings);
+				settings.MinFloat = -180.0f;
+				settings.MaxFloat = 180.0f;
+				gui::DrawFloatControl("Rotation", psc.Props.Rotation, settings);
+				gui::DrawFloatControl("Ang. Velocity", psc.Props.AngularVelocity, settings);
+				settings.MinFloat = 0.0f;
+				gui::DrawFloatControl("Ang. Vel. Variation", psc.Props.AngularVelocityVariation, settings);
+				gui::DrawFloatControl("Duration", psc.Props.Duration, settings);
+				gui::DrawFloatControl("Life Time", psc.Props.LifeTime, settings);
+				gui::DrawFloatControl("Emition Rate", psc.Props.EmitionRate, settings);
+				settings.MinUint = 0;
+				settings.MaxUint = std::numeric_limits<uint32>::max();
+				gui::DrawUint32Control("Max Particles", psc.Props.MaxParticles, settings);
+				gui::DrawBoolControl("Looping", psc.Props.Looping, settings);
 			});
 		}
 

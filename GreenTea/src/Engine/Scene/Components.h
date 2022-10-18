@@ -5,6 +5,7 @@
 #include <Engine/Assets/Asset.h>
 #include <Engine/Assets/NativeScript.h>
 #include <Engine/GPU/Texture.h>
+#include <Engine/Renderer/ParticleSystem.h>
 
 #include <glm.hpp>
 #include <entt.hpp>
@@ -263,8 +264,16 @@ namespace gte {
 		SpeakerComponent(const SpeakerComponent&) = default;
 	};
 
+	struct ENGINE_API ParticleSystemComponent {
+		internal::ParticleSystem* System = nullptr;
+		internal::ParticleProps Props;
+		
+		ParticleSystemComponent(void) = default;
+		ParticleSystemComponent& operator=(const ParticleSystemComponent&) = default;
+	};
+
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent>;
+	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent>;
 }

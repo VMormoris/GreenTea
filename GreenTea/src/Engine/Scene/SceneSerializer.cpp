@@ -230,6 +230,26 @@ namespace gte::internal {
 					sc.Looping = speaker["Looping"].as<bool>();
 				}
 
+				const auto& particleSystem = entityNode["ParticleSystemComponent"];
+				if (particleSystem)
+				{
+					auto& psc = entity.AddComponent<ParticleSystemComponent>();
+					psc.Props.Position = particleSystem["Position"].as<glm::vec2>();
+					psc.Props.Velocity = particleSystem["Velocity"].as<glm::vec2>();
+					psc.Props.VelocityVariation = particleSystem["VelocityVariation"].as<glm::vec2>();
+					psc.Props.ColorBegin = particleSystem["ColorBegin"].as<glm::vec4>();
+					psc.Props.ColorEnd = particleSystem["ColorEnd"].as<glm::vec4>();
+					psc.Props.SizeBegin = particleSystem["SizeBegin"].as<glm::vec2>();
+					psc.Props.SizeEnd = particleSystem["SizeEnd"].as<glm::vec2>();
+					psc.Props.Rotation = particleSystem["Rotation"].as<float>();
+					psc.Props.AngularVelocity = particleSystem["AngularVelocity"].as<float>();
+					psc.Props.AngularVelocityVariation = particleSystem["AngularVelocityVariation"].as<float>();
+					psc.Props.Duration = particleSystem["Duration"].as<float>();
+					psc.Props.LifeTime = particleSystem["LifeTime"].as<float>();
+					psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
+					psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
+					psc.Props.Looping = particleSystem["Looping"].as<bool>();
+				}
 			}
 
 			//Second iteration to create relationships & Native Scripts
@@ -703,6 +723,29 @@ namespace gte::internal {
 			out << YAML::Key << "RefDistance" << YAML::Value << speaker.RefDistance;
 			out << YAML::Key << "MaxDistance" << YAML::Value << speaker.MaxDistance;
 			out << YAML::Key << "Looping" << YAML::Value << speaker.Looping;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<ParticleSystemComponent>())
+		{
+			const auto& psc = entity.GetComponent<ParticleSystemComponent>();
+			out << YAML::Key << "ParticleSystemComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Position" << YAML::Value << psc.Props.Position;
+			out << YAML::Key << "Velocity" << YAML::Value << psc.Props.Velocity;
+			out << YAML::Key << "VelocityVariation" << YAML::Value << psc.Props.VelocityVariation;
+			out << YAML::Key << "ColorBegin" << YAML::Value << psc.Props.ColorBegin;
+			out << YAML::Key << "ColorEnd" << YAML::Value << psc.Props.ColorEnd;
+			out << YAML::Key << "SizeBegin" << YAML::Value << psc.Props.SizeBegin;
+			out << YAML::Key << "SizeEnd" << YAML::Value << psc.Props.SizeEnd;
+			out << YAML::Key << "Rotation" << YAML::Value << psc.Props.Rotation;
+			out << YAML::Key << "AngularVelocity" << YAML::Value << psc.Props.AngularVelocity;
+			out << YAML::Key << "AngularVelocityVariation" << YAML::Value << psc.Props.AngularVelocityVariation;
+			out << YAML::Key << "Duration" << YAML::Value << psc.Props.Duration;
+			out << YAML::Key << "LifeTime" << YAML::Value << psc.Props.LifeTime;
+			out << YAML::Key << "EmitionRate" << YAML::Value << psc.Props.EmitionRate;
+			out << YAML::Key << "MaxParticles" << YAML::Value << psc.Props.MaxParticles;
+			out << YAML::Key << "Looping" << YAML::Value << psc.Props.Looping;
 			out << YAML::EndMap;
 		}
 

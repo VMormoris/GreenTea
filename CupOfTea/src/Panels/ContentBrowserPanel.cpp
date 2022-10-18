@@ -835,6 +835,29 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "Looping" << YAML::Value << speaker.Looping;
 		out << YAML::EndMap;
 	}
+
+	if (entity.HasComponent<ParticleSystemComponent>())
+	{
+		const auto& psc = entity.GetComponent<ParticleSystemComponent>();
+		out << YAML::Key << "ParticleSystemComponent";
+		out << YAML::BeginMap;
+		out << YAML::Key << "Position" << YAML::Value << psc.Props.Position;
+		out << YAML::Key << "Velocity" << YAML::Value << psc.Props.Velocity;
+		out << YAML::Key << "VelocityVariation" << YAML::Value << psc.Props.VelocityVariation;
+		out << YAML::Key << "ColorBegin" << YAML::Value << psc.Props.ColorBegin;
+		out << YAML::Key << "ColorEnd" << YAML::Value << psc.Props.ColorEnd;
+		out << YAML::Key << "SizeBegin" << YAML::Value << psc.Props.SizeBegin;
+		out << YAML::Key << "SizeEnd" << YAML::Value << psc.Props.SizeEnd;
+		out << YAML::Key << "Rotation" << YAML::Value << psc.Props.Rotation;
+		out << YAML::Key << "AngularVelocity" << YAML::Value << psc.Props.AngularVelocity;
+		out << YAML::Key << "AngularVelocityVariation" << YAML::Value << psc.Props.AngularVelocityVariation;
+		out << YAML::Key << "Duration" << YAML::Value << psc.Props.Duration;
+		out << YAML::Key << "LifeTime" << YAML::Value << psc.Props.LifeTime;
+		out << YAML::Key << "EmitionRate" << YAML::Value << psc.Props.EmitionRate;
+		out << YAML::Key << "MaxParticles" << YAML::Value << psc.Props.MaxParticles;
+		out << YAML::Key << "Looping" << YAML::Value << psc.Props.Looping;
+		out << YAML::EndMap;
+	}
 	out << YAML::EndMap;
 
 	Entity child = { rc.FirstChild, scene };

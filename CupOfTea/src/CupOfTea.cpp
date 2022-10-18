@@ -731,8 +731,8 @@ void CupOfTea::Start(void)
 	gte::internal::GetContext()->DynamicLoader.Reload();
 	gte::uuid id = mSceneHierarchyPanel.GetSelectedEntity().GetID();
 	mSnapshot = gte::internal::GetContext()->ActiveScene;
-	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);
 	gte::internal::GetContext()->Playing = true;
+	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);
 	gte::internal::GetContext()->ActiveScene->OnStart();
 	if (id.IsValid())
 	{

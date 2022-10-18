@@ -25,6 +25,12 @@ static void DestroyTransform2D(entt::registry& reg, entt::entity entityID);
 static void CreateCamera(entt::registry& reg, entt::entity entityID);
 static void DestroyCamera(entt::registry& reg, entt::entity entityID);
 
+static void CreateParticleSystem(entt::registry& reg, entt::entity entityID);
+static void DestroyParticleSystem(entt::registry& reg, entt::entity entityID);
+
+static void DestroyRigidbody2D(entt::registry& reg, entt::entity entityID);
+static void DestroyCollider(entt::registry& reg, entt::entity entityID);
+
 static b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, float angle);
 static bool HasParentTransform(const gte::RelationshipComponent& relc, const entt::registry& reg, glm::mat4& pTransform);
 static void SetListener(entt::registry& reg, entt::entity entity);
@@ -76,6 +82,10 @@ namespace gte {
 
 		UpdateMatrices(false);
 		InformAudioEngine();
+
+		auto particles = mReg.view<ParticleSystemComponent>();
+		for (auto&& [entityID, psc] : particles.each())
+			psc.System->SetProps(psc.Props);
 
 		//Find primary camera for rendering
 		bool found = false;
@@ -156,6 +166,25 @@ namespace gte {
 			}
 				
 		}
+
+		if (internal::GetContext()->Playing)
+		{
+			auto particles = mReg.view<ParticleSystemComponent>();
+			for (auto&& [entityID, psc] : particles.each())
+			{
+				glm::mat4 world(1.0f);
+				if (mReg.all_of<TransformationComponent>(entityID))
+					world = mReg.get<TransformationComponent>(entityID);
+				else
+				{
+					const auto& relc = mReg.get<RelationshipComponent>(entityID);
+					HasParentTransform(relc, mReg, world);
+				}
+
+				psc.System->Render(world);
+			}
+		}
+
 		Renderer2D::EndScene();
 		if (useLock)
 			mRegMutex.unlock();
@@ -337,6 +366,27 @@ namespace gte {
 				sc.RefDistance = speaker["RefDistance"].as<float>();
 				sc.MaxDistance = speaker["MaxDistance"].as<float>();
 				sc.Looping = speaker["Looping"].as<bool>();
+			}
+
+			const auto& particleSystem = entityNode["ParticleSystemComponent"];
+			if (particleSystem)
+			{
+				auto& psc = entity.AddComponent<ParticleSystemComponent>();
+				psc.Props.Position = particleSystem["Position"].as<glm::vec2>();
+				psc.Props.Velocity = particleSystem["Velocity"].as<glm::vec2>();
+				psc.Props.VelocityVariation = particleSystem["VelocityVariation"].as<glm::vec2>();
+				psc.Props.ColorBegin = particleSystem["ColorBegin"].as<glm::vec4>();
+				psc.Props.ColorEnd = particleSystem["ColorEnd"].as<glm::vec4>();
+				psc.Props.SizeBegin = particleSystem["SizeBegin"].as<glm::vec2>();
+				psc.Props.SizeEnd = particleSystem["SizeEnd"].as<glm::vec2>();
+				psc.Props.Rotation = particleSystem["Rotation"].as<float>();
+				psc.Props.AngularVelocity = particleSystem["AngularVelocity"].as<float>();
+				psc.Props.AngularVelocityVariation = particleSystem["AngularVelocityVariation"].as<float>();
+				psc.Props.Duration = particleSystem["Duration"].as<float>();
+				psc.Props.LifeTime = particleSystem["LifeTime"].as<float>();
+				psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
+				psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
+				psc.Props.Looping = particleSystem["Looping"].as<bool>();
 			}
 		}
 
@@ -853,6 +903,13 @@ namespace gte {
 		mReg.on_construct<CameraComponent>().connect<&CreateCamera>();
 		mReg.on_destroy<CameraComponent>().connect<&DestroyCamera>();
 
+		mReg.on_construct<ParticleSystemComponent>().connect<CreateParticleSystem>();
+		mReg.on_destroy<ParticleSystemComponent>().connect<DestroyParticleSystem>();
+
+		mReg.on_destroy<Rigidbody2DComponent>().connect<&DestroyRigidbody2D>();
+		mReg.on_destroy<BoxColliderComponent>().connect<&DestroyCollider>();
+		mReg.on_destroy<CircleColliderComponent>().connect<&DestroyCollider>();
+
 		auto me = mReg.create();
 		mReg.emplace<IDComponent>(me);
 		mReg.emplace<Transform2DComponent>(me);
@@ -965,6 +1022,12 @@ namespace gte {
 		{
 			const auto& speaker = source.GetComponent<SpeakerComponent>();
 			destination.AddComponent<SpeakerComponent>(speaker);
+		}
+
+		if (source.HasComponent<ParticleSystemComponent>())
+		{
+			const auto& psc = source.GetComponent<ParticleSystemComponent>();
+			destination.AddComponent<ParticleSystemComponent>(psc);
 		}
 	}
 
@@ -1194,6 +1257,10 @@ namespace gte {
 				tc.Rotation = glm::degrees(rotation.z);
 			}
 		}
+
+		auto view = mReg.view<ParticleSystemComponent>();
+		for (auto&& [entityID, psc] : view.each())
+			psc.System->Update(dt);
 	}
 
 	void Scene::InformAudioEngine(void)
@@ -1428,6 +1495,51 @@ void DestroyCamera(entt::registry& reg, entt::entity entityID)
 {
 	if (reg.all_of<gte::OrthographicCameraComponent>(entityID))
 		reg.remove<gte::OrthographicCameraComponent>(entityID);
+}
+
+void CreateParticleSystem(entt::registry& reg, entt::entity entityID)
+{
+	if (!gte::internal::GetContext()->Playing)
+		return;
+
+	auto& psc = reg.get<gte::ParticleSystemComponent>(entityID);
+	psc.System = new gte::internal::ParticleSystem(psc.Props);
+	psc.System->Start();
+}
+
+void DestroyParticleSystem(entt::registry& reg, entt::entity entityID)
+{
+	auto& psc = reg.get<gte::ParticleSystemComponent>(entityID);
+	if (psc.System)
+		delete psc.System;
+}
+
+void DestroyRigidbody2D(entt::registry& reg, entt::entity entityID)
+{
+	auto& rb = reg.get<gte::Rigidbody2DComponent>(entityID);
+	if (rb.Body)
+	{
+		b2Body* body = (b2Body*)rb.Body;
+		b2World* world = body->GetWorld();
+		world->DestroyBody(body);
+	}
+}
+
+void DestroyCollider(entt::registry& reg, entt::entity entityID)
+{
+	b2Fixture* fixture = nullptr;
+	if (auto* cc = reg.try_get<gte::CircleColliderComponent>(entityID))
+		fixture = (b2Fixture*)cc->Fixure;
+	else if (auto* bc = reg.try_get<gte::BoxColliderComponent>(entityID))
+		fixture = (b2Fixture*)bc->Fixure;
+	if (auto* rb = reg.try_get<gte::Rigidbody2DComponent>(entityID))
+	{
+		if (rb->Body)
+		{
+			b2Body* body = (b2Body*)rb->Body;
+			body->DestroyFixture(fixture);
+		}
+	}
 }
 
 b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, float angle)

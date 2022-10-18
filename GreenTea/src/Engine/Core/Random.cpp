@@ -18,7 +18,7 @@ namespace gte {
 
 	float Random::Float(void)
 	{
-		return (float)sUniformDistrubution(sEngine) / (float)std::numeric_limits<uint32_t>::max();
+		return (float)sUniformDistrubution(sEngine) / (float)std::numeric_limits<uint32>::max();
 	}
 
 }
