@@ -294,7 +294,7 @@ void CupOfTea::RenderGUI(void)
 			gte::internal::GetContext()->ViewportSize = { size.x, size.y };
 			uint64 textID = mViewportFBO->GetColorAttachmentID(0);
 			ImGui::Image((void*)textID, size, { 0, 1 }, { 1, 0 });
-			bool selection = ImGui::IsMouseReleased(ImGuiPopupFlags_MouseButtonLeft);
+			bool selection = ImGui::IsMouseReleased(ImGuiPopupFlags_MouseButtonLeft) && sGuizmoOP == ImGuizmo::OPERATION::BOUNDS;
 
 			if (ImGui::BeginDragDropTarget())
 			{
