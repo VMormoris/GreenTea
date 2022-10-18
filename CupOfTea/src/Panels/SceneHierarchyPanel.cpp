@@ -456,6 +456,7 @@ namespace gte {
 		{
 			gui::DrawComponent<CircleRendererComponent>(ICON_FK_CIRCLE, "Circle Renderer Component", entity, [](auto& circle) {
 				gui::UISettings settings;
+				settings.ResetValue = 1.0f;
 				gui::DrawColorPicker("Color", circle.Color, settings);
 				settings.MaxFloat = 1.0f;
 				gui::DrawFloatControl("Thickness", circle.Thickness, settings);
@@ -515,9 +516,11 @@ namespace gte {
 			gui::DrawComponent<ParticleSystemComponent>(ICON_FK_SPINNER, "Particle System Component", entity, [](auto& psc) {
 				gui::UISettings settings;
 
+				settings.ResetValue = 1.0f;
 				gui::DrawColorPicker("ColorBegin", psc.Props.ColorBegin, settings);
 				gui::DrawColorPicker("ColorEnd", psc.Props.ColorEnd, settings);
 
+				settings.ResetValue = 0.0f;
 				gui::DrawVec2Control("Position", psc.Props.Position, settings);
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
