@@ -556,7 +556,7 @@ CupOfTea::CupOfTea(const std::string& filepath)
 
 	gte::internal::GetContext()->ActiveScene = new gte::Scene();
 	gte::internal::GetContext()->AssetWatcher.LoadProject(".");
-	if (std::filesystem::exists("Assets/" + scenename))
+	if (std::filesystem::exists("Assets/" + scenename) && !scenename.empty())
 	{
 		std::vector<gte::uuid> ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript" });
 		while (true)
