@@ -49,7 +49,7 @@ namespace gte::internal {
 		}
 
 
-		while (mAccumulator - mLastSpawn >= mProps.EmitionRate)
+		while (mAccumulator - mLastSpawn >= mProps.EmitionRate && mActive)
 		{
 			Emit();
 			mLastSpawn += mProps.EmitionRate;
