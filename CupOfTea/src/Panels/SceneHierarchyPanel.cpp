@@ -331,12 +331,12 @@ namespace gte {
 				if (!world)
 				{
 					gui::UISettings settings;
-					bool changed = gui::DrawVec3Control("Position", tc.Position, settings);
+					bool changed = gui::DrawVec3Control("Position", tc.Position, settings, "Position of the Transform in X, Y, and Z coordinates.");
 					glm::vec3 scale = { tc.Scale.x, tc.Scale.y, 1.0f };
 					settings.MaxFloat = FLT_MAX;
 					settings.Enabled[2] = false;
 					settings.ResetValue = 1.0f;
-					if (gui::DrawVec3Control("Scale", scale, settings))
+					if (gui::DrawVec3Control("Scale", scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size"))
 					{
 						tc.Scale = { scale.x, scale.y };
 						changed = true;
@@ -347,7 +347,7 @@ namespace gte {
 					settings.Enabled = { false, false, true, false };
 					settings.ResetValue = 0.0f;
 					glm::vec3 rotation{ 0.0f, 0.0f, tc.Rotation };
-					if (gui::DrawVec3Control("Rotation", rotation, settings))
+					if (gui::DrawVec3Control("Rotation", rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees."))
 					{
 						tc.Rotation = rotation.z;
 						changed = true;
@@ -362,18 +362,18 @@ namespace gte {
 					glm::vec3 pos, scale, rotation;
 					auto& transformation = entity.GetComponent<TransformationComponent>();
 					math::DecomposeTransform(transformation, pos, scale, rotation);
-					bool changed = gui::DrawVec3Control("Position", pos, settings);
+					bool changed = gui::DrawVec3Control("Position", pos, settings, "Position of the Transform in X, Y, and Z coordinates.");
 					settings.MaxFloat = FLT_MAX;
 					settings.Enabled[2] = false;
 					settings.ResetValue = 1.0f;
-					if (gui::DrawVec3Control("Scale", scale, settings))
+					if (gui::DrawVec3Control("Scale", scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size"))
 						changed = true;
 					settings.MinFloat = -180.0;
 					settings.MaxFloat = 180.0;
 					settings.Enabled = { false, false, true, false };
 					settings.ResetValue = 0.0f;
 					rotation = glm::degrees(rotation);
-					if (gui::DrawVec3Control("Rotation", rotation, settings))
+					if (gui::DrawVec3Control("Rotation", rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees."))
 						changed = true;
 
 					if (changed)
@@ -426,19 +426,19 @@ namespace gte {
 			gui::DrawComponent<SpriteRendererComponent>(ICON_FK_PICTURE_O, "Sprite Renderer Component", entity, [](auto& sprite) {
 				gui::UISettings settings;
 				uuid id = sprite.Texture->ID;
-				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings))
+				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to open the object picker window, and select from the list of available Sprite Assets."))
 					sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.ResetValue = 1.0f;
-				gui::DrawColorPicker("Tint Color", sprite.Color, settings);
+				gui::DrawColorPicker("Tint Color", sprite.Color, settings, "Define the vertex color of the Sprite, which tints or recolors the Sprite’s image. Use the color picker to set the vertex color of the rendered Sprite texture.");
 				if (sprite.Texture->Type == AssetType::TEXTURE)
 				{
 					GPU::Texture* texture = (GPU::Texture*)sprite.Texture->Data;
 					settings.MinFloat = 1.0f;
 					settings.MaxFloat = FLT_MAX;
-					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings);
-					gui::DrawVec2BoolControl("Flip", sprite.FlipX, sprite.FlipY, settings);
+					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings, "Define the number of times the chosen Sprite texture tiles in the entity.E.g. Tiling Factor of 3 fills the Entity with 3x3 instances of the chosen Sprite texture");
+					gui::DrawVec2BoolControl("Flip", sprite.FlipX, sprite.FlipY, settings, "Flips the Sprite texture along the checked axis. This does not flip the Transform position of the Entity");
 				}
-				gui::DrawBoolControl("Visible", sprite.Visible, settings);
+				gui::DrawBoolControl("Visible", sprite.Visible, settings, "If checked Sprite is visible");
 				if(sprite.Texture->Type == AssetType::TEXTURE)
 				{
 					GPU::Texture* texture = (GPU::Texture*)sprite.Texture->Data;
@@ -457,12 +457,12 @@ namespace gte {
 			gui::DrawComponent<CircleRendererComponent>(ICON_FK_CIRCLE, "Circle Renderer Component", entity, [](auto& circle) {
 				gui::UISettings settings;
 				settings.ResetValue = 1.0f;
-				gui::DrawColorPicker("Color", circle.Color, settings);
+				gui::DrawColorPicker("Color", circle.Color, settings,"Use the color picker to set the vertex color of the rendered Circlular Component.");
 				settings.MaxFloat = 1.0f;
-				gui::DrawFloatControl("Thickness", circle.Thickness, settings);
+				gui::DrawFloatControl("Thickness", circle.Thickness, settings, "Define the area percentage of the Circlular Component to render.E.g. Value of '0.7' will render 70 percent of the area starting from the perimeter. Max value: 1.0");
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawFloatControl("Fade", circle.Fade, settings);
-				gui::DrawBoolControl("Visible", circle.Visible, settings);
+				gui::DrawFloatControl("Fade", circle.Fade, settings,"The color faints with bigger values(placeholder)");
+				gui::DrawBoolControl("Visible", circle.Visible, settings, "If checked Render is visible");
 			});
 		}
 
@@ -473,18 +473,18 @@ namespace gte {
 				gui::UISettings settings;
 				settings.MinFloat = 0.25f;
 				settings.MaxFloat = FLT_MAX;
-				bool changed = gui::DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings);
+				bool changed = gui::DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings,"Zoom out with bigger values.");
 				settings.MinFloat = 0.5f;
-				if (gui::DrawFloatControl("Vertical Boundary", ortho.VerticalBoundary, settings))
+				if (gui::DrawFloatControl("Vertical Boundary", ortho.VerticalBoundary, settings, "The top and bottom padding of the camera"))
 					changed = true;
-				gui::DrawBoolControl("Primary", cam.Primary, settings);
-				if (gui::DrawBoolControl("Fixed Asp. Ratio", cam.FixedAspectRatio, settings) && !cam.FixedAspectRatio)
+				gui::DrawBoolControl("Primary", cam.Primary, settings, "If checked the camera becomes primary");
+				if (gui::DrawBoolControl("Fixed Asp. Ratio", cam.FixedAspectRatio, settings, "If checked the Aspect Ratio of the camera stays constant") && !cam.FixedAspectRatio)
 					cam.AspectRatio = static_cast<float>(internal::GetContext()->ViewportSize.x) / static_cast<float>(internal::GetContext()->ViewportSize.y);
 				settings.MinFloat = 0.1f;
 				settings.MaxFloat = FLT_MAX;
 				if (cam.FixedAspectRatio)
 				{
-					if (gui::DrawFloatControl("Aspect Ratio", cam.AspectRatio, settings))
+					if (gui::DrawFloatControl("Aspect Ratio", cam.AspectRatio, settings,"Define the Aspect Ratio of the camera"))
 						changed = true;
 				}
 
@@ -493,11 +493,11 @@ namespace gte {
 				{
 					static constexpr char* typestr[] = { "None", "Inverse", "Inverse Clamp", "Linear", "Linear Clamp", "Exponent", "Exponent Clamp" };
 					int32 index = static_cast<int32>(cam.Model);
-					if (gui::DrawComboControl("Distance Model", index, typestr, 7, settings))
+					if (gui::DrawComboControl("Distance Model", index, typestr, 7, settings,"Select Inverse, Linear or Exponent sound models"))
 						cam.Model = static_cast<DistanceModel>(index);
 					settings.MinFloat = 0.0f;
 					settings.MaxFloat = 1.0f;
-					gui::DrawFloatControl("Master Volume", cam.MasterVolume, settings);
+					gui::DrawFloatControl("Master Volume", cam.MasterVolume, settings,"Define the Volume of the Listener");
 					ImGui::TreePop();
 				}
 
@@ -551,15 +551,15 @@ namespace gte {
 				static constexpr char* typestr[3] = { "Static", "Dynamic", "Kinematic" };
 				gui::UISettings settings;
 				int32 index = static_cast<int32>(rb.Type);
-				if (gui::DrawComboControl("Body Type", index, typestr, 3, settings))
+				if (gui::DrawComboControl("Body Type", index, typestr, 3, settings,"Set the RigidBody 2D's component settings, so that you can manipulate movement (position and rotation) behavior and Collider 2D interaction."))
 					rb.Type = static_cast<BodyType>(index);
-				gui::DrawVec2Control("Velocity", rb.Velocity, settings);
-				gui::DrawFloatControl("Ang. Velocity", rb.AngularVelocity, settings);
+				gui::DrawVec2Control("Velocity", rb.Velocity, settings,"Set the starting velocity affecting the positional movement");
+				gui::DrawFloatControl("Ang. Velocity", rb.AngularVelocity, settings,"Set the angular velocity affecting the rotational movement");
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawFloatControl("Gravity Factor", rb.GravityFactor, settings);
-				gui::DrawBoolControl("Fixed Rotation", rb.FixedRotation, settings);
-				gui::DrawBoolControl("Bullet", rb.Bullet, settings);
+				gui::DrawFloatControl("Gravity Factor", rb.GravityFactor, settings, "Define the degree to which the Entity is affected by gravity.");
+				gui::DrawBoolControl("Fixed Rotation", rb.FixedRotation, settings, "If checked the Entity always rotates");
+				gui::DrawBoolControl("Bullet", rb.Bullet, settings, "If checked the Entity has Bullet-like behavior");
 			});
 		}
 
@@ -567,15 +567,15 @@ namespace gte {
 		{
 			gui::DrawComponent<BoxColliderComponent>(ICON_FK_SQUARE_O, "Box Collider Component", entity, [](auto& bc) {
 				gui::UISettings settings;
-				gui::DrawVec2Control("Offset", bc.Offset, settings);
+				gui::DrawVec2Control("Offset", bc.Offset, settings, "Set the local offset of the Collider 2D geometry.");
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawVec2Control("Size", bc.Size, settings);
-				gui::DrawFloatControl("Density", bc.Density, settings);
-				gui::DrawFloatControl("Friction", bc.Friction, settings);
-				gui::DrawFloatControl("Restitution", bc.Restitution, settings);
+				gui::DrawVec2Control("Size", bc.Size, settings, "Set the size of the Box Collider in local space units.");
+				gui::DrawFloatControl("Density", bc.Density, settings, "Change the density to change the mass calculations of the Entity's associated Rigidbody 2D");
+				gui::DrawFloatControl("Friction", bc.Friction, settings, "The higher the friction the less the object slides.");
+				gui::DrawFloatControl("Restitution", bc.Restitution, settings, "The higher the restitution the more the Box will bounce on contact.");
 				gui::DrawFloatControl("Rest. Threshold", bc.RestitutionThreshold, settings);
-				gui::DrawBoolControl("Sensor", bc.Sensor, settings);
+				gui::DrawBoolControl("Sensor", bc.Sensor, settings, "Check this box if you want the Box Collider 2D to behave as a sensor.");
 			});
 		}
 
@@ -583,15 +583,15 @@ namespace gte {
 		{
 			gui::DrawComponent<CircleColliderComponent>(ICON_FK_CIRCLE_O, "Circle Collider Component", entity, [](auto& cc) {
 				gui::UISettings settings;
-				gui::DrawVec2Control("Offset", cc.Offset, settings);
+				gui::DrawVec2Control("Offset", cc.Offset, settings, "Set the local offset of the Collider 2D geometry.");
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawFloatControl("Radius", cc.Radius, settings);
-				gui::DrawFloatControl("Density", cc.Density, settings);
-				gui::DrawFloatControl("Friction", cc.Friction, settings);
-				gui::DrawFloatControl("Restitution", cc.Restitution, settings);
-				gui::DrawFloatControl("Rest. Threshold", cc.RestitutionThreshold, settings);
-				gui::DrawBoolControl("Sensor", cc.Sensor, settings);
+				gui::DrawFloatControl("Radius", cc.Radius, settings, "Set the radius of the Circle Collider in local space units.");
+				gui::DrawFloatControl("Density", cc.Density, settings, "Change the density to change the mass calculations of the Entity's associated Rigidbody 2D");
+				gui::DrawFloatControl("Friction", cc.Friction, settings, "The higher the friction the more the Circle will catch and roll rather than just slide.");
+				gui::DrawFloatControl("Restitution", cc.Restitution, settings, "The higher the restitution the more the Circle will bounce on contact.");
+				gui::DrawFloatControl("Rest. Threshold", cc.RestitutionThreshold, settings, "The threshold of the bounciness of the Circle");
+				gui::DrawBoolControl("Sensor", cc.Sensor, settings, "Check this box if you want the Circle Collider to behave as a sensor.");
 			});
 		}
 
@@ -600,16 +600,16 @@ namespace gte {
 			gui::DrawComponent<SpeakerComponent>(ICON_FK_VOLUME_UP, "Speaker Component", entity, [](auto& speaker) {
 				gui::UISettings settings;
 				uuid id = speaker.AudioClip->ID;
-				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings))
+				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open the object picker window, and select from the list of available Audio Assets."))
 					speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawFloatControl("Volume", speaker.Volume, settings);
-				gui::DrawFloatControl("Pitch", speaker.Pitch, settings);
-				gui::DrawFloatControl("Roll off factor", speaker.RollOffFactor, settings);
-				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings);
-				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings);
-				gui::DrawBoolControl("Looping", speaker.Looping, settings);
+				gui::DrawFloatControl("Volume", speaker.Volume, settings, "How loud the sound is at a distance of one world unit (one meter) from the Audio Listener.");
+				gui::DrawFloatControl("Pitch", speaker.Pitch, settings, "Amount of change in pitch due to slowdown/speed up of the Audio Clip. Value 1 is normal playback speed.");
+				gui::DrawFloatControl("Roll off factor", speaker.RollOffFactor, settings, "How fast the sound fades. The higher the value, the closer the Listener has to be before hearing the sound.");
+				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings, "");
+				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings, "The distance where the sound stops attenuating at. Beyond this point it will stay at the volume it would be at MaxDistance units from the listener and will not attenuate any more.");
+				gui::DrawBoolControl("Looping", speaker.Looping, settings, "If checked the Audio clip loops.");
 			});
 		}
 
@@ -619,7 +619,7 @@ namespace gte {
 				gui::UISettings settings;
 				uuid id = nc.ScriptAsset->ID;
 				nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
-				if (gui::DrawAssetControl("Script", id, ".gtscript", settings))
+				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open the object picker window, and select from the list of available Script Assets."))
 				{
 					nc.Description = internal::NativeScript();
 					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
