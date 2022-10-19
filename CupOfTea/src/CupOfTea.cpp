@@ -423,8 +423,18 @@ void CupOfTea::RenderGUI(void)
 			ImGui::Text("\nAssets");
 			ImGui::PopFont();
 			ImGui::BulletText("Fork Awesome");
-			ImGui::BulletText("Open Sans");
+			ImGui::BulletText("Roboto");
 			ImGui::BulletText("Papirus icon theme");
+
+			ImGui::PushFont(BoldFont);
+			ImGui::Text("\nContributors");
+			ImGui::PopFont();
+			ImGui::BulletText("Manoussos Manouras");
+
+			ImGui::PushFont(BoldFont);
+			ImGui::Text("\nQA Testers");
+			ImGui::PopFont();
+			ImGui::BulletText("Manoussos Manouras");
 		}
 		ImGui::End();
 	}
