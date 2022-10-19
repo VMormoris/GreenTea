@@ -99,47 +99,47 @@ namespace gte::gui {
 		UISettings(const UISettings&) = default;
 	};
 
-	ENGINE_API bool DrawBoolControl(const char* label, bool& value, const UISettings& settings);
+	ENGINE_API bool DrawBoolControl(const char* label, bool& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawCharControl(const char* label, char& value, const UISettings& settings);
+	ENGINE_API bool DrawCharControl(const char* label, char& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawInt16Control(const char* label, int16& value, const UISettings& settings);
+	ENGINE_API bool DrawInt16Control(const char* label, int16& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawInt32Control(const char* label, int32& value, const UISettings& settings);
+	ENGINE_API bool DrawInt32Control(const char* label, int32& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawInt64Control(const char* label, int64& value, const UISettings& settings);
+	ENGINE_API bool DrawInt64Control(const char* label, int64& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawByteControl(const char* label, byte& value, const UISettings& settings);
+	ENGINE_API bool DrawByteControl(const char* label, byte& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawUint16Control(const char* label, uint16& value, const UISettings& settings);
+	ENGINE_API bool DrawUint16Control(const char* label, uint16& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawUint32Control(const char* label, uint32& value, const UISettings& settings);
+	ENGINE_API bool DrawUint32Control(const char* label, uint32& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawUint64Control(const char* label, uint64& value, const UISettings& settings);
+	ENGINE_API bool DrawUint64Control(const char* label, uint64& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawFloatControl(const char* label, float& value, const UISettings& settings);
+	ENGINE_API bool DrawFloatControl(const char* label, float& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawDoubleControl(const char* label, double& value, const UISettings& settings);
+	ENGINE_API bool DrawDoubleControl(const char* label, double& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawStringControl(const char* label, std::string& value, const UISettings& settings);
+	ENGINE_API bool DrawStringControl(const char* label, std::string& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawVec2Control(const char* label, glm::vec2& value, const UISettings& settings);
+	ENGINE_API bool DrawVec2Control(const char* label, glm::vec2& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawVec3Control(const char* label, glm::vec3& value, const UISettings& settings);
+	ENGINE_API bool DrawVec3Control(const char* label, glm::vec3& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawColorPicker(const char* label, glm::vec4& value, const UISettings& settings);
+	ENGINE_API bool DrawColorPicker(const char* label, glm::vec4& value, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawComboControl(const char* label,  int32& index, const char* const* options, int32 size, const UISettings& settings);
+	ENGINE_API bool DrawComboControl(const char* label,  int32& index, const char* const* options, int32 size, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawEnumControl(const char* label, const std::string& type_name, internal::Enum::Value& value, internal::FieldType type, const UISettings& settings);
+	ENGINE_API bool DrawEnumControl(const char* label, const std::string& type_name, internal::Enum::Value& value, internal::FieldType type, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawVec2BoolControl(const char* label, bool& x, bool& y, const UISettings& settings);
+	ENGINE_API bool DrawVec2BoolControl(const char* label, bool& x, bool& y, const UISettings& settings, const std::string& help = "");
 
 	ENGINE_API bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings);
 
-	ENGINE_API bool DrawAssetControl(const char* label, uuid& id, const char* filetype, const UISettings& settings);
+	ENGINE_API bool DrawAssetControl(const char* label, uuid& id, const char* filetype, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawEntityControl(const char* label, uuid& id, const UISettings& settings);
+	ENGINE_API bool DrawEntityControl(const char* label, uuid& id, const UISettings& settings, const std::string& help = "");
 
 	ENGINE_API bool DrawFieldControl(const internal::FieldSpecification& spec, void* buffer);
 }

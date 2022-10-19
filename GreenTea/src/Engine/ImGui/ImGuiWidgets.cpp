@@ -6,9 +6,9 @@
 
 #include <IconsForkAwesome.h>
 
-static void DrawPrefix(const char* label, float width);
+static void DrawPrefix(const char* label, float width, const std::string& help);
 static void DrawPostfix(void);
-static bool DrawCoordinate(const char* label, glm::vec2& value, const glm::vec2& resets, uint32 width, uint32 height, float colWidth);
+static bool DrawCoordinate(const char* label, glm::vec2& value, const glm::vec2& resets, uint32 width, uint32 height, float colWidth, const std::string& help);
 
 namespace gte::gui {
 
@@ -192,9 +192,9 @@ namespace gte::gui {
 		return pressed;
 	}
 
-	bool DrawBoolControl(const char* label, bool& value, const UISettings& settings)
+	bool DrawBoolControl(const char* label, bool& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::Dummy({0.0f, 0.0f});
 		ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - 19.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
@@ -214,9 +214,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawCharControl(const char* label, char& value, const UISettings& settings)
+	bool DrawCharControl(const char* label, char& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -239,9 +239,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawInt16Control(const char* label, int16& value, const UISettings& settings)
+	bool DrawInt16Control(const char* label, int16& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -264,9 +264,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawInt32Control(const char* label, int32& value, const UISettings& settings)
+	bool DrawInt32Control(const char* label, int32& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -289,9 +289,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawInt64Control(const char* label, int64& value, const UISettings& settings)
+	bool DrawInt64Control(const char* label, int64& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -311,9 +311,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawByteControl(const char* label, byte& value, const UISettings& settings)
+	bool DrawByteControl(const char* label, byte& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -336,9 +336,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawUint16Control(const char* label, uint16& value, const UISettings& settings)
+	bool DrawUint16Control(const char* label, uint16& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -361,9 +361,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawUint32Control(const char* label, uint32& value, const UISettings& settings)
+	bool DrawUint32Control(const char* label, uint32& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -386,9 +386,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawUint64Control(const char* label, uint64& value, const UISettings& settings)
+	bool DrawUint64Control(const char* label, uint64& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -408,9 +408,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawFloatControl(const char* label, float& value, const UISettings& settings)
+	bool DrawFloatControl(const char* label, float& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -430,9 +430,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawDoubleControl(const char* label, double& value, const UISettings& settings)
+	bool DrawDoubleControl(const char* label, double& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -452,9 +452,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawStringControl(const char* label, std::string& value, const UISettings& settings)
+	bool DrawStringControl(const char* label, std::string& value, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		if (!settings.Enabled[0])
@@ -479,13 +479,13 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawVec2Control(const char* label, glm::vec2& value, const UISettings& settings)
+	bool DrawVec2Control(const char* label, glm::vec2& value, const UISettings& settings, const std::string& help)
 	{
 		bool changed = false;
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[1];
 
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 
 		ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth() + 31.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 1 });
@@ -554,13 +554,13 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawVec3Control(const char* label, glm::vec3& value, const UISettings& settings)
+	bool DrawVec3Control(const char* label, glm::vec3& value, const UISettings& settings, const std::string& help)
 	{
 		bool changed = false;
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[1];
 
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth() + 8.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 1 });
@@ -657,13 +657,13 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawColorPicker(const char* label, glm::vec4& value, const UISettings& settings)
+	bool DrawColorPicker(const char* label, glm::vec4& value, const UISettings& settings, const std::string& help)
 	{
 		bool changed = false;
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[1];
 
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 
 		const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize(lineHeight + 3.0f, lineHeight);
@@ -766,9 +766,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawComboControl(const char* label, int32& index, const char* const* options, int32 size, const UISettings& settings)
+	bool DrawComboControl(const char* label, int32& index, const char* const* options, int32 size, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		const bool changed = ImGui::Combo("##", &index, options, size);
@@ -778,13 +778,13 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawEnumControl(const char* label, const std::string& type_name, internal::Enum::Value& value, internal::FieldType type, const UISettings& settings)
+	bool DrawEnumControl(const char* label, const std::string& type_name, internal::Enum::Value& value, internal::FieldType type, const UISettings& settings, const std::string& help)
 	{
 		using namespace internal;
 		if (!GetContext()->ScriptEngine->HasEnum(type_name))
 			return false;
 
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		
@@ -852,14 +852,14 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawVec2BoolControl(const char* label, bool& x, bool& y, const UISettings& settings)
+	bool DrawVec2BoolControl(const char* label, bool& x, bool& y, const UISettings& settings, const std::string& help)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[1];
 		const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize(lineHeight, lineHeight);
 
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 		ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x + 20.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 		
@@ -897,22 +897,22 @@ namespace gte::gui {
 	bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings)
 	{
 		const float colWidth = settings.ColumnWidth - 20.0f;
-		bool changed = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth);
-		if (DrawCoordinate("Bottom Right", coords.BottomRight, { 1.0f, 0.0f }, width, height, colWidth))
+		bool changed = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth, "Bottom Left");
+		if (DrawCoordinate("Bottom Right", coords.BottomRight, { 1.0f, 0.0f }, width, height, colWidth, "Bottom Right"))
 			changed = true;
-		if (DrawCoordinate("Top Right", coords.TopRight, { 1.0f, 1.0f }, width, height, colWidth))
+		if (DrawCoordinate("Top Right", coords.TopRight, { 1.0f, 1.0f }, width, height, colWidth, "Top Right"))
 			changed = true;
-		if (DrawCoordinate("Top Left", coords.TopLeft, { 0.0f, 1.0f }, width, height, colWidth))
+		if (DrawCoordinate("Top Left", coords.TopLeft, { 0.0f, 1.0f }, width, height, colWidth, "Top Left"))
 			changed = true;
 		return changed;
 	}
 
-	bool DrawAssetControl(const char* label, uuid& id, const char* filetype, const UISettings& settings)
+	bool DrawAssetControl(const char* label, uuid& id, const char* filetype, const UISettings& settings, const std::string& help)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		auto IconsFont = io.Fonts->Fonts[3];
 
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 
@@ -982,9 +982,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawEntityControl(const char* label, uuid& id, const UISettings& settings)
+	bool DrawEntityControl(const char* label, uuid& id, const UISettings& settings, const std::string& help)
 	{
-		DrawPrefix(label, settings.ColumnWidth);
+		DrawPrefix(label, settings.ColumnWidth, help);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 
@@ -1202,12 +1202,18 @@ namespace gte::gui {
 	}
 }
 
-void DrawPrefix(const char* label, float width)
+void DrawPrefix(const char* label, float width, const std::string& help)
 {
 	ImGui::PushID(label);
 	ImGui::Columns(2);
 	ImGui::SetColumnWidth(0, width);
 	ImGui::Text(label);
+	if (ImGui::IsItemHovered() && !help.empty())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text(help.c_str());
+		ImGui::EndTooltip();
+	}
 	ImGui::NextColumn();
 }
 
@@ -1217,14 +1223,14 @@ void DrawPostfix(void)
 	ImGui::PopID();
 }
 
-bool DrawCoordinate(const char* label, glm::vec2& value, const glm::vec2& resets, uint32 width, uint32 height, float colWidth)
+bool DrawCoordinate(const char* label, glm::vec2& value, const glm::vec2& resets, uint32 width, uint32 height, float colWidth, const std::string& help)
 {
 	constexpr uint32 min = 0;
 	bool changed = false;
 	ImGuiIO& io = ImGui::GetIO();
 	auto boldFont = io.Fonts->Fonts[1];
 
-	DrawPrefix(label, colWidth);
+	DrawPrefix(label, colWidth, help);
 	ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth() + 31.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 1 });
 
