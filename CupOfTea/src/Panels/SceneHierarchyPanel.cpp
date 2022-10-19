@@ -426,7 +426,7 @@ namespace gte {
 			gui::DrawComponent<SpriteRendererComponent>(ICON_FK_PICTURE_O, "Sprite Renderer Component", entity, [](auto& sprite) {
 				gui::UISettings settings;
 				uuid id = sprite.Texture->ID;
-				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to\n open the object picker window, and select from the list of available Sprite Assets."))
+				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to\n open the object picker window, and select from the list of available Sprite Assets or drag \n and drop them here from the Assets window."))
 					sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.ResetValue = 1.0f;
 				gui::DrawColorPicker("Tint Color", sprite.Color, settings, "Define the vertex color of the Sprite, which tints or recolors the Sprite's image.\n Use the color picker to set the vertex color of the rendered Sprite texture.");
@@ -461,8 +461,8 @@ namespace gte {
 				settings.MaxFloat = 1.0f;
 				gui::DrawFloatControl("Thickness", circle.Thickness, settings, "Define the area percentage of the Circlular Component to render.E.g. Value of '0.7' will\n render 70 percent of the area starting from the perimeter. Max value: 1.0");
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawFloatControl("Fade", circle.Fade, settings,"The color faints with bigger values(placeholder)");
-				gui::DrawBoolControl("Visible", circle.Visible, settings, "If checked Render is visible");
+				gui::DrawFloatControl("Fade", circle.Fade, settings,"The color faints with bigger values.");
+				gui::DrawBoolControl("Visible", circle.Visible, settings, "If checked Render is visible.");
 			});
 		}
 
@@ -558,7 +558,7 @@ namespace gte {
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
 				gui::DrawFloatControl("Gravity Factor", rb.GravityFactor, settings, "Define the degree to which the Entity is affected by gravity.");
-				gui::DrawBoolControl("Fixed Rotation", rb.FixedRotation, settings, "If checked the Entity always rotates");
+				gui::DrawBoolControl("Fixed Rotation", rb.FixedRotation, settings, "If checked the Entity never rotates");
 				gui::DrawBoolControl("Bullet", rb.Bullet, settings, "If checked the Entity has Bullet-like behavior");
 			});
 		}
@@ -574,7 +574,7 @@ namespace gte {
 				gui::DrawFloatControl("Density", bc.Density, settings, "Change the density to change the mass calculations of the Entity's associated Rigidbody 2D");
 				gui::DrawFloatControl("Friction", bc.Friction, settings, "The higher the friction the less the object slides.");
 				gui::DrawFloatControl("Restitution", bc.Restitution, settings, "The higher the restitution the more the Box will bounce on contact.");
-				gui::DrawFloatControl("Rest. Threshold", bc.RestitutionThreshold, settings);
+				gui::DrawFloatControl("Rest. Threshold", bc.RestitutionThreshold, settings, "The threshold of the bounciness of the Box");
 				gui::DrawBoolControl("Sensor", bc.Sensor, settings, "Check this box if you want the Box Collider 2D to behave as a sensor.");
 			});
 		}
@@ -600,7 +600,7 @@ namespace gte {
 			gui::DrawComponent<SpeakerComponent>(ICON_FK_VOLUME_UP, "Speaker Component", entity, [](auto& speaker) {
 				gui::UISettings settings;
 				uuid id = speaker.AudioClip->ID;
-				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Audio Assets."))
+				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Audio Assets or drag and drop \n them here from the Assets window."))
 					speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
@@ -619,7 +619,7 @@ namespace gte {
 				gui::UISettings settings;
 				uuid id = nc.ScriptAsset->ID;
 				nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
-				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Script Assets."))
+				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Script Assets or drag and drop \n them here from the Assets window."))
 				{
 					nc.Description = internal::NativeScript();
 					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
