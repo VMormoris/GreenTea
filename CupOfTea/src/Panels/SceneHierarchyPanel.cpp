@@ -27,12 +27,13 @@ namespace gte {
 		if (ImGui::BeginPopup("Add Entity"))
 		{
 			if (ImGui::MenuItem("Add empty Entity"))
-				scene->CreateEntity("Unnamed Entity");
+				mSelectionContext = scene->CreateEntity("Unnamed Entity");
 			if (ImGui::MenuItem("Camera Entity"))
 			{
 				Entity entity = scene->CreateEntity("Camera");
 				entity.AddComponent<Transform2DComponent>();
 				entity.AddComponent<CameraComponent>();
+				mSelectionContext = entity;
 			}
 			ImGui::EndPopup();
 		}
@@ -44,12 +45,13 @@ namespace gte {
 		if (ImGui::BeginPopupContextWindow())
 		{
 			if (ImGui::MenuItem("Add empty Entity"))
-				scene->CreateEntity("Unnamed Entity");
+				mSelectionContext = scene->CreateEntity("Unnamed Entity");
 			if (ImGui::MenuItem("Camera Entity"))
 			{
 				Entity entity = scene->CreateEntity("Camera");
 				entity.AddComponent<Transform2DComponent>();
 				entity.AddComponent<CameraComponent>();
+				mSelectionContext = entity;
 			}
 			ImGui::EndPopup();
 		}
@@ -147,11 +149,11 @@ namespace gte {
 		{
 			constexpr char biggest[] = "Delete Entity Delete";
 			if (ImGui::MenuItem("Add Child Entity"))
-				scene->CreateChildEntity(entity);
+				mSelectionContext = scene->CreateChildEntity(entity);
 			if (gte::gui::DrawMenuItem(ICON_FK_TRASH, "Delete Entity", "Delete", biggest))
 				shouldDestroy = true;			
 			if (gte::gui::DrawMenuItem(ICON_FK_CLONE, "Clone Entity", nullptr, biggest))
-				scene->Clone(entity);
+				mSelectionContext = scene->Clone(entity);
 			if (gte::gui::DrawMenuItem(ICON_FK_CUBE, "Create Prefab", nullptr, biggest))
 				CreatePrefab(entity, mDirectory);
 			ImGui::EndPopup();
