@@ -426,16 +426,16 @@ namespace gte {
 			gui::DrawComponent<SpriteRendererComponent>(ICON_FK_PICTURE_O, "Sprite Renderer Component", entity, [](auto& sprite) {
 				gui::UISettings settings;
 				uuid id = sprite.Texture->ID;
-				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to open the object picker window, and select from the list of available Sprite Assets."))
+				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to\n open the object picker window, and select from the list of available Sprite Assets."))
 					sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.ResetValue = 1.0f;
-				gui::DrawColorPicker("Tint Color", sprite.Color, settings, "Define the vertex color of the Sprite, which tints or recolors the Sprite’s image. Use the color picker to set the vertex color of the rendered Sprite texture.");
+				gui::DrawColorPicker("Tint Color", sprite.Color, settings, "Define the vertex color of the Sprite, which tints or recolors the Sprite's image.\n Use the color picker to set the vertex color of the rendered Sprite texture.");
 				if (sprite.Texture->Type == AssetType::TEXTURE)
 				{
 					GPU::Texture* texture = (GPU::Texture*)sprite.Texture->Data;
 					settings.MinFloat = 1.0f;
 					settings.MaxFloat = FLT_MAX;
-					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings, "Define the number of times the chosen Sprite texture tiles in the entity.E.g. Tiling Factor of 3 fills the Entity with 3x3 instances of the chosen Sprite texture");
+					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings, "Define the number of times the chosen Sprite texture tiles in the entity.\n E.g. Tiling Factor of 3 fills the Entity with 3x3 instances of the chosen Sprite texture");
 					gui::DrawVec2BoolControl("Flip", sprite.FlipX, sprite.FlipY, settings, "Flips the Sprite texture along the checked axis. This does not flip the Transform position of the Entity");
 				}
 				gui::DrawBoolControl("Visible", sprite.Visible, settings, "If checked Sprite is visible");
@@ -459,7 +459,7 @@ namespace gte {
 				settings.ResetValue = 1.0f;
 				gui::DrawColorPicker("Color", circle.Color, settings,"Use the color picker to set the vertex color of the rendered Circlular Component.");
 				settings.MaxFloat = 1.0f;
-				gui::DrawFloatControl("Thickness", circle.Thickness, settings, "Define the area percentage of the Circlular Component to render.E.g. Value of '0.7' will render 70 percent of the area starting from the perimeter. Max value: 1.0");
+				gui::DrawFloatControl("Thickness", circle.Thickness, settings, "Define the area percentage of the Circlular Component to render.E.g. Value of '0.7' will\n render 70 percent of the area starting from the perimeter. Max value: 1.0");
 				settings.MaxFloat = FLT_MAX;
 				gui::DrawFloatControl("Fade", circle.Fade, settings,"The color faints with bigger values(placeholder)");
 				gui::DrawBoolControl("Visible", circle.Visible, settings, "If checked Render is visible");
@@ -551,7 +551,7 @@ namespace gte {
 				static constexpr char* typestr[3] = { "Static", "Dynamic", "Kinematic" };
 				gui::UISettings settings;
 				int32 index = static_cast<int32>(rb.Type);
-				if (gui::DrawComboControl("Body Type", index, typestr, 3, settings,"Set the RigidBody 2D's component settings, so that you can manipulate movement (position and rotation) behavior and Collider 2D interaction."))
+				if (gui::DrawComboControl("Body Type", index, typestr, 3, settings,"Set the RigidBody 2D's component settings, so that you can manipulate movement\n (position and rotation) behavior and Collider 2D interaction."))
 					rb.Type = static_cast<BodyType>(index);
 				gui::DrawVec2Control("Velocity", rb.Velocity, settings,"Set the starting velocity affecting the positional movement");
 				gui::DrawFloatControl("Ang. Velocity", rb.AngularVelocity, settings,"Set the angular velocity affecting the rotational movement");
@@ -600,15 +600,15 @@ namespace gte {
 			gui::DrawComponent<SpeakerComponent>(ICON_FK_VOLUME_UP, "Speaker Component", entity, [](auto& speaker) {
 				gui::UISettings settings;
 				uuid id = speaker.AudioClip->ID;
-				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open the object picker window, and select from the list of available Audio Assets."))
+				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Audio Assets."))
 					speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
 				gui::DrawFloatControl("Volume", speaker.Volume, settings, "How loud the sound is at a distance of one world unit (one meter) from the Audio Listener.");
 				gui::DrawFloatControl("Pitch", speaker.Pitch, settings, "Amount of change in pitch due to slowdown/speed up of the Audio Clip. Value 1 is normal playback speed.");
 				gui::DrawFloatControl("Roll off factor", speaker.RollOffFactor, settings, "How fast the sound fades. The higher the value, the closer the Listener has to be before hearing the sound.");
-				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings, "");
-				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings, "The distance where the sound stops attenuating at. Beyond this point it will stay at the volume it would be at MaxDistance units from the listener and will not attenuate any more.");
+				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings, "The distance under which the volume for the source would normally drop by half(before being influenced by rolloff factor).");
+				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings, "The distance where the sound stops attenuating at. Beyond this point it will stay at the\n volume it would be at MaxDistance units from the listener and will not attenuate any more.");
 				gui::DrawBoolControl("Looping", speaker.Looping, settings, "If checked the Audio clip loops.");
 			});
 		}
@@ -619,7 +619,7 @@ namespace gte {
 				gui::UISettings settings;
 				uuid id = nc.ScriptAsset->ID;
 				nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
-				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open the object picker window, and select from the list of available Script Assets."))
+				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Script Assets."))
 				{
 					nc.Description = internal::NativeScript();
 					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
