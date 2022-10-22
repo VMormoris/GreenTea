@@ -81,16 +81,16 @@ namespace gte::internal {
 			for (const auto& entityNode : entities)
 			{
 				//Get components that all entities should have (aka ID and Tag)
-				uuid id = entityNode["Entity"].as<std::string>();
+				uuid entityUUID = entityNode["Entity"].as<std::string>();
 				std::string name;
 				auto tagComponent = entityNode["TagComponent"];
 				if (tagComponent)
 					name = tagComponent["Tag"].as<std::string>();
 
 				
-				if (!id.IsValid())//Special Entity for scene stuff
+				if (!entityUUID.IsValid())//Special Entity for scene stuff
 				{
-					Entity entity = mScene->FindEntityWithUUID(id);
+					Entity entity = mScene->FindEntityWithUUID(entityUUID);
 					const auto& transform = entityNode["Transform2DComponent"];
 					auto& tc = entity.GetComponent<Transform2DComponent>();
 					tc.Position = transform["Position"].as<glm::vec3>();
@@ -119,7 +119,7 @@ namespace gte::internal {
 				}
 
 				//Create entity
-				Entity entity = mScene->CreateEntityWithUUID(id, name);
+				Entity entity = mScene->CreateEntityWithUUID(entityUUID, name);
 
 				//Check for other components expect Relationship
 				const auto& transform = entityNode["Transform2DComponent"];
@@ -139,10 +139,10 @@ namespace gte::internal {
 					auto& sprite = entity.AddComponent<SpriteRendererComponent>();
 					sprite.Color = renderable["Color"].as<glm::vec4>();
 					sprite.Visible = renderable["Visible"].as<bool>();
-					uuid id = renderable["Texture"].as<std::string>();
-					if (id.IsValid())
+					uuid textureID = renderable["Texture"].as<std::string>();
+					if (textureID.IsValid())
 					{
-						sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
+						sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(textureID);
 						sprite.TilingFactor = renderable["TilingFactor"].as<float>();
 						sprite.FlipX = renderable["FilpX"].as<bool>();
 						sprite.FlipY = renderable["FlipY"].as<bool>();
@@ -266,8 +266,8 @@ namespace gte::internal {
 			//Second iteration to create relationships & Native Scripts
 			for (const auto& entityNode : entities)
 			{
-				uuid id = entityNode["Entity"].as<std::string>();
-				Entity entity = mScene->FindEntityWithUUID(id);
+				uuid entityUUID = entityNode["Entity"].as<std::string>();
+				Entity entity = mScene->FindEntityWithUUID(entityUUID);
 
 				const auto& relationship = entityNode["RelationshipComponent"];
 				if (!relationship)//Special entity for Scene stuff
@@ -296,10 +296,10 @@ namespace gte::internal {
 				{
 					const auto& props = nativescript["Properties"];
 					auto& nc = entity.AddComponent<NativeScriptComponent>();
-					uuid id = nativescript["Asset"].as<std::string>();
-					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
+					uuid scriptID = nativescript["Asset"].as<std::string>();
+					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(scriptID);
 					uint64 oldversion = nativescript["Version"].as<uint64>();
-					if (((NativeScript*)nc.ScriptAsset->Data)->GetVersion() > oldversion)
+					if (scriptID.IsValid() && ((NativeScript*)nc.ScriptAsset->Data)->GetVersion() > oldversion)
 					{
 						nc.Description = *(NativeScript*)nc.ScriptAsset->Data;
 						const auto& specs = nc.Description.GetFieldsSpecification();
@@ -389,7 +389,7 @@ namespace gte::internal {
 							}
 						}
 					}
-					else
+					else if(scriptID.IsValid())
 					{
 						nc.Description = *(NativeScript*)nc.ScriptAsset->Data;
 						const auto& specs = nc.Description.GetFieldsSpecification();

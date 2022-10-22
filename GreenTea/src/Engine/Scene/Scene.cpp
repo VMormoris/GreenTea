@@ -1426,6 +1426,8 @@ namespace gte {
 		auto scripts = mReg.view<NativeScriptComponent>();
 		for (auto&& [entityID, nc] : scripts.each())
 		{
+			if (!nc.ScriptAsset->ID.IsValid())
+				continue;
 			if (((NativeScript*)nc.ScriptAsset->Data)->GetVersion() > nc.Description.GetVersion())
 			{
 				const auto& oldSpecs = nc.Description.GetFieldsSpecification();
