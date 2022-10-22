@@ -1097,7 +1097,9 @@ namespace gte {
 			auto view = srcReg.view<IDComponent, TagComponent>();
 			for (auto&& [entityID, id, tag] : view.each())
 			{
-				entt::entity entity = newScene->CreateEntityWithUUID(id, tag.Tag, false);
+				entt::entity entity = dstReg.create(entityID);//newScene->CreateEntityWithUUID(id, tag.Tag, false);
+				dstReg.emplace<IDComponent>(entity, id);
+				dstReg.emplace<TagComponent>(entity, tag);
 				enttMap.insert({ id, entity });
 				//entt ids' won't be valid since they are pointing source registry but they will be patch afterwards
 				dstReg.emplace_or_replace<RelationshipComponent>(entity, srcReg.get<RelationshipComponent>(entityID));
@@ -1116,6 +1118,23 @@ namespace gte {
 		}
 
 		CopyComponent(AllComponents{}, dstReg, srcReg, enttMap);
+		{//Patch exported entities on NativeScripts
+			auto view = dstReg.view<NativeScriptComponent>();
+			for (auto&& [entityID, nsc] : view.each())
+			{
+				if (!nsc.ScriptAsset->ID.IsValid())
+					continue;
+				auto& specs = nsc.Description.GetFieldsSpecification();
+				for (const auto& spec : specs)
+				{
+					if (spec.Type != internal::FieldType::Entity)
+						continue;
+					Entity* entity = (Entity*)((byte*)nsc.Description.GetBuffer() + spec.BufferOffset);
+					auto entityID = (entt::entity)*entity;
+					new (entity) Entity(entityID, newScene);
+				}
+			}
+		}
 		newScene->UpdateMatrices(false);
 		return newScene;
 	}
