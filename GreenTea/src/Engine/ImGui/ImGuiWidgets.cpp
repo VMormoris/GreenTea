@@ -1011,7 +1011,7 @@ namespace gte::gui {
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.063f, 0.063f, 0.063f, 1.0f });
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
-		std::string tag = internal::GetContext()->ActiveScene->FindEntityWithUUID(id).GetName();
+		std::string tag = id.IsValid() ? internal::GetContext()->ActiveScene->FindEntityWithUUID(id).GetName() : "";
 		ImGui::InputText("##", (char*)tag.c_str(), tag.size());//Casting is safe since value cannot be changed
 		bool changed = false;
 		if (ImGui::BeginDragDropTarget())
