@@ -23,6 +23,7 @@ private:
 	
 	void CreateTextureAsset(const std::filesystem::path& filepath) const;
 	void CreateAudioAsset(const std::filesystem::path& filepath) const;
+	void CreateFontAsset(const std::filesystem::path& filepath) const;
 
 private:
 	std::vector<std::filesystem::path> mHistory;

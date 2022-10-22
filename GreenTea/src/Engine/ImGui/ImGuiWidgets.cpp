@@ -479,6 +479,25 @@ namespace gte::gui {
 		return changed;
 	}
 
+	bool DrawMultilineStringControl(const char* label, std::string& value, const UISettings& settings, const std::string& help)
+	{
+		constexpr size_t MiB = 1024 * 1024;
+		static char buffer[MiB];
+		memcpy(buffer, value.c_str(), value.size() + 1);
+		DrawPrefix(label, settings.ColumnWidth, help);
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 5.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.063f, 0.063f, 0.063f, 1.0f });
+		const bool changed = ImGui::InputTextMultiline("##", buffer, MiB);
+		ImGui::PopStyleColor();
+		if (changed)
+			value = std::string(buffer);
+		ImGui::PopStyleVar();
+		ImGui::PopItemWidth();
+		DrawPostfix();
+		return changed;
+	}
+
 	bool DrawVec2Control(const char* label, glm::vec2& value, const UISettings& settings, const std::string& help)
 	{
 		bool changed = false;

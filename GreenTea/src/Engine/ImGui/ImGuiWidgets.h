@@ -123,6 +123,8 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawStringControl(const char* label, std::string& value, const UISettings& settings, const std::string& help = "");
 
+	ENGINE_API bool DrawMultilineStringControl(const char* label, std::string& value, const UISettings& settings, const std::string& help = "");
+
 	ENGINE_API bool DrawVec2Control(const char* label, glm::vec2& value, const UISettings& settings, const std::string& help = "");
 
 	ENGINE_API bool DrawVec3Control(const char* label, glm::vec3& value, const UISettings& settings, const std::string& help = "");

@@ -4,6 +4,7 @@
 #include "Prefab.h"
 
 #include <Engine/Audio/AudioBuffer.h>
+#include <Engine/Assets/Font.h>
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -14,9 +15,9 @@ namespace gte::internal {
 	{
 		Asset asset;
 		std::ifstream is(filepath, std::ios::binary);
-		
-		std::string line;
+
 		uint16 loaded = 0;
+		std::string line;
 		while (getline(is, line))
 		{
 			if (line[0] == '#')//Comment ingore
@@ -35,8 +36,7 @@ namespace gte::internal {
 		char* buffer = new char[asset.Size+1];
 		buffer[asset.Size] = 0;
 		is.read(buffer, asset.Size);
-		is.close();
-
+		
 		//Handle buffer depending on AssetType
 		switch (asset.Type)
 		{
@@ -46,7 +46,7 @@ namespace gte::internal {
 			try { data = YAML::Load(buffer); }
 			catch (YAML::ParserException e)
 			{
-				ASSERT(false, "Failed to load file: ", filepath.c_str(), "\n\t", e.what());
+				GTE_ERROR_LOG(false, "Failed to load file: ", filepath, "\n\t", e.what());
 				asset.Type = AssetType::INVALID;
 				asset.Size = 0;
 				asset.ID = {};
@@ -63,7 +63,7 @@ namespace gte::internal {
 		case AssetType::IMAGE:
 		{
 			Image* img = new Image();
-			img->Load((byte*)buffer, asset.Size);
+			img->Load((byte*)buffer);
 			if (asset.Data)
 				delete asset.Data;
 			asset.Data = img;
@@ -84,7 +84,7 @@ namespace gte::internal {
 			try { data = YAML::Load(buffer); }
 			catch (YAML::ParserException e)
 			{
-				ASSERT(false, "Failed to load file: ", filepath.c_str(), "\n\t", e.what());
+				GTE_ERROR_LOG(false, "Failed to load file: ", filepath, "\n\t", e.what());
 				asset.Type = AssetType::INVALID;
 				asset.Size = 0;
 				asset.ID = {};
@@ -94,17 +94,37 @@ namespace gte::internal {
 			asset.Data = new Prefab(data);
 			break;
 		}
+		case AssetType::FONT:
+		{
+			YAML::Node data;
+			try { data = YAML::Load(buffer); }
+			catch (YAML::ParserException e)
+			{
+				GTE_ERROR_LOG(false, "Failed to load file: ", filepath, "\n\t", e.what());
+				asset.Type = AssetType::INVALID;
+				asset.Size = 0;
+				asset.ID = {};
+				delete[] buffer;
+				return asset;
+			}
+			char newLine;
+			is.read(&newLine, 1);
+			internal::Font* font = new internal::Font(data);
+			Image& atlas = font->GetAtlas();
+			is.read((char*)atlas.Data(), atlas.Size());
+			asset.Data = font;
+			break;
+		}
 		case AssetType::ANIMATION:
 			break;
-		case AssetType::FONT_IMAGE:
-			break;
-		case AssetType::FONT_TEXTURE:
+		//case AssetType::FONT_TEXTURE:
 		case AssetType::TEXTURE:
 		case AssetType::LOADING:
 		case AssetType::INVALID:
 			//ADD assertion for asset type that can't be loaded
 			break;
 		}
+		is.close();
 		delete[] buffer;
 		return asset;
 	}

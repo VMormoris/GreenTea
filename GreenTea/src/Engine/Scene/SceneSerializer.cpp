@@ -164,6 +164,17 @@ namespace gte::internal {
 					circle.Visible = circleRenderable["Visible"].as<bool>();
 				}
 
+				const auto& textRenderable = entityNode["TextRendererComponent"];
+				if (textRenderable)
+				{
+					auto& tc = entity.AddComponent<TextRendererComponent>();
+					tc.Text = textRenderable["Text"].as<std::string>();
+					tc.Color = textRenderable["Color"].as<glm::vec4>();
+					tc.Font->ID = textRenderable["Font"].as<std::string>();
+					tc.Size = textRenderable["Size"].as<uint32>();
+					tc.Visible = textRenderable["Visible"].as<bool>();
+				}
+
 				const auto& camera = entityNode["CameraComponent"];
 				if (camera)
 				{
@@ -559,6 +570,19 @@ namespace gte::internal {
 			out << YAML::Key << "Thickness" << YAML::Value << circle.Thickness;
 			out << YAML::Key << "Fade" << YAML::Value << circle.Fade;
 			out << YAML::Key << "Visible" << YAML::Value << circle.Visible;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<TextRendererComponent>())
+		{
+			const auto& tc = entity.GetComponent<TextRendererComponent>();
+			out << YAML::Key << "TextRendererComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Text" << YAML::Value << tc.Text;
+			out << YAML::Key << "Color" << YAML::Value << tc.Color;
+			out << YAML::Key << "Font" << YAML::Value << tc.Font->ID.str();
+			out << YAML::Key << "Size" << YAML::Value << tc.Size;
+			out << YAML::Key << "Visible" << YAML::Value << tc.Visible;
 			out << YAML::EndMap;
 		}
 

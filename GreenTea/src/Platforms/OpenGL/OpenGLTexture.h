@@ -20,7 +20,7 @@ namespace gte::GPU::OpenGL {
 
 		//Constructor(s) & Destructor
 		OpenGLTexture2D(uint32 width, uint32 height) noexcept;
-		OpenGLTexture2D(const Image& image) noexcept;
+		OpenGLTexture2D(const Image& image, ImageFormat format) noexcept;
 		virtual ~OpenGLTexture2D(void) noexcept;
 
 		[[nodiscard]] uint32 GetHeight(void) const noexcept override { return mHeight; }
@@ -29,7 +29,7 @@ namespace gte::GPU::OpenGL {
 
 		void Bind(uint32 slot = 0) const noexcept;
 		void SetData(void* data, size_t size) noexcept override;
-		void SetData(const Image& image) noexcept override;
+		void SetData(const Image& image, ImageFormat format) noexcept override;
 
 	private:
 

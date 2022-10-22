@@ -2,6 +2,7 @@
 
 #include <Engine/Core/FileDialog.h>
 #include <Engine/ImGui/ImGuiWidgets.h>
+#include <Engine/Assets/Font.h>
 
 #include <AL/al.h>
 #include <AL/alext.h>
@@ -10,12 +11,14 @@
 #include <IconsForkAwesome.h>
 #include <fstream>
 #include <sndfile.h>
+#include <msdf-atlas-gen/msdf-atlas-gen.h>
 
 static gte::GPU::Texture* sFolder = nullptr;
 static gte::GPU::Texture* sScriptFile = nullptr;
 static gte::GPU::Texture* sSceneFile = nullptr;
 static gte::GPU::Texture* sAudioFile = nullptr;
 static gte::GPU::Texture* sPrefabFile = nullptr;
+static gte::GPU::Texture* sFontFile = nullptr;
 static gte::GPU::Texture* sTransparentTexture = nullptr;
 
 static void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive = false);
@@ -39,6 +42,9 @@ ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 
 	img.Load("../Assets/Icons/prefab.png");
 	sPrefabFile = gte::GPU::Texture2D::Create(img);
+
+	img.Load("../Assets/Icons/font.png");
+	sFontFile = gte::GPU::Texture2D::Create(img);
 
 	sTransparentTexture = gte::GPU::Texture2D::Create(1, 1);
 	uint32 TransparentTexture = 0x00000000;
@@ -103,18 +109,25 @@ void ContentBrowserPanel::Draw(void)
 	
 	if (ImGui::BeginPopup("Import##popup"))
 	{
-		if (gte::gui::DrawMenuItem(ICON_FK_FILE_IMAGE_O, "Texture", "", "Texture"))
+		if (gte::gui::DrawMenuItem(ICON_FK_FILE_IMAGE_O, "Texture", nullptr, "Texture"))
 		{
 			std::filesystem::path filepath = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "All Images(*.png, *jpg, *.jpeg)\0*.png;*.jpg;*.jpeg\0PNG file (*.png)\0*.png\0JPG file(*.jpg, *.jpeg)\0*.jpg; *.jpeg\0");
 			if (!filepath.empty())
 				CreateTextureAsset(filepath);
 			ImGui::CloseCurrentPopup();
 		}
-		if (gte::gui::DrawMenuItem(ICON_FK_MUSIC, "Audio", "", "Texture"))
+		if (gte::gui::DrawMenuItem(ICON_FK_MUSIC, "Audio", nullptr, "Texture"))
 		{
 			std::filesystem::path filepath = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "All Audio(*.wav, *ogg)\0*.wav;*.ogg\0WAV file (*.wav)\0*.wav\0ogg file(*.ogg)\0*.ogg\0");
 			if (!filepath.empty())
 				CreateAudioAsset(filepath);
+			ImGui::CloseCurrentPopup();
+		}
+		if (gte::gui::DrawMenuItem(ICON_FK_FONT, "Font", nullptr, "Texture"))
+		{
+			std::filesystem::path filepath = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "All Fonts(*.ttf, *otf)\0*.ttf;*.otf\0True Type Font file(*.ttf)\0*.ttf\0Open Type Font file(*.otf)\0*.otf\0");
+			if (!filepath.empty())
+				CreateFontAsset(filepath);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
@@ -122,7 +135,7 @@ void ContentBrowserPanel::Draw(void)
 	ImGui::Separator();
 
 	ImGui::BeginChild("Assets");
-	constexpr float padding = 32.0f;
+	constexpr int32 padding = 32;
 	constexpr float thumbnailSize = 64.0f;
 	constexpr float cellSize = thumbnailSize + 2 * padding;
 	const float panelWidth = ImGui::GetContentRegionAvail().x;
@@ -247,14 +260,16 @@ void ContentBrowserPanel::Draw(void)
 		{
 			const auto extension = entry.path().extension();
 			if (extension == ".gtscene")
-				ImGui::ImageButton(sSceneFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, static_cast<int32>(padding));
+				ImGui::ImageButton(sSceneFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 			else if (extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
-				ImGui::ImageButton(sScriptFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, static_cast<int32>(padding));
+				ImGui::ImageButton(sScriptFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 			else if (extension == ".gtaudio")
-				ImGui::ImageButton(sAudioFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, static_cast<int32>(padding));
+				ImGui::ImageButton(sAudioFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
+			else if (extension == ".gtfont")
+				ImGui::ImageButton(sFontFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 			else if (extension == ".gtprefab")
 			{
-				ImGui::ImageButton(sPrefabFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, static_cast<int32>(padding));
+				ImGui::ImageButton(sPrefabFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_ITEM"))
@@ -271,17 +286,17 @@ void ContentBrowserPanel::Draw(void)
 				gte::uuid id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 				gte::Ref<gte::Asset> asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
 				if (asset->Type != gte::AssetType::TEXTURE)
-					ImGui::ImageButton(sTransparentTexture->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, static_cast<int32>(padding));
+					ImGui::ImageButton(sTransparentTexture->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 				else
 				{
 					gte::GPU::Texture* texture = (gte::GPU::Texture*)asset->Data;
-					ImGui::ImageButton(texture->GetID(), { 120.0f, 120.0f }, { 0, 1 }, { 1, 0 }, 4);
+					ImGui::ImageButton(texture->GetID(), { 120.0f, 120.0f }, { 0, 1 }, { 1, 0 }, 2);
 				}
 			}
 		}
 		else
 		{
-			ImGui::ImageButton(sFolder->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, static_cast<int32>(padding));
+			ImGui::ImageButton(sFolder->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -561,6 +576,149 @@ void ContentBrowserPanel::CreateAudioAsset(const std::filesystem::path& filepath
 	delete[] data;
 }
 
+void ContentBrowserPanel::CreateFontAsset(const std::filesystem::path& filepath) const
+{
+	using namespace msdf_atlas;
+	// Initialize FreeType
+	msdfgen::FreetypeHandle* ft = msdfgen::initializeFreetype();
+	if (!ft)
+	{
+		GTE_ERROR_LOG("Couldn't initialize FreeType.");
+		return;
+	}
+	// Load font from file
+	msdfgen::FontHandle* font = msdfgen::loadFont(ft, filepath.string().c_str());
+	if (!font)
+	{
+		GTE_ERROR_LOG("Couldn't load font: \"", filepath.string(), "\".");
+		msdfgen::deinitializeFreetype(ft);
+		return;
+	}
+
+	//Load geometries
+	std::vector<GlyphGeometry> glyphs;
+	FontGeometry fontGeometry(&glyphs);
+	fontGeometry.loadCharset(font, 1.0, Charset::ASCII);
+	//Close handles to font & freetype 
+	msdfgen::destroyFont(font);
+	msdfgen::deinitializeFreetype(ft);
+
+	// Paint glyphs for msdf
+	const double maxCornerAngle = 3.0;
+	for (auto& glyph : glyphs)
+		glyph.edgeColoring(&msdfgen::edgeColoringInkTrap, maxCornerAngle, 0);
+
+	// Pack glyphs on atlas
+	TightAtlasPacker packer;
+	packer.setDimensionsConstraint(TightAtlasPacker::DimensionsConstraint::SQUARE);
+	packer.setMinimumScale(32.0);
+	packer.setPixelRange(2.0);
+	packer.setMiterLimit(1.0);
+	packer.pack(glyphs.data(), static_cast<int32>(glyphs.size()));
+
+	//Generate Image
+	int32 width = 0, height = 0;
+	packer.getDimensions(width, height);
+	ImmediateAtlasGenerator<float, 3, &msdfGenerator, BitmapAtlasStorage<byte, 3>> generator(width, height);
+	GeneratorAttributes attributes;
+	generator.setAttributes(attributes);
+	generator.setThreadCount(4);
+	generator.generate(glyphs.data(), static_cast<int32>(glyphs.size()));
+
+
+	//Parse glyphs metadata
+	if (fontGeometry.getKerning().size() == 0)
+	{
+		GTE_WARN_LOG("The font you choosen doesn't have kern table.\n\tYou might want to consider another font or re-exporting with an external tool like: FontForge.");
+	}
+
+	const auto& bitmap = (msdfgen::BitmapConstRef<byte, 3>)generator.atlasStorage();
+	gte::Image img;
+	img.Load(bitmap.pixels, bitmap.width, bitmap.height, 3);
+
+	std::map<uint32, uint32> indexToCodepoint;
+	std::map<uint32, gte::internal::Character> characters;
+	for (const auto& glyph : glyphs)
+	{
+		gte::internal::Character character;
+		uint32 unicode = glyph.getCodepoint();
+		indexToCodepoint[glyph.getIndex()] = unicode;
+		double l, r, b, t;
+		glyph.getQuadAtlasBounds(l, b, r, t);
+		l /= bitmap.width; r /= bitmap.width;
+		b /= bitmap.height; t /= bitmap.height;
+		character.UV = { static_cast<float>(l), static_cast<float>(b), static_cast<float>(r), static_cast<float>(t) };
+
+		glyph.getQuadPlaneBounds(l, b, r, t);
+		character.Quad = { static_cast<float>(l), static_cast<float>(b), static_cast<float>(r), static_cast<float>(t) };
+
+		character.Advance = static_cast<float>(glyph.getAdvance());
+		characters.emplace(unicode, character);
+	}
+
+	std::map<std::pair<uint32, uint32>, float> kernings;
+	for (const auto& [key, val] : fontGeometry.getKerning())
+		kernings.emplace
+		(
+			std::make_pair(indexToCodepoint[key.first], indexToCodepoint[key.second]),
+			static_cast<float>(val)
+		);
+
+	//Write metadata to yaml
+	YAML::Emitter out;
+	out << YAML::BeginMap;
+	out << YAML::Key << "Glyphs" << YAML::Value;
+	out << YAML::BeginSeq;
+	for (const auto& [unicode, character] : characters)
+	{
+		using namespace gte::math;
+		out << YAML::BeginMap;
+		out << YAML::Key << "Character" << YAML::Value << unicode;
+		out << YAML::Key << "Metadata";
+		out << YAML::BeginMap;
+		out << YAML::Key << "UV" << YAML::Value << character.UV;
+		out << YAML::Key << "Quad" << YAML::Value << character.Quad;
+		out << YAML::Key << "Advance" << YAML::Value << character.Advance;
+		out << YAML::EndMap;
+		out << YAML::EndMap;
+	}
+	out << YAML::EndSeq;
+
+	out << YAML::Key << "Kernings" << YAML::Value;
+	out << YAML::BeginSeq;
+	for (const auto& [key, kerning] : kernings)
+	{
+
+		out << YAML::BeginMap;
+		out << YAML::Key << "Pair" << YAML::Value;
+		out << YAML::Flow << YAML::BeginSeq << key.first << key.second << YAML::EndSeq;
+		out << YAML::Key << "Kerning" << YAML::Value << kerning;
+		out << YAML::EndMap;
+	}
+	out << YAML::EndSeq;
+	out << YAML::Key << "Atlas";
+	out << YAML::BeginMap;
+	out << YAML::Key << "Width" << YAML::Value << bitmap.width;
+	out << YAML::Key << "Height" << YAML::Value << bitmap.height;
+	out << YAML::Key << "Channels" << YAML::Value << 3;
+	out << YAML::EndMap;
+
+	out << YAML::EndMap;
+	
+	auto path = (mCurrentPath / filepath.stem()).string() + ".gtfont";
+	size_t i = 0;
+	while (std::filesystem::exists(path))
+		path = (mCurrentPath / filepath.stem()).string() + "(" + std::to_string(i++) + ").gtfont";
+	
+	std::time_t result = std::time(nullptr);
+	std::ofstream os(path, std::ios::binary);
+	os << "# Font for Green Tea Engine\n# Auto generated by Green Tea at " << std::asctime(std::localtime(&result)) << 6 << '\n' << gte::uuid::Create() << '\n' << out.size() << "\n\n";
+
+	os << out.c_str() << '\n';
+	os.write((char*)img.Data(), img.Size());
+	os.close();
+}
+
 void CreatePrefab(gte::Entity entity, const std::filesystem::path& dir)
 {
 	YAML::Emitter out;
@@ -668,6 +826,19 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "Thickness" << YAML::Value << circle.Thickness;
 		out << YAML::Key << "Fade" << YAML::Value << circle.Fade;
 		out << YAML::Key << "Visible" << YAML::Value << circle.Visible;
+		out << YAML::EndMap;
+	}
+
+	if (entity.HasComponent<TextRendererComponent>())
+	{
+		const auto& tc = entity.GetComponent<TextRendererComponent>();
+		out << YAML::Key << "TextRendererComponent";
+		out << YAML::BeginMap;
+		out << YAML::Key << "Text" << YAML::Value << tc.Text;
+		out << YAML::Key << "Color" << YAML::Value << tc.Color;
+		out << YAML::Key << "Font" << YAML::Value << tc.Font->ID.str();
+		out << YAML::Key << "Size" << YAML::Value << tc.Size;
+		out << YAML::Key << "Visible" << YAML::Value << tc.Visible;
 		out << YAML::EndMap;
 	}
 

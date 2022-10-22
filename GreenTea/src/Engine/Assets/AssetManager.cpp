@@ -1,11 +1,12 @@
 #include "AssetManager.h"
+#include "Font.h"
 
 #include <Engine/Core/Context.h>
 #include <Engine/GPU/Texture.h>
 
 namespace gte {
 
-	[[nodiscard]] Ref<Asset> AssetManager::RequestAsset(const uuid& id)
+	[[nodiscard]] Ref<Asset> AssetManager::RequestAsset(const uuid& id, bool enforceRAM)
 	{
 		if (!internal::GetContext()->AssetWatcher.Exists(id))//No asset with such ID exists
 			return CreateRef<Asset>();
@@ -15,6 +16,9 @@ namespace gte {
 		if (filepath.extension() == ".gtimg")//GPU Assets
 			return RequestTexture(id);
 		
+		if (filepath.extension() == ".gtfont")
+			return RequestFont(id, enforceRAM);
+
 		Ref<Asset> asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
 		mMapMutex.lock();
 		if (mRAM.find(id) != mRAM.end())//Already record on map (might still loading)
@@ -22,14 +26,7 @@ namespace gte {
 		else//Must load from disk
 		{
 			mRAM.insert({ id, CreateRef<Asset>(nullptr, id, AssetType::LOADING) });
-			//Asynchronous loading
-			std::thread handle = std::thread([&](uuid key, std::string filepath) {
-				Asset raw = internal::Load(filepath);
-				mMapMutex.lock();
-				mRAM.at(key) = CreateRef<Asset>(raw);
-				mMapMutex.unlock();
-			}, id, filepath.string());
-			handle.detach();
+			LoadFromDisk(id, filepath.string());
 			asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
 		}
 		mMapMutex.unlock();
@@ -50,10 +47,9 @@ namespace gte {
 		{
 			if (mRAM.at(id)->Type == AssetType::LOADING)//Still loading asset
 				asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
-			if (mRAM.at(id)->Type == AssetType::IMAGE)
+			else if (mRAM.at(id)->Type == AssetType::IMAGE)
 			{
 				Image* img = (Image*)mRAM.at(id)->Data;
-				//img->Save("Test.png");
 				GPU::Texture2D* texture = GPU::Texture2D::Create(*img);
 				asset = CreateRef<Asset>(texture, id, AssetType::TEXTURE, img->Size());
 				mVRAM.insert({ id, asset });
@@ -63,18 +59,57 @@ namespace gte {
 		{
 			mRAM.insert({ id, CreateRef<Asset>(nullptr, id, AssetType::LOADING) });
 			std::string filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
-			//Asynchronous loading
-			std::thread handle = std::thread([&](uuid key, std::string filepath) {
-				Asset raw = internal::Load(filepath);
-				mMapMutex.lock();
-				mRAM.at(key) = CreateRef<Asset>(raw);
-				mMapMutex.unlock();
-			}, id, filepath);
-			handle.detach();
+			LoadFromDisk(id, filepath);
 			asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
 		}
 		mMapMutex.unlock();
 		return asset;
+	}
+
+	[[nodiscard]] Ref<Asset> AssetManager::RequestFont(const uuid& id, bool enforcedRAM)
+	{
+		Ref<Asset> asset = CreateRef<Asset>(nullptr, id, AssetType::INVALID);
+		mMapMutex.lock();
+		if (mVRAM.find(id) != mVRAM.end() && !enforcedRAM)//Already in GPU
+		{
+			if (mVRAM.at(id)->Type == AssetType::TEXTURE)
+				asset = mVRAM.at(id);
+		}
+		else if (mRAM.find(id) != mRAM.end())//Cached on RAM
+		{
+			if (mRAM.at(id)->Type == AssetType::LOADING)//Still loading asset
+				asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
+			else if (mRAM.at(id)->Type == AssetType::FONT && enforcedRAM)
+				asset = mRAM.at(id);
+			else if (mRAM.at(id)->Type == AssetType::FONT)
+			{
+				internal::Font* font = (internal::Font*)mRAM.at(id)->Data;
+				GPU::Texture2D* texture = GPU::Texture2D::Create(font->GetAtlas(), gte::ImageFormat::Font);
+				asset = CreateRef<Asset>(texture, id, AssetType::TEXTURE, font->GetAtlas().Size());
+				mVRAM.insert({ id, asset });
+			}
+		}
+		else
+		{
+			mRAM.insert({ id, CreateRef<Asset>(nullptr, id, AssetType::LOADING) });
+			std::string filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
+			LoadFromDisk(id, filepath);
+			asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
+		}
+		mMapMutex.unlock();
+		return asset;
+	}
+
+	void AssetManager::LoadFromDisk(const uuid& id, const std::string& filepath)
+	{
+		//Asynchronous loading
+		std::thread handle = std::thread([&](uuid key, std::string filepath) {
+			Asset raw = internal::Load(filepath);
+			mMapMutex.lock();
+			mRAM.at(key) = CreateRef<Asset>(raw);
+			mMapMutex.unlock();
+			}, id, filepath);
+		handle.detach();
 	}
 
 	void AssetManager::Clear(void)

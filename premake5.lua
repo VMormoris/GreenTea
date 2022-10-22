@@ -26,6 +26,8 @@ IncludeDirs["box2d"]="3rdParty/box2d/include"
 IncludeDirs["ImGuizmo"]="3rdParty/ImGuizmo"
 IncludeDirs["libsndfile"]="3rdParty/libsndfile/include"
 IncludeDirs["openal"]="3rdParty/openal-soft/include"
+IncludeDirs["msdfgen"]="3rdParty/msdf-atlas-gen/msdfgen"
+IncludeDirs["msdfatlasgen"]="3rdParty/msdf-atlas-gen"
 
 LibFiles={}
 LibFiles["GLFW"]="3rdParty/glfw/libs/SDL2.lib"
@@ -36,6 +38,8 @@ include "3rdParty/glad"
 include "3rdParty/yaml-cpp"
 include "3rdParty/glfw"
 include "3rdParty/libsndfile"
+include "3rdParty/msdf-atlas-gen/msdfgen"
+include "3rdParty/msdf-atlas-gen"
 
 project "GreenTea"
 	location "GreenTea"
@@ -171,6 +175,8 @@ project "CupOfTea"
 		"%{IncludeDirs.IconHeader}",
 		"%{IncludeDirs.ImGuizmo}",
 		"%{IncludeDirs.libsndfile}",
+		"%{IncludeDirs.msdfatlasgen}",
+		"%{IncludeDirs.msdfgen}",
 		"%{IncludeDirs.openal}",
 	}
 
@@ -180,6 +186,9 @@ project "CupOfTea"
 		"ImGui",
 		"yaml-cpp",
 		"libsndfile",
+		"freetype",
+		"msdfgen",
+		"msdf-atlas-gen",
 		"opengl32.lib",
 	}
 

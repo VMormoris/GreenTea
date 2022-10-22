@@ -13,6 +13,7 @@
   * _[IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) For using Icon fonts._
   * _[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) Is used for Guizmo controls._
   * _[libsndfile](https://github.com/libsndfile/libsndfile) For reading audio files._
+  * _[msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) For generating atlases for font._
   * _[openal-soft](https://github.com/kcat/openal-soft) For playing back audio._
   * _[premake5](https://github.com/premake/premake-core) Is used for project generation both by the engine as well it's projects._
   * _[stb](https://github.com/nothings/stb) Is used for reading image files._

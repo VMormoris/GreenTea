@@ -192,6 +192,12 @@ namespace gte {
 	{
 		if (!entity)
 			return;
+
+		if (!entity.HasComponent<TagComponent>())
+		{
+			mSelectionContext = {};
+			return;
+		}
 		static bool sTagEdit = false;
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -214,7 +220,7 @@ namespace gte {
 			constexpr char biggest[] = "Circle Collider Component";
 			if (!entity.HasComponent<Transform2DComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_CUBE, "Trasnform 2D Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_CUBE, "Trasnform 2D Component", nullptr, biggest))
 				{
 					entity.AddComponent<Transform2DComponent>();
 					gte::internal::GetContext()->ActiveScene->UpdateTransform(entity);
@@ -223,21 +229,29 @@ namespace gte {
 			}
 			if (!entity.HasComponent<SpriteRendererComponent>() && !entity.HasComponent<CircleRendererComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_PICTURE_O, "Sprite Renderer Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_PICTURE_O, "Sprite Renderer Component", nullptr, biggest))
 				{
 					entity.AddComponent<SpriteRendererComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 
-				if (gui::DrawMenuItem(ICON_FK_CIRCLE, "Circle Renderer Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_CIRCLE, "Circle Renderer Component", nullptr, biggest))
 				{
 					entity.AddComponent<CircleRendererComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			if (!entity.HasComponent<TextRendererComponent>())
+			{
+				if (gui::DrawMenuItem(ICON_FK_FONT, "Text Renderer Component", nullptr, biggest))
+				{
+					entity.AddComponent<TextRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!entity.HasComponent<CameraComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_CAMERA_RETRO, "Camera Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_CAMERA_RETRO, "Camera Component", nullptr, biggest))
 				{
 					auto& cam = entity.AddComponent<CameraComponent>();
 					const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
@@ -257,7 +271,7 @@ namespace gte {
 			}
 			if (!entity.HasComponent<Rigidbody2DComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_SKATE, "Rigidbody 2D Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_SKATE, "Rigidbody 2D Component", nullptr, biggest))
 				{
 					entity.AddComponent<Rigidbody2DComponent>();
 					ImGui::CloseCurrentPopup();
@@ -265,13 +279,13 @@ namespace gte {
 			}
 			if (!entity.HasComponent<BoxColliderComponent>() && !entity.HasComponent<CircleColliderComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_SQUARE_O, "Box Collider Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_SQUARE_O, "Box Collider Component", nullptr, biggest))
 				{
 					entity.AddComponent<BoxColliderComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 
-				if (gui::DrawMenuItem(ICON_FK_CIRCLE_O, "Circle Collider Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_CIRCLE_O, "Circle Collider Component", nullptr, biggest))
 				{
 					entity.AddComponent<CircleColliderComponent>();
 					ImGui::CloseCurrentPopup();
@@ -279,7 +293,7 @@ namespace gte {
 			}
 			if (!entity.HasComponent<SpeakerComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_VOLUME_UP, "Speaker Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_VOLUME_UP, "Speaker Component", nullptr, biggest))
 				{
 					entity.AddComponent<SpeakerComponent>();
 					ImGui::CloseCurrentPopup();
@@ -287,7 +301,7 @@ namespace gte {
 			}
 			if (!entity.HasComponent<ParticleSystemComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_SPINNER, "Particle System Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_SPINNER, "Particle System Component", nullptr, biggest))
 				{
 					entity.AddComponent<ParticleSystemComponent>();
 					ImGui::CloseCurrentPopup();
@@ -295,7 +309,7 @@ namespace gte {
 			}
 			if (!entity.HasComponent<NativeScriptComponent>())
 			{
-				if (gui::DrawMenuItem(ICON_FK_CODE, "Native Script Component", "", biggest))
+				if (gui::DrawMenuItem(ICON_FK_CODE, "Native Script Component", nullptr, biggest))
 				{
 					entity.AddComponent<NativeScriptComponent>();
 					ImGui::CloseCurrentPopup();
@@ -428,19 +442,19 @@ namespace gte {
 			gui::DrawComponent<SpriteRendererComponent>(ICON_FK_PICTURE_O, "Sprite Renderer Component", entity, [](auto& sprite) {
 				gui::UISettings settings;
 				uuid id = sprite.Texture->ID;
-				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to\n open the object picker window, and select from the list of available Sprite Assets or drag \n and drop them here from the Assets window."))
+				if (gui::DrawAssetControl("Texture", id, ".gtimg", settings,"Define which Sprite texture the component should render. Click the small dot to the right to\nopen the object picker window, and select from the list of available Sprite Assets or drag \nand drop them here from the Assets window."))
 					sprite.Texture = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.ResetValue = 1.0f;
-				gui::DrawColorPicker("Tint Color", sprite.Color, settings, "Define the vertex color of the Sprite, which tints or recolors the Sprite's image.\n Use the color picker to set the vertex color of the rendered Sprite texture.");
+				gui::DrawColorPicker("Tint Color", sprite.Color, settings, "Define the vertex color of the Sprite, which tints or recolors the Sprite's image.\nUse the color picker to set the vertex color of the rendered Sprite texture.");
 				if (sprite.Texture->Type == AssetType::TEXTURE)
 				{
 					GPU::Texture* texture = (GPU::Texture*)sprite.Texture->Data;
 					settings.MinFloat = 1.0f;
 					settings.MaxFloat = FLT_MAX;
-					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings, "Define the number of times the chosen Sprite texture tiles in the entity.\n E.g. Tiling Factor of 3 fills the Entity with 3x3 instances of the chosen Sprite texture");
+					gui::DrawFloatControl("Tiling Factor", sprite.TilingFactor, settings, "Define the number of times the chosen Sprite texture tiles in the entity.\nE.g. Tiling Factor of 3 fills the Entity with 3x3 instances of the chosen Sprite texture");
 					gui::DrawVec2BoolControl("Flip", sprite.FlipX, sprite.FlipY, settings, "Flips the Sprite texture along the checked axis. This does not flip the Transform position of the Entity");
 				}
-				gui::DrawBoolControl("Visible", sprite.Visible, settings, "If checked Sprite is visible");
+				gui::DrawBoolControl("Visible", sprite.Visible, settings, "If checked the component will be rendered.");
 				if(sprite.Texture->Type == AssetType::TEXTURE)
 				{
 					GPU::Texture* texture = (GPU::Texture*)sprite.Texture->Data;
@@ -461,10 +475,28 @@ namespace gte {
 				settings.ResetValue = 1.0f;
 				gui::DrawColorPicker("Color", circle.Color, settings,"Use the color picker to set the vertex color of the rendered Circlular Component.");
 				settings.MaxFloat = 1.0f;
-				gui::DrawFloatControl("Thickness", circle.Thickness, settings, "Define the area percentage of the Circlular Component to render.E.g. Value of '0.7' will\n render 70 percent of the area starting from the perimeter. Max value: 1.0");
+				gui::DrawFloatControl("Thickness", circle.Thickness, settings, "Define the area percentage of the Circlular Component to render.E.g. Value of '0.7' will\nrender 70% of the area starting from the perimeter. Max value: 1.0");
 				settings.MaxFloat = FLT_MAX;
 				gui::DrawFloatControl("Fade", circle.Fade, settings,"The color faints with bigger values.");
-				gui::DrawBoolControl("Visible", circle.Visible, settings, "If checked Render is visible.");
+				gui::DrawBoolControl("Visible", circle.Visible, settings, "If checked the component will be rendered.");
+			});
+		}
+
+		if (entity.HasComponent<TextRendererComponent>())
+		{
+			gui::DrawComponent<TextRendererComponent>(ICON_FK_FONT, "Text Renderer Component", entity, [](auto& tc) {
+				gui::UISettings settings;
+				settings.Length = 64;
+				gui::DrawMultilineStringControl("Text String", tc.Text, settings, "Enter text that will be drawn on the screen (Maximum size 1 MiB).");
+				settings.ResetValue = 1.0f;
+				gui::DrawColorPicker("Color", tc.Color, settings, "Use the color picker to set the vertex color of the rendered Circlular Component.");
+				gte::uuid id = tc.Font->ID;
+				if (gui::DrawAssetControl("Font", id, ".gtfont", settings, "Define which Font the component should render. Click the small dot to the right to\nopen the object picker window, and select from the list of available Sprite Assets or drag \nand drop them here from the Assets window."))
+					tc.Font = internal::GetContext()->AssetManager.RequestAsset(id);
+				settings.MinUint = 1; 
+				settings.MaxUint = std::numeric_limits<uint32>::max();
+				gui::DrawUint32Control("Font Size", tc.Size, settings, "Desired font size used for calculating screen pixel distance.\nDoesn't reload font or changes the size of text.");
+				gui::DrawBoolControl("Visible", tc.Visible, settings, "If checked the component will be rendered.");
 			});
 		}
 
@@ -486,7 +518,7 @@ namespace gte {
 				settings.MaxFloat = FLT_MAX;
 				if (cam.FixedAspectRatio)
 				{
-					if (gui::DrawFloatControl("Aspect Ratio", cam.AspectRatio, settings,"Define the Aspect Ratio of the camera"))
+					if (gui::DrawFloatControl("Aspect Ratio", cam.AspectRatio, settings, "Define the Aspect Ratio of the camera."))
 						changed = true;
 				}
 
@@ -553,7 +585,7 @@ namespace gte {
 				static constexpr char* typestr[3] = { "Static", "Dynamic", "Kinematic" };
 				gui::UISettings settings;
 				int32 index = static_cast<int32>(rb.Type);
-				if (gui::DrawComboControl("Body Type", index, typestr, 3, settings,"Set the RigidBody 2D's component settings, so that you can manipulate movement\n (position and rotation) behavior and Collider 2D interaction."))
+				if (gui::DrawComboControl("Body Type", index, typestr, 3, settings,"Set the RigidBody 2D's component settings, so that you can manipulate movement\n(position and rotation) behavior and Collider 2D interaction."))
 					rb.Type = static_cast<BodyType>(index);
 				gui::DrawVec2Control("Velocity", rb.Velocity, settings,"Set the starting velocity affecting the positional movement");
 				gui::DrawFloatControl("Ang. Velocity", rb.AngularVelocity, settings,"Set the angular velocity affecting the rotational movement");
@@ -602,7 +634,7 @@ namespace gte {
 			gui::DrawComponent<SpeakerComponent>(ICON_FK_VOLUME_UP, "Speaker Component", entity, [](auto& speaker) {
 				gui::UISettings settings;
 				uuid id = speaker.AudioClip->ID;
-				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Audio Assets or drag and drop \n them here from the Assets window."))
+				if (gui::DrawAssetControl("Audio Clip", id, ".gtaudio", settings, "Define which Audio Asset the component should use. Click the small dot to the right to open\nthe object picker window, and select from the list of available Audio Assets or drag and drop \nthem here from the Assets window."))
 					speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(id);
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
@@ -610,7 +642,7 @@ namespace gte {
 				gui::DrawFloatControl("Pitch", speaker.Pitch, settings, "Amount of change in pitch due to slowdown/speed up of the Audio Clip. Value 1 is normal playback speed.");
 				gui::DrawFloatControl("Roll off factor", speaker.RollOffFactor, settings, "How fast the sound fades. The higher the value, the closer the Listener has to be before hearing the sound.");
 				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings, "The distance under which the volume for the source would normally drop by half(before being influenced by rolloff factor).");
-				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings, "The distance where the sound stops attenuating at. Beyond this point it will stay at the\n volume it would be at MaxDistance units from the listener and will not attenuate any more.");
+				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings, "The distance where the sound stops attenuating at. Beyond this point it will stay at the\nvolume it would be at MaxDistance units from the listener and will not attenuate any more.");
 				gui::DrawBoolControl("Looping", speaker.Looping, settings, "If checked the Audio clip loops.");
 			});
 		}
@@ -621,7 +653,7 @@ namespace gte {
 				gui::UISettings settings;
 				uuid id = nc.ScriptAsset->ID;
 				nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
-				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open\n the object picker window, and select from the list of available Script Assets or drag and drop \n them here from the Assets window."))
+				if (gui::DrawAssetControl("Script", id, ".gtscript", settings, "Define which Script Asset the component should use. Click the small dot to the right to open\nthe object picker window, and select from the list of available Script Assets or drag and drop \nthem here from the Assets window."))
 				{
 					nc.Description = internal::NativeScript();
 					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);

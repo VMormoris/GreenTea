@@ -38,7 +38,7 @@ namespace gte {
 
 			UInt8,
 			UInt16,
-			UInt32
+			UInt32,
 		};
 
 		/**
@@ -78,7 +78,7 @@ namespace gte {
 			* @brief Loads the GPU with the data for the Image
 			* @param image Image containing the information for the texture
 			*/
-			virtual void SetData(const Image& image) noexcept = 0;
+			virtual void SetData(const Image& image, ImageFormat format = ImageFormat::Sprite) noexcept = 0;
 
 			/**
 			* @brief Binds texture to the specified texture slot
@@ -107,7 +107,7 @@ namespace gte {
 			* @param image Image containing the information for the texture
 			* @return A pointer to a Texture Object
 			*/
-			[[nodiscard]] static Texture2D* Create(const Image& image) noexcept;
+			[[nodiscard]] static Texture2D* Create(const Image& image, ImageFormat format = ImageFormat::Sprite) noexcept;
 
 			/**
 			* @brief Create a 2D Texture while loading it's content from a file

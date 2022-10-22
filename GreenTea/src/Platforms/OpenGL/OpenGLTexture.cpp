@@ -62,7 +62,7 @@ namespace gte::GPU::OpenGL {
 
 	}
 
-	void OpenGLTexture2D::SetData(const Image& image) noexcept
+	void OpenGLTexture2D::SetData(const Image& image, ImageFormat format) noexcept
 	{
 		uint32 texture_format;
 		mInternalFormat = image.GetBytePerPixel();
@@ -70,11 +70,11 @@ namespace gte::GPU::OpenGL {
 		{
 		case 4: // contains alpha channel
 			texture_format = GL_RGBA;
-			mInternalFormat = GL_RGBA8;
+			mInternalFormat = GL_RGBA;
 			break;
 		case 3: // no alpha channel
 			texture_format = GL_RGB;
-			mInternalFormat = GL_RGB8;
+			mInternalFormat = GL_RGB;
 			break;
 		case 1://Grey image
 			texture_format = GL_RED;
@@ -104,14 +104,25 @@ namespace gte::GPU::OpenGL {
 		//memcpy(data, image.Data(), image.Size());
 		glGenTextures(1, &mID);
 		glBindTexture(GL_TEXTURE_2D, mID);
+		if (image.GetBytePerPixel() == 3 || image.GetBytePerPixel() == 1)
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, image.Data());
 		//delete[] data;
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
+		if (format == ImageFormat::Sprite)
+		{
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		else if(format == ImageFormat::Font)
+		{
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
 		//if (mhasMipmaps)
 		//{
 		//	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -129,6 +140,6 @@ namespace gte::GPU::OpenGL {
 		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, data);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const Image& image) noexcept { SetData(image); }
+	OpenGLTexture2D::OpenGLTexture2D(const Image& image, ImageFormat format) noexcept { SetData(image, format); }
 
 }

@@ -5,6 +5,13 @@
 
 namespace gte {
 
+	/// @brief Enumaration for different kind of Images
+	enum class ENGINE_API ImageFormat : byte {
+		Invalid = 0,
+		Sprite,
+		Font
+	};
+
 	/**
 	* @brief Class for an Image representation
 	* @warning Saving an image will always result to a .png format
@@ -69,7 +76,9 @@ namespace gte {
 		* @param filepath File from where the image should be loaded
 		*/
 		void Load(const char* filepath);
-		void Load(const byte* buffer, size_t length);
+		void Load(const byte* buffer);
+		void Load(const byte* buffer, uint32 width, uint32 height, int32 bpp);
+
 		void Save(const char* filepath);
 
 		[[nodiscard]] int32 GetBytePerPixel(void) const noexcept;
@@ -98,7 +107,7 @@ namespace gte {
 		/**
 		* @brief Actual Image buffer
 		*/
-		void* mBuffer = nullptr;
+		byte* mBuffer = nullptr;
 	};
 
 }

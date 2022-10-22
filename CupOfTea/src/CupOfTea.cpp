@@ -248,13 +248,13 @@ void CupOfTea::RenderGUI(void)
 			const char biggest[] = "Save Scene As...Ctrl+Shift+N";
 			if (gte::gui::DrawMenuItem(ICON_FK_CUBES, "New Scene", "Ctrl+N", biggest))
 				NewScene();
-			if (gte::gui::DrawMenuItem(ICON_FK_BOOK, "New Project", "Ctrl+Shift+N", biggest))
-			{
-			}
-			if (gte::gui::DrawMenuItem(ICON_FK_FOLDER_OPEN, "Open Project...", "Ctrl+O", biggest))
-			{
-				
-			}
+			//if (gte::gui::DrawMenuItem(ICON_FK_BOOK, "New Project", "Ctrl+Shift+N", biggest))
+			//{
+			//}
+			//if (gte::gui::DrawMenuItem(ICON_FK_FOLDER_OPEN, "Open Project...", "Ctrl+O", biggest))
+			//{
+			//	
+			//}
 			if (gte::gui::DrawMenuItem(ICON_FK_FLOPPY_O, "Save Scene", "Ctrl+S", biggest))
 				SaveScene();
 			if (gte::gui::DrawMenuItem(ICON_FK_FILE, "Save Scene As...", "Ctrl+Shift+S", biggest))
@@ -399,7 +399,7 @@ void CupOfTea::RenderGUI(void)
 
 	if (mPanels[5])
 	{
-		if (ImGui::Begin("About##popup", &mPanels[5], ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
+		if (ImGui::Begin("About##popup", &mPanels[5], ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize))
 		{
 			ImGui::TextWrapped("GreenTea is 2D Game Engine that is heavily inspired by Cherno's Game Engine Series. The engine is currently only being developed by me, on my free time, with the only purpose of helping me understand better how game engines as well as game development works.\n\n");
 			ImGui::PushFont(BoldFont);
@@ -414,6 +414,7 @@ void CupOfTea::RenderGUI(void)
 			ImGui::BulletText("IconFontCppHeaders");
 			ImGui::BulletText("ImGuizmo");
 			ImGui::BulletText("libsndfile");
+			ImGui::BulletText("msdf-atlas-gen");
 			ImGui::BulletText("openal-soft");
 			ImGui::BulletText("premake5");
 			ImGui::BulletText("stb");

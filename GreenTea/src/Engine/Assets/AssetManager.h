@@ -16,7 +16,7 @@ namespace gte {
 		* @brief Request an Asset using and id
 		* @param id Identifier for the Asset
 		*/
-		[[nodiscard]] Ref<Asset> RequestAsset(const uuid& id);
+		[[nodiscard]] Ref<Asset> RequestAsset(const uuid& id, bool enforceRAM = false);
 
 		/**
 		* @brief Deletes every Asset on the AssetManager
@@ -36,6 +36,8 @@ namespace gte {
 	private:
 
 		[[nodiscard]] Ref<Asset> RequestTexture(const uuid& id);
+		[[nodiscard]] Ref<Asset> RequestFont(const uuid& id, bool enforceRAM);
+		void LoadFromDisk(const uuid& id, const std::string& filepath);
 
 	private:
 		//std::unordered_map<uuid, 

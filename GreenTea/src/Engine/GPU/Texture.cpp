@@ -18,11 +18,11 @@ namespace gte::GPU {
 		}
 	}
 
-	[[nodiscard]] Texture2D* Texture2D::Create(const Image& image) noexcept
+	[[nodiscard]] Texture2D* Texture2D::Create(const Image& image, ImageFormat format) noexcept
 	{
 		switch (GraphicsContext::GetAPI())
 		{
-		case GraphicsAPI::OpenGL: return new OpenGL::OpenGLTexture2D(image);
+		case GraphicsAPI::OpenGL: return new OpenGL::OpenGLTexture2D(image, format);
 		default:
 			ENGINE_ASSERT(false, "Only OpenGL is currently supported!");
 			return nullptr;

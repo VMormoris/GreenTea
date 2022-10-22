@@ -21,14 +21,10 @@ namespace gte {
 		//Script written in C++
 		NATIVE_SCRIPT = 4,
 
-		//An Asset for tha raw Font file on RAM
-		FONT = 5,
+		//An Asset containing all Font data on RAM
+		FONT = 6,
 		//An Asset for Texture Atlas of the font
-		//	with specific size on RAM
-		FONT_IMAGE = 6,
-		//An Asset for Texture Atlas of the font
-		// with specific size on GPU memory
-		FONT_TEXTURE = 7,
+		//FONT_TEXTURE = 7,
 
 		//A audio file asset
 		AUDIO = 8,
@@ -39,7 +35,8 @@ namespace gte {
 		//Scene Description
 		SCENE = 10,
 
-		PREFAB = 11
+		PREFAB = 11,
+		SHADER = 12
 	};
 
 	struct ENGINE_API Asset {

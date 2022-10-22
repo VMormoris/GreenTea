@@ -185,6 +185,16 @@ namespace gte {
 			}
 		}
 
+		auto texts = mReg.view<TransformationComponent, TextRendererComponent>();
+		for (auto&& [entityID, tc, text] : texts.each())
+		{
+			text.Font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID);
+			if (text.Font->Type != AssetType::TEXTURE || !text.Visible)
+				continue;
+			Ref<Asset> font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID, true);
+			Renderer2D::DrawString(text.Text, tc, text.Size, (GPU::Texture*)text.Font->Data, (internal::Font*)font->Data, text.Color);
+		}
+		
 		Renderer2D::EndScene();
 		if (useLock)
 			mRegMutex.unlock();
@@ -300,6 +310,17 @@ namespace gte {
 				circle.Thickness = circleRenderable["Thickness"].as<float>();
 				circle.Fade = circleRenderable["Fade"].as<float>();
 				circle.Visible = circleRenderable["Visible"].as<bool>();
+			}
+
+			const auto& textRenderer = entityNode["TextRendererComponent"];
+			if (textRenderer)
+			{
+				auto& tc = entity.AddComponent<TextRendererComponent>();
+				tc.Text = textRenderer["Text"].as<std::string>();
+				tc.Color = textRenderer["Color"].as<glm::vec4>();
+				tc.Font->ID = textRenderer["Font"].as<std::string>();
+				tc.Size = textRenderer["Size"].as<uint32>();
+				tc.Visible = textRenderer["Visible"].as<bool>();
 			}
 
 			const auto& camera = entityNode["CameraComponent"];
@@ -742,7 +763,8 @@ namespace gte {
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = toMove;
 
-		UpdateTransform(toMove, false);
+		if(toMove.HasComponent<Transform2DComponent>())
+			UpdateTransform(toMove, false);
 	}
 
 	Entity Scene::Clone(Entity toClone, bool recursive)

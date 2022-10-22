@@ -35,10 +35,19 @@ namespace gte {
 		float IsCircle;
 	};
 
-	struct LineVertex
+	struct LineData
 	{
 		glm::vec3 Position;
 		glm::vec4 Color;
+	};
+
+	struct CharData
+	{
+		glm::vec3 Position;
+		glm::vec4 Color;
+		glm::vec2 TextCoord;
+		float TextID;
+		float ScreenPxRange;
 	};
 
 
@@ -65,14 +74,25 @@ namespace gte {
 		GPU::Shader* LineShader = nullptr;
 
 		uint32 LineVertexCount = 0;
-		LineVertex* LineVertexBufferBase = nullptr;
-		LineVertex* LineVertexBufferPtr = nullptr;
+		LineData* LineVertexBufferBase = nullptr;
+		LineData* LineVertexBufferPtr = nullptr;
 
 		float LineThickness = 2.0f;
 
+		GPU::VertexArray* CharVA = nullptr;
+		GPU::VertexBuffer* CharVB = nullptr;
+		GPU::IndexBuffer* CharIB = nullptr;
+		GPU::Shader* TextShader = nullptr;
+
+		uint32 CharIndexCount = 0;
+		CharData* CharVertexBufferBase = nullptr;
+		CharData* CharVertexBufferPtr = nullptr;
+
 		glm::vec4 QuadVertexPositions[4];
 		std::array<const GPU::Texture*, MaxTextureSlots> TextureSlots;
+		std::array<const GPU::Texture*, MaxTextureSlots> FontTextureSlots;
 		uint32 TextureSlotIndex = 1;
+		uint32 FontTextureSlotIndex = 1;
 	};
 
 	static Render2DData sData;
@@ -80,7 +100,6 @@ namespace gte {
 	void Renderer2D::Init(void)
 	{
 		sData.QuadVA = GPU::VertexArray::Create();
-
 		sData.QuadVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(BufferData));
 		sData.QuadVB->SetLayout
 		(
@@ -95,6 +114,20 @@ namespace gte {
 			}
 		);
 		sData.QuadVA->AddVertexBuffer(sData.QuadVB);
+
+		sData.CharVA = GPU::VertexArray::Create();
+		sData.CharVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(BufferData));
+		sData.CharVB->SetLayout
+		(
+			{
+				{ GPU::ShaderDataType::Vec3, "_position" },
+				{ GPU::ShaderDataType::Vec4, "_color" },
+				{ GPU::ShaderDataType::Vec2, "_textCoords" },
+				{ GPU::ShaderDataType::Float, "_textID" },
+				{ GPU::ShaderDataType::Float, "_screenPxRange" },
+			}
+		);
+		sData.CharVA->AddVertexBuffer(sData.CharVB);
 
 		uint32* quadIndices = new uint32[sData.MaxIndices];
 		uint32 offset = 0;
@@ -112,11 +145,13 @@ namespace gte {
 		}
 		sData.QuadIB = GPU::IndexBuffer::Create(quadIndices, sData.MaxIndices);
 		sData.QuadVA->SetIndexBuffer(sData.QuadIB);
+
+		sData.CharIB = GPU::IndexBuffer::Create(quadIndices, sData.MaxIndices);
+		sData.CharVA->SetIndexBuffer(sData.CharIB);
 		delete[] quadIndices;
 
 		sData.LineVA = GPU::VertexArray::Create();
-
-		sData.LineVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(LineVertex));
+		sData.LineVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(LineData));
 		sData.LineVB->SetLayout
 		(
 			{
@@ -130,15 +165,21 @@ namespace gte {
 		uint32 WhiteColor = 0xFFFFFFFF;
 		sData.WhiteTexture->SetData(&WhiteColor, sizeof(uint32));
 
+		int32 samplers[sData.MaxTextureSlots];
+		for (uint32 i = 0; i < sData.MaxTextureSlots; i++)
+			samplers[i] = i;
+
 		sData.Shader2D = GPU::Shader::Create("../Assets/Shaders/Shader2D.glsl");
 		sData.Shader2D->Bind();
 		sData.Shader2D->AddUniform("u_eyeMatrix");
 		sData.Shader2D->AddUniform("u_Textures");
-
-		int32 samplers[sData.MaxTextureSlots];
-		for (uint32 i = 0; i < sData.MaxTextureSlots; i++)
-			samplers[i] = i;
 		sData.Shader2D->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
+
+		sData.TextShader = GPU::Shader::Create("../Assets/Shaders/TextShader.glsl");
+		sData.TextShader->Bind();
+		sData.TextShader->AddUniform("u_eyeMatrix");
+		sData.TextShader->AddUniform("u_Textures");
+		sData.TextShader->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
 
 		sData.LineShader = GPU::Shader::Create("../Assets/Shaders/LineShader.glsl");
 		sData.LineShader->Bind();
@@ -153,7 +194,8 @@ namespace gte {
 		sData.QuadVertexPositions[3] = glm::vec4(-0.5, 0.5f, 0.0f, 1.0f);
 
 		sData.QuadVertexBufferBase = new BufferData[sData.MaxVertices];
-		sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
+		sData.LineVertexBufferBase = new LineData[sData.MaxVertices];
+		sData.CharVertexBufferBase = new CharData[sData.MaxVertices];
 	}
 
 	void Renderer2D::BeginScene(const glm::mat4& eyematrix)
@@ -161,9 +203,14 @@ namespace gte {
 		sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
 		sData.TextureSlotIndex = 1;
 		sData.QuadIndexCount = 0;
-
 		sData.Shader2D->Bind();
 		sData.Shader2D->SetUniform("u_eyeMatrix", eyematrix);
+
+		sData.CharVertexBufferPtr = sData.CharVertexBufferBase;
+		sData.FontTextureSlotIndex = 0;
+		sData.CharIndexCount = 0;
+		sData.TextShader->Bind();
+		sData.TextShader->SetUniform("u_eyeMatrix", eyematrix);
 
 		sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
 		sData.LineVertexCount = 0;
@@ -188,6 +235,22 @@ namespace gte {
 			sData.QuadIndexCount = 0;
 			sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
 			sData.TextureSlotIndex = 1;
+		}
+
+		if (sData.CharIndexCount)
+		{
+			size_t dataSize = (byte*)sData.CharVertexBufferPtr - (byte*)sData.CharVertexBufferBase;
+			sData.CharVB->FillBuffer(sData.CharVertexBufferBase, dataSize);
+
+			for (uint32 i = 0; i < sData.FontTextureSlotIndex; i++)
+				sData.FontTextureSlots[i]->Bind(i);
+
+			sData.TextShader->Bind();
+			RenderCommand::DrawIndexed(sData.CharVA, sData.CharIndexCount);
+
+			sData.CharIndexCount = 0;
+			sData.CharVertexBufferPtr = sData.CharVertexBufferBase;
+			sData.FontTextureSlotIndex = 0;
 		}
 
 		if (sData.LineVertexCount)
@@ -360,12 +423,95 @@ namespace gte {
 		DrawLine(lineVertices[3], lineVertices[0], color);
 	}
 
+	void Renderer2D::DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, const glm::vec4& color)
+	{
+		const float screenPxRange = size / 32.0f * 2.0f;
+		if (sData.CharIndexCount >= sData.MaxIndices)
+			Flush();
+		float textureIndex = -1.0f;
+		for (size_t i = 1; i < sData.FontTextureSlotIndex; i++)
+		{
+			if (sData.FontTextureSlots[i] == atlas)
+			{
+				textureIndex = static_cast<float>(i);
+				break;
+			}
+		}
+
+		if (textureIndex == -1.0f)
+		{
+			if (sData.FontTextureSlotIndex >= Render2DData::MaxTextureSlots)
+				Flush();
+			textureIndex = static_cast<float>(sData.FontTextureSlotIndex);
+			sData.FontTextureSlots[sData.FontTextureSlotIndex] = atlas;
+			sData.FontTextureSlotIndex++;
+		}
+
+		float cursorPos = 0.0f;
+		uint32 prevChar = 0;
+		size_t col = 0;
+		float line = 0.0f;
+		for (const char& c : text)
+		{
+			uint32 unicode = static_cast<uint32>(c);
+			const glm::vec4 uv = font->GetUV(unicode);
+			const glm::vec4 localPos = font->GetQuad(unicode, prevChar);
+			
+			if (c == '\n')
+			{
+				col = 0;
+				cursorPos = 0.0f;
+				line++;
+			}
+			else if (c == '\r')
+			{
+				col = 0;
+				cursorPos = 0.0f;
+			}
+			else if (c == '\t')
+			{
+				prevChar = 0;
+				uint32 remaining = 4 - (col % 4);
+				col += remaining;
+				cursorPos += remaining * font->GetAdvance((uint32)' ');
+			}
+			else
+			{
+				const std::array<glm::vec2, 4> positions = { glm::vec2{localPos.x, localPos.y - line},  glm::vec2{localPos.z, localPos.y - line}, glm::vec2{localPos.z, localPos.w - line}, glm::vec2{localPos.x, localPos.w - line} };
+				const std::array<glm::vec2, 4> coords = { glm::vec2{uv.x, uv.y}, glm::vec2{uv.z, uv.y}, glm::vec2{uv.z, uv.w}, glm::vec2{uv.x, uv.w} };
+				for (size_t i = 0; i < 4; i++)
+				{
+					glm::vec3 pos = glm::vec3{ positions[i], 0.0f };
+					pos.x += cursorPos;
+					sData.CharVertexBufferPtr->Position = transformation * glm::vec4{ pos, 1.0f };
+					sData.CharVertexBufferPtr->Color = color;
+					sData.CharVertexBufferPtr->TextCoord = coords[i];
+					sData.CharVertexBufferPtr->TextID = textureIndex;
+					sData.CharVertexBufferPtr->ScreenPxRange = screenPxRange;
+					sData.CharVertexBufferPtr++;
+				}
+
+				sData.CharIndexCount += 6;
+				prevChar = unicode;
+				cursorPos += font->GetAdvance(unicode);
+				col++;
+			}
+			
+		}
+	}
+
 	void Renderer2D::Shutdown(void)
 	{
 		delete[] sData.LineVertexBufferBase;
 		delete sData.LineShader;
 		delete sData.LineVB;
 		delete sData.LineVA;
+
+		delete[] sData.CharVertexBufferBase;
+		delete sData.TextShader;
+		delete sData.CharIB;
+		delete sData.CharVB;
+		delete sData.CharVA;
 
 		delete[] sData.QuadVertexBufferBase;
 		delete sData.Shader2D;

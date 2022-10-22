@@ -125,6 +125,18 @@ namespace gte {
 		CircleRendererComponent(const CircleRendererComponent&) = default;
 	};
 
+	struct ENGINE_API TextRendererComponent {
+		std::string Text = "";
+		glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Ref<Asset> Font = CreateRef<Asset>();
+		uint32 Size = 32;
+
+		bool Visible = true;
+
+		TextRendererComponent(void) = default;
+		TextRendererComponent(const TextRendererComponent&) = default;
+	};
+
 	struct ENGINE_API OrthographicCameraComponent {
 		float ZoomLevel = 1.0f;
 		float VerticalBoundary = 4.5f;
@@ -275,5 +287,5 @@ namespace gte {
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent>;
+	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent>;
 }

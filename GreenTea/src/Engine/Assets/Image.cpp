@@ -11,7 +11,7 @@ namespace gte {
 	Image::Image(uint32 width, uint32 height, int32 bpp) noexcept
 		: mWidth(width), mHeight(height), mbpp(bpp)
 	{
-		mBuffer = ::operator new(Size());
+		mBuffer = (byte*) ::operator new(Size());
 	}
 
 	Image::~Image(void) noexcept
@@ -23,7 +23,7 @@ namespace gte {
 	Image::Image(const Image& other) noexcept
 		: mWidth(other.mWidth), mHeight(other.mHeight), mbpp(other.mbpp)
 	{
-		mBuffer = ::operator new(Size());
+		mBuffer = (byte*) ::operator new(Size());
 		memcpy(mBuffer, other.mBuffer, Size());
 	}
 
@@ -47,7 +47,7 @@ namespace gte {
 			mHeight = rhs.mHeight;
 			mbpp = rhs.mbpp;
 
-			mBuffer = ::operator new(Size());
+			mBuffer = (byte*) ::operator new(Size());
 			memcpy(mBuffer, rhs.mBuffer, Size());
 		}
 		return *this;
@@ -90,20 +90,42 @@ namespace gte {
 		mHeight = height;
 		mbpp = channels;
 
-		mBuffer = ::operator new(Size());
+		mBuffer = (byte*) ::operator new(Size());
 		memcpy(mBuffer, tbuffer, Size());
+		int result = memcmp(mBuffer, tbuffer, Size());
 		stbi_image_free(tbuffer);
 	}
 
-	void Image::Load(const byte* buffer, size_t length)
+	void Image::Load(const byte* buffer)
 	{
 		if (mBuffer) ::operator delete(mBuffer, Size());
 		mWidth = *(uint32*)buffer;
 		mHeight = *(uint32*)(buffer + 4);
 		mbpp = *(int32*)(buffer + 8);
 		
-		mBuffer = ::operator new(Size());
+		mBuffer = (byte*) ::operator new(Size());
 		memcpy(mBuffer, buffer + 12, Size());
+	}
+
+	void Image::Load(const byte* buffer, uint32 width, uint32 height, int32 bpp)
+	{
+		if (mBuffer) ::operator delete(mBuffer, Size());
+
+		mWidth = width;
+		mHeight = height;
+		mbpp = bpp;
+		mBuffer = (byte*) ::operator new(Size());
+
+		memcpy(mBuffer, buffer, Size());
+		// flip image
+		//const size_t row_size = (size_t)mWidth * GetBytePerPixel() * sizeof(byte);
+		//for (uint32 y = 0; y < mHeight; y++)
+		//	memcpy
+		//	(
+		//		&mBuffer[(mHeight - y - 1) * mWidth * GetBytePerPixel()],
+		//		&buffer[y * mWidth * GetBytePerPixel()],
+		//		row_size
+		//	);
 	}
 
 	void Image::Save(const char* filepath)

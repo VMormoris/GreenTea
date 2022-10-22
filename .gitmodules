@@ -32,3 +32,6 @@
 [submodule "3rdParty/libsndfile"]
 	path = 3rdParty/libsndfile
 	url = https://github.com/VMormoris/libsndfile.git
+[submodule "3rdParty/msdf-atlas-gen"]
+	path = 3rdParty/msdf-atlas-gen
+	url = git@github.com:VMormoris/msdf-atlas-gen.git
