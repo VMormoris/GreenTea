@@ -47,6 +47,7 @@ namespace gte {
 		glm::vec4 Color;
 		glm::vec2 TextCoord;
 		float TextID;
+		uint32 ObjectID;
 		float ScreenPxRange;
 	};
 
@@ -124,6 +125,7 @@ namespace gte {
 				{ GPU::ShaderDataType::Vec4, "_color" },
 				{ GPU::ShaderDataType::Vec2, "_textCoords" },
 				{ GPU::ShaderDataType::Float, "_textID" },
+				{ GPU::ShaderDataType::Int, "_objectID" },
 				{ GPU::ShaderDataType::Float, "_screenPxRange" },
 			}
 		);
@@ -423,7 +425,7 @@ namespace gte {
 		DrawLine(lineVertices[3], lineVertices[0], color);
 	}
 
-	void Renderer2D::DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, const glm::vec4& color)
+	void Renderer2D::DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, uint32 ID, const glm::vec4& color)
 	{
 		const float screenPxRange = size / 32.0f * 2.0f;
 		if (sData.CharIndexCount >= sData.MaxIndices)
@@ -487,6 +489,7 @@ namespace gte {
 					sData.CharVertexBufferPtr->Color = color;
 					sData.CharVertexBufferPtr->TextCoord = coords[i];
 					sData.CharVertexBufferPtr->TextID = textureIndex;
+					sData.CharVertexBufferPtr->ObjectID = ID;
 					sData.CharVertexBufferPtr->ScreenPxRange = screenPxRange;
 					sData.CharVertexBufferPtr++;
 				}

@@ -26,7 +26,6 @@ namespace gte {
 		Scene(void);
 		~Scene(void) {}
 
-		void UpdateEditor();
 		void Update(float dt);
 		void Render(const glm::mat4& eyematrix, bool useLock = true);
 
@@ -57,7 +56,10 @@ namespace gte {
 		{
 			std::unique_lock lock(mRegMutex);
 			return mReg.view<Components...>();
-		}
+		} 
+
+		//Entity PickEntity(uint32 x, uint32 y) const;
+		bool IsValid(Entity entity) const;
 
 	private:
 

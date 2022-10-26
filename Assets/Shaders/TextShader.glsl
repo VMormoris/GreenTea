@@ -5,13 +5,15 @@ layout(location = 0) in vec3 _position;
 layout(location = 1) in vec4 _color;
 layout(location = 2) in vec2 _textCoords;
 layout(location = 3) in float _textID;
-layout(location = 4) in float _screenPxRange;
+layout(location = 4) in uint _objectID;
+layout(location = 5) in float _screenPxRange;
 
 uniform mat4 u_eyeMatrix;
 
 out vec4 v_Color;
 out vec2 v_textCoords;
 out float v_textID;
+flat out uint v_ObjectID;
 out float v_ScreenPxRange;
 
 void main(void)
@@ -19,6 +21,7 @@ void main(void)
 	v_Color = _color;
 	v_textCoords = _textCoords;
 	v_textID = _textID;
+	v_ObjectID = _objectID;
 	v_ScreenPxRange = _screenPxRange;
 	gl_Position = u_eyeMatrix * vec4(_position, 1.0);
 }
@@ -28,10 +31,12 @@ void main(void)
 #version 450 core
 
 layout(location = 0) out vec4 o_color;
+layout(location = 1) out uint o_ObjectID;
 
 in vec4 v_Color;
 in vec2 v_textCoords;
 in float v_textID;
+flat in uint v_ObjectID;
 in float v_ScreenPxRange;
 
 uniform sampler2D u_Textures[32];
@@ -81,5 +86,11 @@ void main()
 	float sd = median(msd.r, msd.g, msd.b);
 	float screenPxDistance = v_ScreenPxRange*(sd - 0.5);
 	float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-	o_color = mix(vec4(0.0, 0.0, 0.0, 0.0), v_Color, opacity);
+	vec4 color = mix(vec4(0.0, 0.0, 0.0, 0.0), v_Color, opacity);
+	
+	if(color.a == 0.0)
+		discard;
+
+	o_color = color;
+	o_ObjectID = v_ObjectID;
 }

@@ -11,6 +11,7 @@
 #include <Engine/Events/EventDispatcher.h>
 #include <Engine/NativeScripting/ScriptingEngine.h>
 #include <Engine/GPU/RendererAPI.h>
+#include <Engine/GPU/PixelBuffer.h>
 #include <Engine/Scene/Scene.h>
 
 
@@ -27,6 +28,7 @@ namespace gte::internal {
 
 		Window* GlobalWindow = nullptr;
 		byte WindowCount = 0;
+		glm::vec2 ViewportOffset;
 		glm::vec2 ViewportSize;
 		EventDispatcher Dispatcher;
 		
@@ -39,10 +41,13 @@ namespace gte::internal {
 
 		GPU::GraphicsAPI G_API = GPU::GraphicsAPI::OpenGL;
 		GPU::RendererAPI* Renderer = nullptr;
+		GPU::FrameBuffer* ViewportFBO = nullptr;
+		GPU::PixelBuffer* PixelBufferObject = nullptr;
 		audio::AudioDevice* AudioDevice = nullptr;
 
 		CollisionDispatcher* CDispatcher = nullptr;
 		bool Playing = false;
+		float GlobalTime = 0.0f;
 	};
 
 	ENGINE_API Context* CreateContext(void) noexcept;

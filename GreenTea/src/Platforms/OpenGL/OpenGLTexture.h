@@ -12,6 +12,8 @@ namespace gte::GPU::OpenGL {
 
 	[[nodiscard]] GLenum GetTextureInternalType(TextureFormat format) noexcept;
 
+	[[nodiscard]] size_t GetPixelSize(TextureFormat format) noexcept;
+
 	/**
 	* @brief Class for representing a 2D Texture on OpenGL API
 	*/

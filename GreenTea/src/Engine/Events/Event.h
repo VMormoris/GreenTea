@@ -52,6 +52,18 @@ namespace gte {
 		* @brief Scroll wheel is being moved
 		*/
 		MouseScroll = 0x0400,
+		/**
+		* @brief Click event
+		*/
+		Click = 0x0800,
+		/**
+		* @brief Starting hovering object
+		*/
+		HoverEnter = 0x1000,
+		/**
+		* @brief Stopped hovering object
+		*/
+		HoverExit = 0x2000
 	};
 
 	enum class ENGINE_API MouseButtonType : byte {

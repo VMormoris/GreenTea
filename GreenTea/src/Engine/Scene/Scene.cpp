@@ -40,6 +40,7 @@ namespace gte {
 	void Scene::Update(float dt)
 	{
 		std::unique_lock lock(mRegMutex);
+		internal::GetContext()->GlobalTime += dt;
 		const float STEP = 1.0f / FindEntityWithUUID({}, false).GetComponent<Settings>().Rate;
 		mAccumulator += dt;
 		bool physics = false;
@@ -104,16 +105,6 @@ namespace gte {
 		
 		if (found)
 			Render(eyeMatrix, false);
-	}
-
-	void Scene::UpdateEditor()
-	{
-		std::unique_lock lock(mRegMutex);
-		auto view = mReg.view<CameraComponent>(entt::exclude<TagComponent>);
-		glm::mat4 eyeMatrix;
-		for (auto&& [entityID, cam]: view.each())//Only one should be inside
-			eyeMatrix = cam;
-		Render(eyeMatrix, false);
 	}
 
 	void Scene::Render(const glm::mat4& eyematrix, bool useLock)
@@ -192,7 +183,7 @@ namespace gte {
 			if (text.Font->Type != AssetType::TEXTURE || !text.Visible)
 				continue;
 			Ref<Asset> font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID, true);
-			Renderer2D::DrawString(text.Text, tc, text.Size, (GPU::Texture*)text.Font->Data, (internal::Font*)font->Data, text.Color);
+			Renderer2D::DrawString(text.Text, tc, text.Size, (GPU::Texture*)text.Font->Data, (internal::Font*)font->Data, (uint32)entityID, text.Color);
 		}
 		
 		Renderer2D::EndScene();
@@ -1181,6 +1172,7 @@ namespace gte {
 		UpdateMatrices(false);
 		InformAudioEngine();
 		OnPhysicsStart();
+		internal::GetContext()->GlobalTime = 0.0f;
 	}
 
 	void Scene::OnStop(void)
@@ -1196,6 +1188,7 @@ namespace gte {
 			nc.Instance->Destroy();
 			delete nc.Instance;
 		}
+		internal::GetContext()->GlobalTime = 0.0f;
 	}
 
 	void Scene::FixedUpdate(void)
@@ -1510,6 +1503,31 @@ namespace gte {
 			}
 		}
 	}
+
+	/*Entity Scene::PickEntity(uint32 x, uint32 y) const
+	{
+		const glm::vec2& size = internal::GetContext()->ViewportSize;
+		CameraComponent cam;
+		auto cams = mReg.view<CameraComponent>();
+		for (auto&& [entityID, cc] : cams.each())
+		{
+			if (!cc.Primary)
+				continue;
+			cam = cc;
+			break;
+		}
+
+		glm::vec4 rayEye = glm::inverse(cam.ProjectionMatrix) * glm::vec4((2.0f * x / size.x) - 1.0f, 1.0f - (2.0f * y / size.y), -1.0f, 1.0f);
+		rayEye.z = -1.0f;
+		rayEye.w = 0.0f;
+		rayEye = glm::inverse(cam.ViewMatrix) * rayEye;
+		glm::vec3 worldRay = glm::normalize(glm::vec3{ rayEye.x, rayEye.y, rayEye.z });
+
+		GTE_TRACE_LOG('[', worldRay.x, ", ", worldRay.y, ", ", worldRay.z, ']');
+		return {};
+	}*/
+
+	bool Scene::IsValid(Entity entity) const { return mReg.valid(entity); }
 
 }
 

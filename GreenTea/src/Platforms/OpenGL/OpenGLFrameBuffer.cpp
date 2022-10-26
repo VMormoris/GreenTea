@@ -2,6 +2,7 @@
 #include "OpenGLTexture.h"
 
 #include <glad/glad.h>
+#include <chrono>
 
 static constexpr uint32 MaxSize = 8192;
 
@@ -90,7 +91,7 @@ namespace gte::GPU::OpenGL {
 		const TextureFormat format = mSpecification.Attachments[attachment];
 		const auto Format = GetNativeTextureFormat(format);
 		Bind();
-		glReadBuffer(GL_COLOR_ATTACHMENT1);
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 		glReadPixels(x, y, 1, 1, Format.second, GetTextureInternalType(format), data);
 	}
 

@@ -1,10 +1,11 @@
 #include "GLFWWindow.h"
 
 #include <Engine/Core/Context.h>
+#include <Engine/Events/Input.h>
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #define GLFW_NATIVE_INCLUDE_NONE
 #include <GLFW/glfw3native.h>
-
 #include <stb_image.h>
 
 //#include <dwmapi.h>
@@ -104,8 +105,13 @@ namespace gte::GLFW {
 			switch (action)
 			{
 			case GLFW_PRESS:
+			{
+				Entity entity = Input::GetHoveredEntity();
+				if (entity && entity.HasComponent<NativeScriptComponent>())
+					internal::GetContext()->Dispatcher.Dispatch<EventType::Click>(entity);
 				internal::GetContext()->Dispatcher.Dispatch<EventType::MouseButtonPressed>(code);
 				break;
+			}
 			case GLFW_RELEASE:
 				internal::GetContext()->Dispatcher.Dispatch<EventType::MouseButtonReleased>(code);
 				break;
@@ -114,7 +120,20 @@ namespace gte::GLFW {
 
 		glfwSetScrollCallback(mWindow, [](GLFWwindow* window, double xOffset, double yOffset) { internal::GetContext()->Dispatcher.Dispatch<EventType::MouseScroll>((float)xOffset, (float)yOffset); });
 
-		glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos) { internal::GetContext()->Dispatcher.Dispatch<EventType::MouseMove>((float)xpos, (float)ypos); });
+		glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos)
+		{
+			static Entity hovered = {};
+			Entity entity = Input::GetHoveredEntity();
+			if (entity != hovered)
+			{
+				if (hovered && hovered.HasComponent<NativeScriptComponent>())
+					internal::GetContext()->Dispatcher.Dispatch<EventType::HoverExit>(hovered);
+				if (entity && entity.HasComponent<NativeScriptComponent>())
+					internal::GetContext()->Dispatcher.Dispatch<EventType::HoverEnter>(entity);
+			}
+			hovered = entity;
+			internal::GetContext()->Dispatcher.Dispatch<EventType::MouseMove>((int32)xpos, (int32)ypos);
+		});
 
 	}
 
@@ -142,8 +161,8 @@ namespace gte::GLFW {
 
 	void GLFWWindow::Update(void) noexcept
 	{
-		mGraphicsContext->SwapBuffers();
 		glfwPollEvents();
+		mGraphicsContext->SwapBuffers();
 	}
 
 	void GLFWWindow::SetVSync(bool enableFlag) noexcept
@@ -170,16 +189,6 @@ namespace gte::GLFW {
 	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return static_cast<void*>(glfwGetWin32Window(mWindow)); }
 
 	[[nodiscard]] const void* GLFWWindow::GetNativeWindow(void) const noexcept { return GetNativeWindow(); }
-
-	//[[nodiscard]] bool GLFWWindow::IsMaximized(void) noexcept { return GLFW_TRUE == glfwGetWindowAttrib(mWindow, GLFW_MAXIMIZED); }
-	//void GLFWWindow::Maximize(void) noexcept { glfwMaximizeWindow(mWindow); }
-	//void GLFWWindow::Minimize(void) noexcept { glfwIconifyWindow(mWindow); }
-	//void GLFWWindow::Restore(void) noexcept { glfwRestoreWindow(mWindow); }
-	//void GLFWWindow::Close(void) noexcept
-	//{
-	//	glfwSetWindowShouldClose(mWindow, GLFW_TRUE);
-	//	internal::GetContext()->Dispatcher.Dispatch<EventType::WindowClose>();
-	//}
 
 }
 

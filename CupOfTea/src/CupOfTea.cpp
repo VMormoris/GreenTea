@@ -22,10 +22,11 @@ void CupOfTea::Update(float dt)
 {
 	constexpr float ClearColor = 30.0f / 255.0f;
 	gte::Scene* scene = gte::internal::GetContext()->ActiveScene;
+	gte::GPU::FrameBuffer* viewportFBO = gte::internal::GetContext()->ViewportFBO;
 
+	gte::Entity EditorCamera = scene->FindEntityWithUUID({});
 	if (sGameEvents && !gte::internal::GetContext()->Playing)
 	{
-		gte::Entity EditorCamera = scene->FindEntityWithUUID({});
 		auto& tc = EditorCamera.GetComponent<gte::Transform2DComponent>();
 		const auto& settings = EditorCamera.GetComponent<gte::Settings>();
 		bool changed = false;
@@ -56,20 +57,17 @@ void CupOfTea::Update(float dt)
     Application::Update(dt);
     gte::Window* window = gte::internal::GetContext()->GlobalWindow;
 	glm::vec2& viewportSize = gte::internal::GetContext()->ViewportSize;
-	if (gte::GPU::FrameBufferSpecification spec = mViewportFBO->GetSpecification();
+
+	if (gte::GPU::FrameBufferSpecification spec = viewportFBO->GetSpecification();
 		(viewportSize.x > 0.0f) && (viewportSize.y > 0.0f) &&
 		((spec.Width != viewportSize.x || spec.Height != viewportSize.y)))
 	{
-		mViewportFBO->Resize((uint32)viewportSize.x, (uint32)viewportSize.y);
-		gte::GPU::FrameBufferSpecification newSpec = mViewportFBO->GetSpecification();
+		viewportFBO->Resize((uint32)viewportSize.x, (uint32)viewportSize.y);
+		gte::GPU::FrameBufferSpecification newSpec = viewportFBO->GetSpecification();
 		gte::RenderCommand::SetViewport(0, 0, newSpec.Width, newSpec.Height);
+		gte::internal::GetContext()->PixelBufferObject->Resize(newSpec.Width, newSpec.Height);
 		scene->OnViewportResize(newSpec.Width, newSpec.Height);
 	}
-
-	mViewportFBO->Bind();
-    gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
-    gte::RenderCommand::Clear();
-	mViewportFBO->Clear(1, &EnttNull);
 
 	if (gte::internal::GetContext()->AssetWatcher.Reload())
 	{
@@ -83,10 +81,15 @@ void CupOfTea::Update(float dt)
 
 	if (gte::internal::GetContext()->Playing)
 		scene->Update(dt);
-	else
-		scene->UpdateEditor();
+
+	viewportFBO->Bind();
+    gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
+    gte::RenderCommand::Clear();
+	viewportFBO->Clear(1, &EnttNull);
+	scene->Render(EditorCamera.GetComponent<gte::CameraComponent>());
 	OnOverlayRenderer();
-	mViewportFBO->Unbind();
+	viewportFBO->Unbind();
+	gte::internal::GetContext()->PixelBufferObject->ReadPixels(1);
 
 	gte::Entity entity = mSceneHierarchyPanel.GetSelectedEntity();
 	const bool playing = gte::internal::GetContext()->Playing;
@@ -289,10 +292,12 @@ void CupOfTea::RenderGUI(void)
 		if (ImGui::Begin("Viewport", &mPanels[0]))
 		{
 			sGameEvents = ImGui::IsWindowFocused();
+			ImVec2 windowPos = ImGui::GetWindowPos();
+			gte::internal::GetContext()->ViewportOffset = { windowPos.x, windowPos.y };
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImVec2 size = ImGui::GetContentRegionAvail();
 			gte::internal::GetContext()->ViewportSize = { size.x, size.y };
-			uint64 textID = mViewportFBO->GetColorAttachmentID(0);
+			uint64 textID = gte::internal::GetContext()->ViewportFBO->GetColorAttachmentID(0);
 			ImGui::Image((void*)textID, size, { 0, 1 }, { 1, 0 });
 			bool selection = ImGui::IsMouseReleased(ImGuiPopupFlags_MouseButtonLeft) && sGuizmoOP == ImGuizmo::OPERATION::BOUNDS && sGameEvents;
 
@@ -314,14 +319,9 @@ void CupOfTea::RenderGUI(void)
 
 			if (selection)
 			{
-				auto [x, y] = ImGui::GetMousePos();
-				x -= ImGui::GetWindowPos().x;
-				y -= ImGui::GetWindowPos().y;
-				y = windowSize.y - y;
-				entt::entity enttID = entt::null;
-				mViewportFBO->GetPixel(1, static_cast<int32>(x), static_cast<int32>(y), &enttID);
-				if (enttID != entt::null)
-					mSceneHierarchyPanel.SetSelectedEntity({ enttID, gte::internal::GetContext()->ActiveScene });
+				gte::Entity entity = gte::Input::GetHoveredEntity();
+				if (entity)
+					mSceneHierarchyPanel.SetSelectedEntity(entity);
 			}
 		}
 		ImGui::End();
@@ -591,10 +591,13 @@ CupOfTea::CupOfTea(const std::string& filepath)
 	gte::internal::GetContext()->ScriptEngine = new gte::internal::ScriptingEngine();
 
 	gte::GPU::FrameBufferSpecification spec;
-	spec.Attachments = { gte::GPU::TextureFormat::RGB8, gte::GPU::TextureFormat::Int32 };
+	spec.Attachments = { gte::GPU::TextureFormat::RGB8, gte::GPU::TextureFormat::UInt32 };
 	spec.Width = window->GetWidth();
 	spec.Height = window->GetHeight();
-	mViewportFBO = gte::GPU::FrameBuffer::Create(spec);
+	gte::internal::GetContext()->ViewportFBO = gte::GPU::FrameBuffer::Create(spec);
+	gte::internal::GetContext()->PixelBufferObject = gte::GPU::PixelBuffer::Create(spec.Width, spec.Height, gte::GPU::TextureFormat::UInt32);
+	gte::internal::GetContext()->PixelBufferObject->SetFramebuffer(gte::internal::GetContext()->ViewportFBO);
+
 	spec.Attachments = { gte::GPU::TextureFormat::RGB8 };
 	sCamFBO = gte::GPU::FrameBuffer::Create(spec);
 
@@ -610,7 +613,6 @@ CupOfTea::~CupOfTea(void)
 	UNREGISTER(this);
 	delete sIcon;
     gui->Shutdown();
-	delete mViewportFBO;
 	delete sCamFBO;
     delete gui;
 }

@@ -2,6 +2,8 @@
 
 #include "Event.h"
 
+#include <Engine/NativeScripting/ScriptableEntity.h>
+
 #include <entt.hpp>
 
 namespace gte::internal {
@@ -27,7 +29,7 @@ namespace gte::internal {
 	template<>
 	struct basic_signal<EventType::MouseButtonReleased> { typedef typename entt::sigh<bool(MouseButtonType)> Type; };
 	template<>
-	struct basic_signal<EventType::MouseMove> { typedef typename entt::sigh<bool(float, float)> Type; };
+	struct basic_signal<EventType::MouseMove> { typedef typename entt::sigh<bool(int32, int32)> Type; };
 	template<>
 	struct basic_signal<EventType::MouseScroll> { typedef typename entt::sigh<bool(float, float)> Type; };
 
@@ -60,8 +62,17 @@ namespace gte::internal {
 		template<EventType type, typename T, auto Func>
 		void AddListener(T& instance)
 		{
-			auto listeners = static_cast<pool<type>*>(mPools[index<type>()]);
-			listeners->sink.connect<Func>(instance);
+			if constexpr (type == EventType::Click || type == EventType::HoverEnter || type == EventType::HoverExit)
+			{
+				entt::delegate<bool(void)> temp;
+				temp.connect<Func>(instance);
+				mSpecialPool.emplace(std::make_pair(&instance, type), temp);
+			}
+			else
+			{
+				auto listeners = static_cast<pool<type>*>(mPools[index<type>()]);
+				listeners->sink.connect<Func>(instance);
+			}
 		}
 
 		template<typename T>
@@ -69,6 +80,14 @@ namespace gte::internal {
 		{
 			for (auto pool : mPools)
 				pool->disconnect(instance);
+
+			for (auto it = mSpecialPool.begin(); it != mSpecialPool.end();)
+			{
+				if ((*it).first.first == (ScriptableEntity*)instance)
+					mSpecialPool.erase(it++);
+				else
+					++it;
+			}
 		}
 
 		template<EventType type, typename ...Args>
@@ -76,6 +95,18 @@ namespace gte::internal {
 		{
 			auto listeners = static_cast<pool<type>*>(mPools[index<type>()]);
 			listeners->signal.collect([](bool handled) { return handled; }, std::forward<Args>(args)...);
+		}
+
+		template<EventType type, typename ...Args>
+		void Dispatch(Entity entity, Args&& ...args)
+		{
+			if (!entity.HasComponent<NativeScriptComponent>())
+				return;
+
+			ScriptableEntity* se = entity.GetComponent<NativeScriptComponent>().Instance;
+			auto key = std::make_pair(se, type);
+			if(mSpecialPool.find(key) != mSpecialPool.end())
+				mSpecialPool[key](std::forward<Args>(args)...);
 		}
 
 	private:
@@ -116,6 +147,7 @@ namespace gte::internal {
 			new pool<EventType::MouseScroll>()
 		};
 
+		std::map<std::pair<ScriptableEntity*, EventType>, entt::delegate<bool(void)>> mSpecialPool;
 	};
 	
 }

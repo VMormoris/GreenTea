@@ -22,6 +22,29 @@ namespace gte::GPU::OpenGL {
 		}
 	}
 
+	[[nodiscard]] size_t GetPixelSize(TextureFormat format) noexcept
+	{
+		switch (format)
+		{
+		case gte::GPU::TextureFormat::RED8:
+		case gte::GPU::TextureFormat::Int8:
+		case gte::GPU::TextureFormat::UInt8:
+			return 1;
+		case gte::GPU::TextureFormat::Int16:
+		case gte::GPU::TextureFormat::UInt16:
+		case gte::GPU::TextureFormat::RED16:
+			return 2;
+		case gte::GPU::TextureFormat::Int32:
+		case gte::GPU::TextureFormat::UInt32:
+			return 4;
+		case gte::GPU::TextureFormat::RGB8:		return 3;
+		case gte::GPU::TextureFormat::RGB16:	return 2 * 3;
+		case gte::GPU::TextureFormat::RGBA8:	return 4;
+		case gte::GPU::TextureFormat::RGBA16:	return 4 * 2;
+		default:								return 0;
+		}
+	}
+
 	[[nodiscard]] GLenum GetTextureInternalType(TextureFormat format) noexcept
 	{
 		switch (format)

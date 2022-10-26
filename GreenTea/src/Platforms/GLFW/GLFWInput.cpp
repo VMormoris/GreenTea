@@ -20,4 +20,17 @@ namespace gte {
 		return status == GLFW_PRESS || status == GLFW_REPEAT;
 	}
 
+	void Input::GetMousePos(uint32& x, uint32& y)
+	{
+		Window* window = internal::GetContext()->GlobalWindow;
+		double rawX, rawY;
+		glfwGetCursorPos((GLFWwindow*)window->GetPlatformWindow(), &rawX, &rawY);
+		x = static_cast<uint32>(rawX), y = static_cast<uint32>(rawY);
+#ifndef STAND_ALONE
+		int32 wx, wy;
+		glfwGetWindowPos((GLFWwindow*)window->GetPlatformWindow(), &wx, &wy);
+		x += wx, y += wy;
+#endif
+	}
+
 }

@@ -39,7 +39,7 @@ private:
 	ContentBrowserPanel mBrowserPanel;
 	ConsoleLogPanel mConsolePanel;
 
-	gte::GPU::FrameBuffer* mViewportFBO = nullptr;
+	//gte::GPU::FrameBuffer* mViewportFBO = nullptr;
 
 	bool mPanels[7] = { true/*Viewport*/, true/*Content Browser*/, true/*Hierarchy*/, true/*Properties*/, true/*Console Log*/, false/*About*/, true/*Settings*/};
 	bool mShowColliders = true;
