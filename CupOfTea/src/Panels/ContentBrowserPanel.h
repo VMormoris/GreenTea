@@ -15,12 +15,15 @@ public:
 	void DeleteSelected(void);
 
 	const std::filesystem::path& GetCurrentPath(void) const { return mCurrentPath; }
+	const gte::uuid& GetAnimation(void) const { return mAnimation; }
 
 private:
 	
 	void CreateScript(const std::string& name) const;
-	void CreateFolder(const std::filesystem::path& parent, std::string _template);
 	
+	void CreateFolder(const std::string& _template);
+	void CreateAnimation(const std::string& _template);
+
 	void CreateTextureAsset(const std::filesystem::path& filepath) const;
 	void CreateAudioAsset(const std::filesystem::path& filepath) const;
 	void CreateFontAsset(const std::filesystem::path& filepath) const;
@@ -34,6 +37,7 @@ private:
 	std::filesystem::path mSelected;
 	std::string mTempName;
 	std::string mFilter;
+	gte::uuid mAnimation;
 
 	bool mShouldFocus = false;
 };

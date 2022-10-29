@@ -84,6 +84,28 @@ namespace gte {
 		UpdateMatrices(false);
 		InformAudioEngine();
 
+		auto animations = mReg.view<AnimationComponent, SpriteRendererComponent>();
+		for (auto&& [entityID, ac, sprite] : animations.each())
+		{
+			ac.Animation = internal::GetContext()->AssetManager.RequestAsset(ac.Animation->ID);
+			if (ac.Animation->Type != AssetType::ANIMATION)
+				continue;
+
+			internal::Animation& animation = *(internal::Animation*)ac.Animation->Data;
+			if (animation != ac.Description)
+				ac.Description = animation;
+			else
+				ac.Description.Update(dt);
+
+			Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(ac.Description.GetAtlas());
+			if (asset->Type == AssetType::TEXTURE)
+			{
+				const auto& frame = ac.Description.GetCurrentFrame();
+				sprite.Coordinates = frame.Coords;
+				sprite.Texture = asset;
+			}
+		}
+
 		auto particles = mReg.view<ParticleSystemComponent>();
 		for (auto&& [entityID, psc] : particles.each())
 			psc.System->SetProps(psc.Props);
@@ -399,6 +421,13 @@ namespace gte {
 				psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
 				psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 				psc.Props.Looping = particleSystem["Looping"].as<bool>();
+			}
+
+			const auto& animation = entityNode["AnimationComponent"];
+			if (animation)
+			{
+				auto& ac = entity.AddComponent<AnimationComponent>();
+				ac.Animation->ID = animation["Animation"].as<std::string>();
 			}
 		}
 
@@ -849,12 +878,8 @@ namespace gte {
 
 	[[nodiscard]] Entity Scene::FindEntityWithUUID(const uuid& id, bool useLock)
 	{
-		try
-		{
-			if (useLock)
-				mRegMutex.lock();
-		}
-		catch(std::system_error err) { GTE_TRACE_LOG("Caught error with code: ", err.code(), " meaning: ", err.what()); }
+		if (useLock)
+			mRegMutex.lock();
 
 		auto view = mReg.view<IDComponent>();
 		for (auto entityID : view)
@@ -870,6 +895,18 @@ namespace gte {
 		if (useLock)
 			mRegMutex.unlock();
 		return {};
+	}
+
+	[[nodiscard]] std::vector<Entity> Scene::GetEntitiesByTag(const std::string& tag)
+	{
+		std::vector<Entity> entities;
+		auto view = mReg.view<TagComponent>();
+		for (auto&& [entityID, tc] : view.each())
+		{
+			if (tc.Tag.compare(tag) == 0)
+				entities.emplace_back(entityID, this);
+		}
+		return entities;
 	}
 
 	void Scene::UpdateTransform(Entity entity, bool useLock)
@@ -1526,8 +1563,6 @@ namespace gte {
 		GTE_TRACE_LOG('[', worldRay.x, ", ", worldRay.y, ", ", worldRay.z, ']');
 		return {};
 	}*/
-
-	bool Scene::IsValid(Entity entity) const { return mReg.valid(entity); }
 
 }
 

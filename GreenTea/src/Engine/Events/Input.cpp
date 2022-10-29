@@ -22,7 +22,7 @@ namespace gte {
 			return {};
 		pbo->GetPixel(0, static_cast<int32>(x), static_cast<int32>(y), &enttID);
 		Entity entity = { enttID, GetContext()->ActiveScene };
-		return GetContext()->ActiveScene->IsValid(entity) ? entity : Entity{};
+		return entity ? entity : Entity{};
 		return {};
 	}
 

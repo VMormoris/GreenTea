@@ -39,7 +39,7 @@ namespace gte {
 		}
 
 		//TODO(Vasilis): Add [[nodiscard]]
-		operator bool(void) const { return mEntityHandle != entt::null; }
+		operator bool(void) const { return mEntityHandle != entt::null && mOwner != nullptr && mOwner->mReg.valid(mEntityHandle); }
 		operator entt::entity(void) const { return mEntityHandle; }
 		operator uint32(void) const { return (uint32)mEntityHandle; }
 

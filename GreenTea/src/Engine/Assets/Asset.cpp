@@ -3,8 +3,9 @@
 #include "NativeScript.h"
 #include "Prefab.h"
 
-#include <Engine/Audio/AudioBuffer.h>
 #include <Engine/Assets/Font.h>
+#include <Engine/Assets/Animation.h>
+#include <Engine/Audio/AudioBuffer.h>
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -116,8 +117,27 @@ namespace gte::internal {
 			break;
 		}
 		case AssetType::ANIMATION:
+		{
+			if (!asset.Size) { asset.Data = new Animation(); break; }
+			
+			YAML::Node data;
+			try { data = YAML::Load(buffer); }
+			catch (YAML::ParserException e)
+			{
+				GTE_ERROR_LOG(false, "Failed to load file: ", filepath, "\n\t", e.what());
+				asset.Type = AssetType::INVALID;
+				asset.Size = 0;
+				asset.ID = {};
+				delete[] buffer;
+				return asset;
+			}
+
+			Animation* animation = new Animation(data);
+			animation->GetID() = asset.ID;
+			asset.Data = animation;
+
 			break;
-		//case AssetType::FONT_TEXTURE:
+		}
 		case AssetType::TEXTURE:
 		case AssetType::LOADING:
 		case AssetType::INVALID:

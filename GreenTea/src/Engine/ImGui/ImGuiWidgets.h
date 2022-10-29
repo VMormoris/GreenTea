@@ -137,7 +137,7 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawVec2BoolControl(const char* label, bool& x, bool& y, const UISettings& settings, const std::string& help = "");
 
-	ENGINE_API bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings);
+	ENGINE_API bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings, bool onTexture = true);
 
 	ENGINE_API bool DrawAssetControl(const char* label, uuid& id, const char* filetype, const UISettings& settings, const std::string& help = "");
 

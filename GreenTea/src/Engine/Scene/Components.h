@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Engine/Core/Ref.h>
-#include <Engine/Audio/Source.h>
 #include <Engine/Assets/Asset.h>
 #include <Engine/Assets/NativeScript.h>
+#include <Engine/Assets/Animation.h>
+#include <Engine/Audio/Source.h>
+#include <Engine/Core/Ref.h>
 #include <Engine/GPU/Texture.h>
 #include <Engine/Renderer/ParticleSystem.h>
 
@@ -284,8 +285,16 @@ namespace gte {
 		ParticleSystemComponent& operator=(const ParticleSystemComponent&) = default;
 	};
 
+	struct ENGINE_API AnimationComponent {
+		Ref<Asset> Animation = CreateRef<Asset>();
+		internal::Animation Description;
+
+		AnimationComponent(void) = default;
+		AnimationComponent& operator=(const AnimationComponent&) = default;
+	};
+
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent>;
+	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent, AnimationComponent>;
 }

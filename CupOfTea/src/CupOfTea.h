@@ -4,6 +4,7 @@
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ConsoleLogPanel.h"
+#include "Panels/AnimationPanel.h"
 
 class CupOfTea : public gte::Application {
 public:
@@ -38,9 +39,10 @@ private:
 	gte::SceneHierarchyPanel mSceneHierarchyPanel;
 	ContentBrowserPanel mBrowserPanel;
 	ConsoleLogPanel mConsolePanel;
+	AnimationPanel mAnimationPanel;
 
 	//gte::GPU::FrameBuffer* mViewportFBO = nullptr;
 
-	bool mPanels[7] = { true/*Viewport*/, true/*Content Browser*/, true/*Hierarchy*/, true/*Properties*/, true/*Console Log*/, false/*About*/, true/*Settings*/};
+	bool mPanels[8] = { true/*Viewport*/, true/*Content Browser*/, true/*Hierarchy*/, true/*Properties*/, true/*Console Log*/, false/*About*/, true/*Settings*/, false/*Animation Window*/};
 	bool mShowColliders = true;
 };

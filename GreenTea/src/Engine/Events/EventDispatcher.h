@@ -152,5 +152,17 @@ namespace gte::internal {
 	
 }
 
+/**
+* @brief Registers a method for the specified event type
+* @param eventType EventType that you want to register for
+* @param obj_ptr Pointer to the object that will register for the event
+* @param function Method that will be used to consume the event
+* @warning Call UNREGISTER(obj_ptr) when you don't wont to handle the event anymore
+*/
 #define REGISTER(eventType, obj_ptr, function) gte::internal::GetContext()->Dispatcher.AddListener<eventType, std::remove_pointer<decltype(obj_ptr)>::type, function>(*obj_ptr)
+
+/**
+* @brief Unregisters the specified object for all EventTypes that is register for.
+* @param obj_ptr Pointer to the object that will be unregister for all EventTypes
+*/
 #define UNREGISTER(obj_ptr) gte::internal::GetContext()->Dispatcher.RemoveListener<std::remove_pointer<decltype(obj_ptr)>::type>(obj_ptr)

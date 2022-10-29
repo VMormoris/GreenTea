@@ -34,6 +34,8 @@ namespace gte {
 			internal::GetContext()->ActiveScene->DestroyEntity(entity);
 	}
 
+	[[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag) { return internal::GetContext()->ActiveScene->GetEntitiesByTag(tag); }
+
 }
 
 void SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent)

@@ -28,9 +28,7 @@ namespace gte::GLFW {
 		}
 
 		//Flags setup before window creation
-		if (spec.Decorate)
-			glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-		else
+		if (!spec.Decorate)
 			glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 		if (spec.Maximized)
 			glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);

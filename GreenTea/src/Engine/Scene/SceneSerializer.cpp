@@ -261,6 +261,13 @@ namespace gte::internal {
 					psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 					psc.Props.Looping = particleSystem["Looping"].as<bool>();
 				}
+
+				const auto& animation = entityNode["AnimationComponent"];
+				if (animation)
+				{
+					auto& ac = entity.AddComponent<AnimationComponent>();
+					ac.Animation->ID = animation["Animation"].as<std::string>();
+				}
 			}
 
 			//Second iteration to create relationships & Native Scripts
@@ -770,6 +777,15 @@ namespace gte::internal {
 			out << YAML::Key << "EmitionRate" << YAML::Value << psc.Props.EmitionRate;
 			out << YAML::Key << "MaxParticles" << YAML::Value << psc.Props.MaxParticles;
 			out << YAML::Key << "Looping" << YAML::Value << psc.Props.Looping;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<AnimationComponent>())
+		{
+			const auto& ac = entity.GetComponent<AnimationComponent>();
+			out << YAML::Key << "AnimationComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Animation" << YAML::Value << ac.Animation->ID.str();
 			out << YAML::EndMap;
 		}
 

@@ -64,7 +64,6 @@ void CupOfTea::Update(float dt)
 	{
 		viewportFBO->Resize((uint32)viewportSize.x, (uint32)viewportSize.y);
 		gte::GPU::FrameBufferSpecification newSpec = viewportFBO->GetSpecification();
-		gte::RenderCommand::SetViewport(0, 0, newSpec.Width, newSpec.Height);
 		gte::internal::GetContext()->PixelBufferObject->Resize(newSpec.Width, newSpec.Height);
 		scene->OnViewportResize(newSpec.Width, newSpec.Height);
 	}
@@ -83,6 +82,8 @@ void CupOfTea::Update(float dt)
 		scene->Update(dt);
 
 	viewportFBO->Bind();
+	const auto spec = viewportFBO->GetSpecification();
+	gte::RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
     gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
     gte::RenderCommand::Clear();
 	viewportFBO->Clear(1, &EnttNull);
@@ -114,10 +115,9 @@ void CupOfTea::Update(float dt)
 		gte::RenderCommand::Clear();
 		scene->Render(cam.EyeMatrix);
 		sCamFBO->Unbind();
-		
-		gte::RenderCommand::SetViewport(0, 0, static_cast<uint32>(viewportSize.x), static_cast<uint32>(viewportSize.y));
 	}
 
+	mAnimationPanel.Update(dt);
 	RenderGUI();
 }
 
@@ -286,7 +286,7 @@ void CupOfTea::RenderGUI(void)
 	}
 	ImGui::End();//End Dockspace
 	
-	if (mPanels[0])
+	if (mPanels[0] && !mPanels[7])
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		if (ImGui::Begin("Viewport", &mPanels[0]))
@@ -326,39 +326,38 @@ void CupOfTea::RenderGUI(void)
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();
-	}
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-	ImGui::Begin("##Tools", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-	auto& colors = ImGui::GetStyle().Colors;
-	const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
-	const auto& buttonActive = colors[ImGuiCol_ButtonActive];
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
-	const float btnSize = ImGui::GetWindowHeight() - 4.0f;
-	ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x - btnSize) / 2.0f);
-	ImGui::PushFont(IconsFont);
-	const bool building = gte::internal::GetContext()->AssetWatcher.IsBuilding();
-	if (building)
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-	if (ImGui::Button(gte::internal::GetContext()->Playing ? ICON_FK_STOP : ICON_FK_PLAY, { btnSize, btnSize }))
-	{
-		if (gte::internal::GetContext()->Playing)//Stop
-			Stop();
-		else//Start
-			Start();
+		{//Tools Panel
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+			ImGui::Begin("##Tools", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			auto& colors = ImGui::GetStyle().Colors;
+			const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+			const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+			const float btnSize = ImGui::GetWindowHeight() - 4.0f;
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x - btnSize) / 2.0f);
+			ImGui::PushFont(IconsFont);
+			const bool building = gte::internal::GetContext()->AssetWatcher.IsBuilding();
+			if (building)
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			if (ImGui::Button(gte::internal::GetContext()->Playing ? ICON_FK_STOP : ICON_FK_PLAY, { btnSize, btnSize }))
+			{
+				if (gte::internal::GetContext()->Playing)//Stop
+					Stop();
+				else//Start
+					Start();
+			}
+			if (building)
+				ImGui::PopItemFlag();
+			ImGui::PopFont();
+			ImGui::PopStyleColor(3);
+			ImGui::End();
+			ImGui::PopStyleVar(2);
+		}
 	}
-	if (building)
-		ImGui::PopItemFlag();
-	ImGui::PopFont();
-	ImGui::PopStyleColor(3);
-	ImGui::PopStyleVar(2);
-	ImGui::End();
-	ImGui::PopStyleVar(2);
 
 	if (mPanels[2])
 	{
@@ -372,7 +371,7 @@ void CupOfTea::RenderGUI(void)
 		ImGui::End();
 	}
 
-	if (mPanels[3])
+	if (mPanels[3] && !mPanels[7])
 	{
 		if (ImGui::Begin("Properties", &mPanels[3], ImGuiWindowFlags_NoCollapse))
 			mSceneHierarchyPanel.DrawComponents(mSceneHierarchyPanel.GetSelectedEntity());
@@ -386,6 +385,7 @@ void CupOfTea::RenderGUI(void)
 		ImGui::End();
 	}
 
+	gte::uuid animation;
 	if (mPanels[1])
 	{
 		if (ImGui::Begin("Content Broswer", &mPanels[1], ImGuiWindowFlags_NoCollapse))
@@ -393,6 +393,7 @@ void CupOfTea::RenderGUI(void)
 			mBrowserPanel.Draw();
 			if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
 				mBrowserPanel.DeleteSelected();
+			animation = mBrowserPanel.GetAnimation();
 		}
 		ImGui::End();
 	}
@@ -491,7 +492,9 @@ void CupOfTea::RenderGUI(void)
 			});
 			
 		}
+
 		ImGui::End();
+
 	}
 
 	gte::Entity entity = mSceneHierarchyPanel.GetSelectedEntity();
@@ -542,8 +545,18 @@ void CupOfTea::RenderGUI(void)
 		ImGui::EndPopup();
 	}
 
+	if (mPanels[7])
+	{
+		mAnimationPanel.Draw(mPanels[7]);
+	}
+
 	//ImGui::ShowDemoWindow();
     gui->End();
+	if (animation.IsValid())
+	{
+		mPanels[7] = true;
+		mAnimationPanel.SetAnimation(animation);
+	}
 }
 
 CupOfTea::CupOfTea(const std::string& filepath)

@@ -40,6 +40,7 @@ namespace gte {
 		void DestroyEntity(Entity entity, bool useLock = true);
 
 		[[nodiscard]] Entity FindEntityWithUUID(const uuid& id, bool useLock = true);
+		[[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag);
 
 		void UpdateTransform(Entity entity, bool useLock = true);
 		void UpdateMatrices(bool useLock = true);//Update Transform for all entities
@@ -57,9 +58,6 @@ namespace gte {
 			std::unique_lock lock(mRegMutex);
 			return mReg.view<Components...>();
 		} 
-
-		//Entity PickEntity(uint32 x, uint32 y) const;
-		bool IsValid(Entity entity) const;
 
 	private:
 

@@ -913,9 +913,9 @@ namespace gte::gui {
 		return changed;
 	}
 
-	bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings)
+	bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings, bool onTexture)
 	{
-		const float colWidth = settings.ColumnWidth - 20.0f;
+		const float colWidth = settings.ColumnWidth - (onTexture ? 20.0f : 0.0f);
 		bool changed = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth, "Bottom Left");
 		if (DrawCoordinate("Bottom Right", coords.BottomRight, { 1.0f, 0.0f }, width, height, colWidth, "Bottom Right"))
 			changed = true;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Engine/Assets/Animation.h>
+
 #include <Engine/Core/Application.h>
 #include <Engine/Core/Context.h>
 #include <Engine/Core/FileDialog.h>
@@ -18,6 +20,7 @@
 #include <Engine/NativeScripting/System.h>
 
 #include <Engine/Renderer/RenderCommand.h>
+#include <Engine/Renderer/Renderer2D.h>
 
 #include <Engine/Scene/Components.h>
 #include <Engine/Scene/Entity.h>

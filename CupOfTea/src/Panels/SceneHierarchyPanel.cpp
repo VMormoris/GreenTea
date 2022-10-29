@@ -241,6 +241,19 @@ namespace gte {
 					ImGui::CloseCurrentPopup();
 				}
 			}
+
+			if (!entity.HasComponent<AnimationComponent>())
+			{
+				if (gui::DrawMenuItem(ICON_FK_FILM, "Animation Component", nullptr, biggest))
+				{
+					entity.AddComponent<AnimationComponent>();
+					if (entity.HasComponent<CircleRendererComponent>())
+						entity.RemoveComponent<CircleRendererComponent>();
+					if (!entity.HasComponent<SpriteRendererComponent>())
+						entity.AddComponent<SpriteRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!entity.HasComponent<TextRendererComponent>())
 			{
 				if (gui::DrawMenuItem(ICON_FK_FONT, "Text Renderer Component", nullptr, biggest))
@@ -465,6 +478,14 @@ namespace gte {
 						ImGui::TreePop();
 					}
 				}
+			});
+		}
+
+		if (entity.HasComponent<AnimationComponent>())
+		{
+			gui::DrawComponent<AnimationComponent>(ICON_FK_FILM, "Animation Component", entity, [](auto& ac) {
+				gui::UISettings settings;
+				gui::DrawAssetControl("Animation Clip", ac.Animation->ID, ".gtanimation", settings, "Define which animation will be played. Click the small dot to the right to\nopen the object picker window, and select from the list of available Animation Assets or drag \nand drop them here from the Assets window.");
 			});
 		}
 

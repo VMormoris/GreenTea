@@ -37,10 +37,43 @@ namespace gte {
 		friend class Scene;
 	};
 
+	/**
+	* @brief Creates a new entity base on a Prefab
+	* @param prefab A reference to a Prefab-Asset that describes the entity that will be spawned
+	*/
 	ENGINE_API void SpawnEntity(Ref<Asset> prefab);
+	
+	/**
+	* @brief Creates a new entity base on a Prefab attached as a child to the given Entity
+	* @param parent Entity object that the newly created entity will be attached to
+	* @param prefab A reference to a Prefab-Asset that describes the entity that will be spawned
+	*/
 	ENGINE_API void SpawnEntity(Entity parent, Ref<Asset>prefab);
+
+	/**
+	* @brief Creates a new entity base on a Prefab attached as a child to the given Entity
+	* @param parent Pointer to a ScriptableEntity that the newly created entity will be attached to
+	* @param prefab A reference to a Prefab-Asset that describes the entity that will be spawned
+	*/
 	ENGINE_API void SpawnEntity(ScriptableEntity* parent, Ref<Asset>prefab);
 
+	/**
+	* @brief Destroys the specified Entity on this or the next frame (if has ScriptComponent)
+	* @param entity Entity object that will be destroyed
+	*/
 	ENGINE_API void DestroyEntity(Entity entity);
+
+	/**
+	* @brief Destroys the specified ScriptableEntity on the frame
+	* @param entity Pointer to a ScriptableEntity that will be destroyed
+	*/
 	ENGINE_API void DestroyEntity(ScriptableEntity* entity);
+
+	/**
+	* @brief Get all entities with the specified tag (aka name)
+	* @param tag String containing the name you are searching for
+	* @return A vector containing all the entities with the specified tag
+	*/
+	ENGINE_API [[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag);
+
 }
