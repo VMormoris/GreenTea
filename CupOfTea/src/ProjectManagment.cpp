@@ -301,14 +301,34 @@ void CreateProject(const std::string& location, const std::string& name) noexcep
 
 void OpenProject(const std::string& path) noexcept
 {
+	auto GreenTeaDir = std::filesystem::absolute(std::filesystem::current_path() / "../../..").string();
+	std::replace(GreenTeaDir.begin(), GreenTeaDir.end(), '\\', '/');
+
 	auto prjdir = std::filesystem::path(path).parent_path();
 	const std::string name = prjdir.filename().string();
 	sProjects.push_back(path.substr(0, path.find_last_of('/')));
 
+	//Change premake5 file
+	const auto premake5 = prjdir.string() + "/premake5.lua";
+	std::vector<std::string> lines;
+	std::ifstream is(premake5, std::ios::binary);
+	std::string line;
+	while (std::getline(is, line))
+		lines.emplace_back(line);
+	is.close();
+
+	std::ofstream os(premake5, std::ios::binary);
+	os << lines[0];
+	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
+	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n";
+	for (size_t i = 3; i < lines.size(); i++)
+		os << lines[i];
+	os.close();
+
 	//Run premake5
-	std::string command = std::string("premake5 --file=") + prjdir.string() + "/premake5.lua gt";
+	std::string command = std::string("premake5 --file=") + premake5 + " gt";
 	system(command.c_str());
-	command = std::string("premake5 --file=") + prjdir.string() + "/premake5.lua vs2019";
+	command = std::string("premake5 --file=") + premake5 + " vs2019";
 	system(command.c_str());
 
 	//Open project using editor

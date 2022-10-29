@@ -1,4 +1,4 @@
-![Green Tea Engine](images/greenteagit.png)
+![Green Tea Engine](https://raw.githubusercontent.com/wiki/VMormoris/GreenTea/Resources/Branding/greenteagit.png)
 
   Green Tea engine is a 2D Game Engine that is heavily inspired by [Cherno's](https://thecherno.com/) [Game Engine Series](https://youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT). The Engine currently being developed only by me, on my free time, with the only purpose of helping me understand better how game engines as well as game development works. I will **not** recommend using this Engine for final products. Instead I will advice you to use [Hazel](https://github.com/TheCherno/Hazel) that is being be used and checked by a lot more people, or one of the well established game engines.
 
