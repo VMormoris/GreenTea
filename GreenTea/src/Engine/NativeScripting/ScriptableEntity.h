@@ -8,6 +8,7 @@ namespace gte {
 		ScriptableEntity(void) = default;
 		ScriptableEntity(Entity entity)
 			: mEntity(entity) {}
+		virtual ~ScriptableEntity(void) = default;
 
 		virtual void Start(void);
 		virtual void Destroy(void);
