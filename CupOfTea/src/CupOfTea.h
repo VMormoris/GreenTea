@@ -44,5 +44,5 @@ private:
 	//gte::GPU::FrameBuffer* mViewportFBO = nullptr;
 
 	bool mPanels[8] = { true/*Viewport*/, true/*Content Browser*/, true/*Hierarchy*/, true/*Properties*/, true/*Console Log*/, false/*About*/, true/*Settings*/, false/*Animation Window*/};
-	bool mShowColliders = true;
+	bool mShowColliders = false;
 };

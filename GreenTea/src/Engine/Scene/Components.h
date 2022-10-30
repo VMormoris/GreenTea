@@ -272,6 +272,7 @@ namespace gte {
 		float RefDistance = 1.0f;
 		float MaxDistance = 500.0f;
 		bool Looping = false;
+		bool PlayOnStart = false;
 
 		SpeakerComponent(void) = default;
 		SpeakerComponent(const SpeakerComponent&) = default;
@@ -280,6 +281,7 @@ namespace gte {
 	struct ENGINE_API ParticleSystemComponent {
 		internal::ParticleSystem* System = nullptr;
 		internal::ParticleProps Props;
+		bool PlayOnStart = false;
 		
 		ParticleSystemComponent(void) = default;
 		ParticleSystemComponent& operator=(const ParticleSystemComponent&) = default;

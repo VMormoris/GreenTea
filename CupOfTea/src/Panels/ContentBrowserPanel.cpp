@@ -1049,6 +1049,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "RefDistance" << YAML::Value << speaker.RefDistance;
 		out << YAML::Key << "MaxDistance" << YAML::Value << speaker.MaxDistance;
 		out << YAML::Key << "Looping" << YAML::Value << speaker.Looping;
+		out << YAML::Key << "PlayOnStart" << YAML::Value << speaker.PlayOnStart;
 		out << YAML::EndMap;
 	}
 
@@ -1072,6 +1073,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "EmitionRate" << YAML::Value << psc.Props.EmitionRate;
 		out << YAML::Key << "MaxParticles" << YAML::Value << psc.Props.MaxParticles;
 		out << YAML::Key << "Looping" << YAML::Value << psc.Props.Looping;
+		out << YAML::Key << "PlayOnStart" << YAML::Value << psc.PlayOnStart;
 		out << YAML::EndMap;
 	}
 

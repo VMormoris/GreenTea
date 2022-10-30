@@ -400,6 +400,11 @@ namespace gte {
 				sc.RefDistance = speaker["RefDistance"].as<float>();
 				sc.MaxDistance = speaker["MaxDistance"].as<float>();
 				sc.Looping = speaker["Looping"].as<bool>();
+				if (const auto& play = speaker["PlayOnStart"])
+					sc.PlayOnStart = play.as<bool>();
+
+				if (sc.PlayOnStart && internal::GetContext()->Playing)
+					sc.Source.Play();
 			}
 
 			const auto& particleSystem = entityNode["ParticleSystemComponent"];
@@ -421,6 +426,8 @@ namespace gte {
 				psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
 				psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 				psc.Props.Looping = particleSystem["Looping"].as<bool>();
+				if (const auto& play = particleSystem["PlayOnStart"])
+					psc.PlayOnStart = play.as<bool>();
 			}
 
 			const auto& animation = entityNode["AnimationComponent"];
@@ -1207,7 +1214,15 @@ namespace gte {
 		}
 
 		UpdateMatrices(false);
+		
 		InformAudioEngine();
+		auto speakers = mReg.view<SpeakerComponent>();
+		for (auto&& [entityID, speaker] : speakers.each())
+		{
+			if (speaker.PlayOnStart)
+				speaker.Source.Play();
+		}
+
 		OnPhysicsStart();
 		internal::GetContext()->GlobalTime = 0.0f;
 	}
@@ -1541,29 +1556,6 @@ namespace gte {
 		}
 	}
 
-	/*Entity Scene::PickEntity(uint32 x, uint32 y) const
-	{
-		const glm::vec2& size = internal::GetContext()->ViewportSize;
-		CameraComponent cam;
-		auto cams = mReg.view<CameraComponent>();
-		for (auto&& [entityID, cc] : cams.each())
-		{
-			if (!cc.Primary)
-				continue;
-			cam = cc;
-			break;
-		}
-
-		glm::vec4 rayEye = glm::inverse(cam.ProjectionMatrix) * glm::vec4((2.0f * x / size.x) - 1.0f, 1.0f - (2.0f * y / size.y), -1.0f, 1.0f);
-		rayEye.z = -1.0f;
-		rayEye.w = 0.0f;
-		rayEye = glm::inverse(cam.ViewMatrix) * rayEye;
-		glm::vec3 worldRay = glm::normalize(glm::vec3{ rayEye.x, rayEye.y, rayEye.z });
-
-		GTE_TRACE_LOG('[', worldRay.x, ", ", worldRay.y, ", ", worldRay.z, ']');
-		return {};
-	}*/
-
 }
 
 void CreateTransform2D(entt::registry& reg, entt::entity entityID)
@@ -1600,7 +1592,8 @@ void CreateParticleSystem(entt::registry& reg, entt::entity entityID)
 
 	auto& psc = reg.get<gte::ParticleSystemComponent>(entityID);
 	psc.System = new gte::internal::ParticleSystem(psc.Props);
-	psc.System->Start();
+	if(psc.PlayOnStart)
+		psc.System->Start();
 }
 
 void DestroyParticleSystem(entt::registry& reg, entt::entity entityID)

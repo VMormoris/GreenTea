@@ -12,7 +12,7 @@ namespace gte::internal {
 		glm::vec4 ColorBegin = { 1.0f, 1.0f, 1.0f, 1.0f }, ColorEnd = { 1.0f, 1.0f, 1.0f, 1.0f };
 		glm::vec2 SizeBegin = { 1.0f, 1.0f }, SizeEnd = { 1.0f, 1.0f };
 		float Rotation = 0.0f, RotationVariation = 0.0f;
-		float AngularVelocity = 0.5729578f, AngularVelocityVariation = 0.0f;
+		float AngularVelocity = 0.0f, AngularVelocityVariation = 0.0f;
 		float Duration = 5.0f;
 		float LifeTime = 1.0f;
 		float EmitionRate = 10.0f / 1000.0f;

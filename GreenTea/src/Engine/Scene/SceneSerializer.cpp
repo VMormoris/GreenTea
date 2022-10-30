@@ -239,6 +239,8 @@ namespace gte::internal {
 					sc.RefDistance = speaker["RefDistance"].as<float>();
 					sc.MaxDistance = speaker["MaxDistance"].as<float>();
 					sc.Looping = speaker["Looping"].as<bool>();
+					if (const auto& play = speaker["PlayOnStart"])
+						sc.PlayOnStart = play.as<bool>();
 				}
 
 				const auto& particleSystem = entityNode["ParticleSystemComponent"];
@@ -260,6 +262,8 @@ namespace gte::internal {
 					psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
 					psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 					psc.Props.Looping = particleSystem["Looping"].as<bool>();
+					if (const auto& play = particleSystem["PlayOnStart"])
+						psc.PlayOnStart = play.as<bool>();
 				}
 
 				const auto& animation = entityNode["AnimationComponent"];
@@ -754,6 +758,7 @@ namespace gte::internal {
 			out << YAML::Key << "RefDistance" << YAML::Value << speaker.RefDistance;
 			out << YAML::Key << "MaxDistance" << YAML::Value << speaker.MaxDistance;
 			out << YAML::Key << "Looping" << YAML::Value << speaker.Looping;
+			out << YAML::Key << "PlayOnStart" << YAML::Value << speaker.PlayOnStart;
 			out << YAML::EndMap;
 		}
 
@@ -777,6 +782,7 @@ namespace gte::internal {
 			out << YAML::Key << "EmitionRate" << YAML::Value << psc.Props.EmitionRate;
 			out << YAML::Key << "MaxParticles" << YAML::Value << psc.Props.MaxParticles;
 			out << YAML::Key << "Looping" << YAML::Value << psc.Props.Looping;
+			out << YAML::Key << "PlayOnStart" << YAML::Value << psc.PlayOnStart;
 			out << YAML::EndMap;
 		}
 

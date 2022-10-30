@@ -597,6 +597,7 @@ namespace gte {
 				settings.MaxUint = std::numeric_limits<uint32>::max();
 				gui::DrawUint32Control("Max Particles", psc.Props.MaxParticles, settings);
 				gui::DrawBoolControl("Looping", psc.Props.Looping, settings);
+				gui::DrawBoolControl("Play On Start", psc.PlayOnStart, settings, "If checked starts emmiting particles once the Entity spawns.");
 			});
 		}
 
@@ -665,6 +666,7 @@ namespace gte {
 				gui::DrawFloatControl("Ref. Distance", speaker.RefDistance, settings, "The distance under which the volume for the source would normally drop by half(before being influenced by rolloff factor).");
 				gui::DrawFloatControl("Max Distance", speaker.MaxDistance, settings, "The distance where the sound stops attenuating at. Beyond this point it will stay at the\nvolume it would be at MaxDistance units from the listener and will not attenuate any more.");
 				gui::DrawBoolControl("Looping", speaker.Looping, settings, "If checked the Audio clip loops.");
+				gui::DrawBoolControl("Play On Start", speaker.PlayOnStart, settings, "If checked starts playing the sound once the Entity spawns.");
 			});
 		}
 
