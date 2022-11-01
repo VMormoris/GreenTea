@@ -55,6 +55,7 @@ namespace gte {
 		}
 
 		Movement(dt, physics);
+		UpdateMatrices(false);
 
 		//Handle Scripting logic
 		std::vector<entt::entity> bin;
@@ -113,23 +114,8 @@ namespace gte {
 		for (auto&& [entityID, psc] : particles.each())
 			psc.System->SetProps(psc.Props);
 
-		//Find primary camera for rendering
-		bool found = false;
-		glm::mat4 eyeMatrix;
-		auto cameras = mReg.view<CameraComponent>();
-		for (auto&& [entityID, cam] : cameras.each())
-		{
-			if (cam.Primary)
-			{
-				eyeMatrix = cam;
-				found = true;
-				SetListener(mReg, entityID);
-				break;
-			}
-		}
-		
-		if (found)
-			Render(eyeMatrix, false);
+		if (Entity camera = GetPrimaryCameraEntity(false))
+			SetListener(mReg, camera);
 	}
 
 	void Scene::Render(const glm::mat4& eyematrix, bool useLock)
@@ -931,6 +917,28 @@ namespace gte {
 				entities.emplace_back(entityID, this);
 		}
 		return entities;
+	}
+
+	[[nodiscard]] Entity Scene::GetPrimaryCameraEntity(bool useLock)
+	{
+		Entity entity = {};
+		if (useLock)
+			mRegMutex.lock();
+
+		auto cameras = mReg.view<CameraComponent>();
+		for (auto&& [entityID, cam] : cameras.each())
+		{
+			if (cam.Primary)
+			{
+				entity = { entityID, this };
+				break;
+			}
+		}
+
+		if (useLock)
+			mRegMutex.unlock();
+
+		return entity;
 	}
 
 	void Scene::UpdateTransform(Entity entity, bool useLock)

@@ -41,6 +41,7 @@ namespace gte {
 
 		[[nodiscard]] Entity FindEntityWithUUID(const uuid& id, bool useLock = true);
 		[[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag);
+		[[nodiscard]] Entity GetPrimaryCameraEntity(bool useLock = true);
 
 		void UpdateTransform(Entity entity, bool useLock = true);
 		void UpdateMatrices(bool useLock = true);//Update Transform for all entities

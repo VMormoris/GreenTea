@@ -87,7 +87,13 @@ void CupOfTea::Update(float dt)
     gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
     gte::RenderCommand::Clear();
 	viewportFBO->Clear(1, &EnttNull);
-	scene->Render(EditorCamera.GetComponent<gte::CameraComponent>());
+	if (gte::internal::GetContext()->Playing)
+	{
+		if (gte::Entity camera = scene->GetPrimaryCameraEntity())
+			scene->Render(camera.GetComponent<gte::CameraComponent>());
+	}
+	else
+		scene->Render(EditorCamera.GetComponent<gte::CameraComponent>());
 	OnOverlayRenderer();
 	viewportFBO->Unbind();
 	gte::internal::GetContext()->PixelBufferObject->ReadPixels(1);
@@ -134,18 +140,9 @@ void CupOfTea::OnOverlayRenderer(void)
 	}
 	else
 	{
-		auto cams = scene->GetAllEntitiesWith<gte::CameraComponent>();
-		bool found = false;
-		for (auto&& [entityID, cam] : cams.each())
-		{
-			if (cam.Primary)
-			{
-				eyeMatrix = cam.EyeMatrix;
-				found = true;
-				break;
-			}
-		}
-		if (!found)
+		if (gte::Entity camera = scene->GetPrimaryCameraEntity())
+			eyeMatrix = camera.GetComponent<gte::CameraComponent>();
+		else
 			return;
 	}
 
