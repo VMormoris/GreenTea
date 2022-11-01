@@ -755,7 +755,9 @@ bool CupOfTea::OnScroll(float dx, float dy)
 void CupOfTea::Start(void)
 {
 	gte::internal::GetContext()->DynamicLoader.Reload();
-	gte::uuid id = mSceneHierarchyPanel.GetSelectedEntity().GetID();
+	gte::uuid id;
+	if (gte::Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity())
+		id = selectedEntity.GetID();
 	mSnapshot = gte::internal::GetContext()->ActiveScene;
 	gte::internal::GetContext()->Playing = true;
 	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);
@@ -772,7 +774,9 @@ void CupOfTea::Start(void)
 
 void CupOfTea::Stop(void)
 {
-	gte::uuid id = mSceneHierarchyPanel.GetSelectedEntity().GetID();
+	gte::uuid id;
+	if (gte::Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity())
+		id = selectedEntity.GetID();
 	gte::internal::GetContext()->ActiveScene->OnStop();
 	delete gte::internal::GetContext()->ActiveScene;
 	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);

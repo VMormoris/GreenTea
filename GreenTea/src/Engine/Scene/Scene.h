@@ -75,6 +75,7 @@ namespace gte {
 
 	private:
 		entt::registry mReg;
+		entt::registry mPhysicsReg;
 		b2World* mPhysicsWorld = nullptr;
 		float mAccumulator = 0.0f;
 		std::mutex mRegMutex;

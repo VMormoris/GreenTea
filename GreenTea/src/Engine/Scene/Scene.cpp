@@ -9,14 +9,17 @@
 #include <Engine/NativeScripting/ScriptableEntity.h>
 #include <Engine/Renderer/Renderer2D.h>
 
+//glm
 #include <gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/compatibility.hpp>
 // Box2D
 #include <box2d/b2_world.h>
 #include <box2d/b2_body.h>
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_polygon_shape.h>
 #include <box2d/b2_circle_shape.h>
-//openal-sofr
+//openal-soft
 #include <AL/al.h>
 
 static void CreateTransform2D(entt::registry& reg, entt::entity entityID);
@@ -709,6 +712,12 @@ namespace gte {
 				auto [cc, rb, tc] = circles.get(entity);
 				glm::vec3 pos, scale, rotation;
 				gte::math::DecomposeTransform(tc, pos, scale, rotation);
+				{//Save previous Physics Tick on a different Registry
+					auto entt = mPhysicsReg.create(entity);
+					auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+					prevTC.Position = pos;
+					prevTC.Rotation = rotation.z;
+				}
 				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
 				rb.Body = body;
@@ -735,6 +744,12 @@ namespace gte {
 				auto [bc, rb, tc] = boxes.get(entity);
 				glm::vec3 pos, scale, rotation;
 				gte::math::DecomposeTransform(tc, pos, scale, rotation);
+				{//Save previous Physics Tick on a different Registry
+					auto entt = mPhysicsReg.create(entity);
+					auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+					prevTC.Position = pos;
+					prevTC.Rotation = rotation.z;
+				}
 				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
 				rb.Body = body;
@@ -879,6 +894,8 @@ namespace gte {
 		}
 		uuid id = mReg.get<IDComponent>(entity);
 		mReg.destroy(entity);
+		if (mPhysicsReg.valid(entity))
+			mPhysicsReg.destroy(entity);
 		if (useLock)
 			mRegMutex.unlock();
 	}
@@ -1249,8 +1266,6 @@ namespace gte {
 		auto& settings = me.GetComponent<Settings>();
 		const float STEP = 1.0f / settings.Rate;
 
-		mPhysicsWorld->Step(STEP, settings.VelocityIterations, settings.PositionIterations);
-		
 		{// Inform game engine about changes by physics world
 			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
 			for (auto&& [entityID, cc, rb, tc] : circles.each())
@@ -1273,8 +1288,9 @@ namespace gte {
 			if (script.State == ScriptState::Active)
 				script.Instance->FixedUpdate();
 		});
-		UpdateMatrices(false);
 
+		UpdateMatrices(false);
+		
 		{// Infrom physics world about changes by game engine
 			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
 			for (auto&& [entityID, cc, rb, tc] : circles.each())
@@ -1300,33 +1316,49 @@ namespace gte {
 				shape->SetAsBox(scale.x * bc.Size.x, scale.y * bc.Size.y, { bc.Offset.x, bc.Offset.y }, 0.0f);
 			}
 		}
+
+		mPhysicsWorld->Step(STEP, settings.VelocityIterations, settings.PositionIterations);
 	}
 
 	void Scene::Movement(float dt, bool physics)
 	{
-		glm::vec2 gravity = FindEntityWithUUID({}, false).GetComponent<Settings>().Gravity;
+		const auto& settings = FindEntityWithUUID({}, false).GetComponent<Settings>();
+		const glm::vec2 gravity = settings.Gravity;
+		const float tickRate = 1.0f / settings.Rate;
+		const float deltaTime = mAccumulator / tickRate;
+
 		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>);
 		for (auto&& [entityID, rb, tc, transform] : group.each())
 		{
 			if (rb.Type == BodyType::Static)
 				continue;
-			if (b2Body* body = (b2Body*)rb.Body) continue;//{ if (rb.Type == BodyType::Dynamic && !body->IsAwake()) continue; }
 
-			float deltaTime = dt;
-			if (physics && rb.Body)
-				deltaTime = mAccumulator;
-			
-			glm::vec2 g = gravity * rb.GravityFactor;
-			if (rb.Type == BodyType::Dynamic && rb.Body == nullptr)//Hacking my way for moving in between box2D frames
-				rb.Velocity += g * deltaTime;
-
+			//Update global Positions
 			glm::vec3 pos, scale, rotation;
 			math::DecomposeTransform(transform, pos, scale, rotation);
-			pos += glm::vec3(rb.Velocity.x, rb.Velocity.y, 0.0f) * deltaTime;
-			if(rb.Type == BodyType::Dynamic)
-				pos += 0.5f * glm::vec3(g.x, g.y, 0.0f) * deltaTime * deltaTime;
-			rotation.z += glm::radians(rb.AngularVelocity) * deltaTime;
+			if (b2Body* body = (b2Body*)rb.Body)
+			{
+				if (rb.Type == BodyType::Dynamic && !body->IsAwake())
+					continue;
+				
+				const glm::vec3 targetPos = { body->GetPosition().x, body->GetPosition().y, pos.z };
+				const float targetAngle = body->GetAngle();
+				const auto& prevTC = mPhysicsReg.get<Transform2DComponent>(entityID);
+				pos = glm::lerp(prevTC.Position, targetPos, deltaTime);
+				rotation.z = glm::lerp(prevTC.Rotation, targetAngle, deltaTime);
+			}
+			else
+			{
+				const glm::vec2 g = gravity * rb.GravityFactor;
+				if (rb.Type == BodyType::Dynamic)
+					rb.Velocity += g * dt;
+				pos += glm::vec3(rb.Velocity.x, rb.Velocity.y, 0.0f) * dt;
+				if (rb.Type == BodyType::Dynamic)
+					pos += 0.5f * glm::vec3(g.x, g.y, 0.0f) * dt * dt;
+				rotation.z += glm::radians(rb.AngularVelocity) * dt;
+			}
 			
+			//Update local positions
 			glm::mat4 pTransform;
 			if (HasParentTransform(mReg.get<RelationshipComponent>(entityID), mReg, pTransform))
 			{
@@ -1384,10 +1416,12 @@ namespace gte {
 
 	void Scene::InformEngine(entt::entity entityID, Rigidbody2DComponent& rb, TransformationComponent& tc)
 	{
+		auto& prevTC = mPhysicsReg.get<Transform2DComponent>(entityID);
 		const auto& relc = mReg.get<RelationshipComponent>(entityID);
 		glm::mat4 pTransform;
 		bool World = HasParentTransform(relc, mReg, pTransform);
 		b2Body* body = (b2Body*)rb.Body;
+		prevTC.Rotation = body->GetAngle();
 		if (World)
 		{
 			glm::mat4 world = glm::translate(glm::mat4(1.0f), { body->GetPosition().x, body->GetPosition().y, tc.Transform[3].z }) *
@@ -1398,15 +1432,18 @@ namespace gte {
 			auto& transform = mReg.get<Transform2DComponent>(entityID);
 			transform.Position = { pos.x , pos.y, transform.Position.z };
 			transform.Rotation = glm::degrees(rotation.z);
+			prevTC.Position = { body->GetPosition().x, body->GetPosition().y, transform.Position.z };
 		}
 		else
 		{
 			auto& transform = mReg.get<Transform2DComponent>(entityID);
 			transform.Position = { body->GetPosition().x, body->GetPosition().y, transform.Position.z };
 			transform.Rotation = glm::degrees(body->GetAngle());
+			prevTC.Position = { body->GetPosition().x, body->GetPosition().y, transform.Position.z };
 		}
 		rb.Velocity = { body->GetLinearVelocity().x , body->GetLinearVelocity().y };
 		rb.AngularVelocity = glm::degrees(body->GetAngularVelocity());
+
 	}
 
 	void Scene::InformPhysicsWorld(Rigidbody2DComponent& rb, Collider* collider, const glm::vec3& pos, float angle)
@@ -1429,8 +1466,8 @@ namespace gte {
 	void Scene::OnPhysicsStart(void)
 	{
 		Entity me = FindEntityWithUUID({}, false);
-		const glm::vec2& g = me.GetComponent<Settings>().Gravity;
-		mPhysicsWorld = new b2World({ g.x, g.y });
+		const auto& settings = me.GetComponent<Settings>();
+		mPhysicsWorld = new b2World({ settings.Gravity.x, settings.Gravity.y });
 		mPhysicsWorld->SetContactListener(CollisionDispatcher::Get());
 
 		auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
@@ -1438,6 +1475,12 @@ namespace gte {
 		{
 			glm::vec3 pos, scale, rotation;
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
+			{//Save previous Physics Tick on a different Registry
+				auto entt = mPhysicsReg.create(entityID);
+				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+				prevTC.Position = pos;
+				prevTC.Rotation = rotation.z;
+			}
 			b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 			b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
 			rb.Body = body;
@@ -1460,6 +1503,12 @@ namespace gte {
 		{
 			glm::vec3 pos, scale, rotation;
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
+			{//Save previous Physics Tick on a different Registry
+				auto entt = mPhysicsReg.create(entityID);
+				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+				prevTC.Position = pos;
+				prevTC.Rotation = rotation.z;
+			}
 			b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 			b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
 			rb.Body = body;
@@ -1475,12 +1524,16 @@ namespace gte {
 			fixtureDef.isSensor = bc.Sensor;
 			bc.Fixure = body->CreateFixture(&fixtureDef);
 		}
+
+		const float tickRate = 1.0f / settings.Rate;
+		mPhysicsWorld->Step(tickRate, settings.VelocityIterations, settings.PositionIterations);
 	}
 
 	void Scene::OnPhysicsStop(void)
 	{
 		delete mPhysicsWorld;
 		mPhysicsWorld = nullptr;
+		mPhysicsReg.clear<Transform2DComponent>();
 	}
 
 	void Scene::PatchScripts(void)
