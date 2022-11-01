@@ -1310,7 +1310,7 @@ namespace gte {
 		{
 			if (rb.Type == BodyType::Static)
 				continue;
-			if (b2Body* body = (b2Body*)rb.Body) { if (rb.Type == BodyType::Dynamic && !body->IsAwake()) continue; }
+			if (b2Body* body = (b2Body*)rb.Body) continue;//{ if (rb.Type == BodyType::Dynamic && !body->IsAwake()) continue; }
 
 			float deltaTime = dt;
 			if (physics && rb.Body)

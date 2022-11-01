@@ -176,16 +176,11 @@ namespace gte {
 
 		if (shouldDestroy)
 		{
-			uuid id;
-			if(mSelectionContext)
-				id = mSelectionContext.GetComponent<IDComponent>().ID;
 			scene->DestroyEntity(entity);
-			if(mSelectionContext)
-				mSelectionContext = scene->FindEntityWithUUID(id);
+			if(!mSelectionContext)
+				mSelectionContext = {};
 		}
 
-		if (mSelectionContext && !scene->mReg.valid(mSelectionContext))
-			mSelectionContext = {};
 	}
 
 	void SceneHierarchyPanel::DrawComponents(Entity entity)
