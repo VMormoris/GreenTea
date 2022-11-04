@@ -8,14 +8,12 @@ namespace gte {
 
 	struct ENGINE_API TextureCoordinates {
 		glm::vec2 BottomLeft{ 0.0f, 0.0f };
-		glm::vec2 BottomRight{ 1.0f, 0.0f };
 		glm::vec2 TopRight{ 1.0f, 1.0f };
-		glm::vec2 TopLeft{ 0.0f, 1.0f };
 
 		TextureCoordinates(void) = default;
 
-		TextureCoordinates(const glm::vec2& bl, const glm::vec2& br, const glm::vec2& tr, const glm::vec2& tl)
-			: BottomLeft(bl), BottomRight(br), TopRight(tr), TopLeft(tl) {}
+		TextureCoordinates(const glm::vec2& bl, const glm::vec2& tr)
+			: BottomLeft(bl), TopRight(tr) {}
 	};
 
 	namespace GPU {

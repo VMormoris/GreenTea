@@ -337,7 +337,7 @@ namespace gte {
 	void Renderer2D::DrawQuad(const glm::mat4& transformation, const GPU::Texture* texture, const TextureCoordinates& textCoords, uint32 ID, const glm::vec4& tintColor, float tilingFactor)
 	{
 		constexpr size_t quadVertexCount = 4;
-		const glm::vec2 textureCoords[] = { textCoords.BottomLeft, textCoords.BottomRight, textCoords.TopRight, textCoords.TopLeft };
+		const glm::vec2 textureCoords[] = { textCoords.BottomLeft, {textCoords.TopRight.x, textCoords.BottomLeft.y}, textCoords.TopRight, {textCoords.BottomLeft.x, textCoords.TopRight.y} };
 		constexpr float circle = 0.0f;
 
 		if (sData.QuadIndexCount >= sData.MaxIndices)

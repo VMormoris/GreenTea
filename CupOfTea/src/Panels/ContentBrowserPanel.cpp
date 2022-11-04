@@ -854,9 +854,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 			out << YAML::Key << "TextureCoordinates";
 			out << YAML::BeginMap;
 			out << YAML::Key << "BottomLeft" << YAML::Value << sprite.Coordinates.BottomLeft;
-			out << YAML::Key << "BottomRight" << YAML::Value << sprite.Coordinates.BottomRight;
 			out << YAML::Key << "TopRight" << YAML::Value << sprite.Coordinates.TopRight;
-			out << YAML::Key << "TopLeft" << YAML::Value << sprite.Coordinates.TopLeft;
 			out << YAML::EndMap;
 		}
 		out << YAML::EndMap;

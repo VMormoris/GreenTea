@@ -916,14 +916,9 @@ namespace gte::gui {
 	bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings, bool onTexture)
 	{
 		const float colWidth = settings.ColumnWidth - (onTexture ? 20.0f : 0.0f);
-		bool changed = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth, "Bottom Left");
-		if (DrawCoordinate("Bottom Right", coords.BottomRight, { 1.0f, 0.0f }, width, height, colWidth, "Bottom Right"))
-			changed = true;
-		if (DrawCoordinate("Top Right", coords.TopRight, { 1.0f, 1.0f }, width, height, colWidth, "Top Right"))
-			changed = true;
-		if (DrawCoordinate("Top Left", coords.TopLeft, { 0.0f, 1.0f }, width, height, colWidth, "Top Left"))
-			changed = true;
-		return changed;
+		const bool bottomLeft = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth, "Bottom Left");
+		const bool bottomRight = DrawCoordinate("Top Right", coords.TopRight, { 1.0f, 1.0f }, width, height, colWidth, "Top Right");
+		return bottomLeft || bottomRight;
 	}
 
 	bool DrawAssetControl(const char* label, uuid& id, const char* filetype, const UISettings& settings, const std::string& help)

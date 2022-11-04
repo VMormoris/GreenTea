@@ -140,23 +140,15 @@ namespace gte {
 					TextureCoordinates coords = sprite->Coordinates;
 					if (sprite->FlipX)
 					{
-						glm::vec2 temp = coords.BottomLeft;
-						coords.BottomLeft = coords.BottomRight;
-						coords.BottomRight = temp;
-
-						temp = coords.TopLeft;
-						coords.TopLeft = coords.TopRight;
-						coords.TopRight = temp;
+						float x = coords.BottomLeft.x;
+						coords.BottomLeft.x = coords.TopRight.x;
+						coords.TopRight.x = x;
 					}
 					if (sprite->FlipY)
 					{
-						glm::vec2 temp = coords.TopLeft;
-						coords.TopLeft = coords.BottomLeft;
-						coords.BottomLeft = temp;
-
-						temp = coords.TopRight;
-						coords.TopRight = coords.BottomRight;
-						coords.BottomRight = temp;
+						float y = coords.BottomLeft.y;
+						coords.BottomLeft.y = coords.TopRight.y;
+						coords.TopRight.y = y;
 					}
 					Renderer2D::DrawQuad(tc.Transform, (GPU::Texture*)sprite->Texture->Data, coords, (uint32)entityID, sprite->Color, sprite->TilingFactor);
 				}
@@ -298,9 +290,7 @@ namespace gte {
 					sprite.FlipY = renderable["FlipY"].as<bool>();
 					const auto& coords = renderable["TextureCoordinates"];
 					sprite.Coordinates.BottomLeft = coords["BottomLeft"].as<glm::vec2>();
-					sprite.Coordinates.BottomRight = coords["BottomRight"].as<glm::vec2>();
 					sprite.Coordinates.TopRight = coords["TopRight"].as<glm::vec2>();
-					sprite.Coordinates.TopLeft = coords["TopLeft"].as<glm::vec2>();
 				}
 			}
 

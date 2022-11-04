@@ -22,9 +22,7 @@ namespace gte::internal {
 		{
 			Frame fr;
 			fr.Coords.BottomLeft = frame["BottomLeft"].as<glm::vec2>();
-			fr.Coords.BottomRight = frame["BottomRight"].as<glm::vec2>();
 			fr.Coords.TopRight = frame["TopRight"].as<glm::vec2>();
-			fr.Coords.TopLeft = frame["TopLeft"].as<glm::vec2>();
 			fr.Duration = frame["Duration"].as<float>();
 
 			mFrames.push_back(fr);
@@ -45,9 +43,7 @@ namespace gte::internal {
 		{
 			out << YAML::BeginMap;
 			out << YAML::Key << "BottomLeft" << YAML::Value << frame.Coords.BottomLeft;
-			out << YAML::Key << "BottomRight" << YAML::Value << frame.Coords.BottomRight;
 			out << YAML::Key << "TopRight" << YAML::Value << frame.Coords.TopRight;
-			out << YAML::Key << "TopLeft" << YAML::Value << frame.Coords.TopLeft;
 			out << YAML::Key << "Duration" << YAML::Value << frame.Duration;
 			out << YAML::EndMap;
 		}

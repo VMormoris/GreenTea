@@ -148,9 +148,7 @@ namespace gte::internal {
 						sprite.FlipY = renderable["FlipY"].as<bool>();
 						const auto& coords = renderable["TextureCoordinates"];
 						sprite.Coordinates.BottomLeft = coords["BottomLeft"].as<glm::vec2>();
-						sprite.Coordinates.BottomRight = coords["BottomRight"].as<glm::vec2>();
 						sprite.Coordinates.TopRight = coords["TopRight"].as<glm::vec2>();
-						sprite.Coordinates.TopLeft = coords["TopLeft"].as<glm::vec2>();
 					}
 				}
 
@@ -564,9 +562,7 @@ namespace gte::internal {
 				out << YAML::Key << "TextureCoordinates";
 				out << YAML::BeginMap;
 				out << YAML::Key << "BottomLeft" << YAML::Value << sprite.Coordinates.BottomLeft;
-				out << YAML::Key << "BottomRight" << YAML::Value << sprite.Coordinates.BottomRight;
 				out << YAML::Key << "TopRight" << YAML::Value << sprite.Coordinates.TopRight;
-				out << YAML::Key << "TopLeft" << YAML::Value << sprite.Coordinates.TopLeft;
 				out << YAML::EndMap;
 			}
 			out << YAML::EndMap;

@@ -322,7 +322,7 @@ void OpenProject(const std::string& path) noexcept
 	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
 	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n";
 	for (size_t i = 3; i < lines.size(); i++)
-		os << lines[i];
+		os << lines[i] << '\n';
 	os.close();
 
 	//Run premake5
