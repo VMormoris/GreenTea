@@ -916,8 +916,8 @@ namespace gte::gui {
 	bool DrawTextureCoordinates(TextureCoordinates& coords, uint32 width, uint32 height, const UISettings& settings, bool onTexture)
 	{
 		const float colWidth = settings.ColumnWidth - (onTexture ? 20.0f : 0.0f);
-		const bool bottomLeft = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth, "Bottom Left");
-		const bool bottomRight = DrawCoordinate("Top Right", coords.TopRight, { 1.0f, 1.0f }, width, height, colWidth, "Top Right");
+		const bool bottomLeft = DrawCoordinate("Bottom Left", coords.BottomLeft, { 0.0f, 0.0f }, width, height, colWidth, "Specify the coordinates of the Bottom-Left corner of the subtexture you want in pixels.");
+		const bool bottomRight = DrawCoordinate("Top Right", coords.TopRight, { 1.0f, 1.0f }, width, height, colWidth, "Specify the coordinates of the Top-Right corner of the subtexture you want in pixels.");
 		return bottomLeft || bottomRight;
 	}
 

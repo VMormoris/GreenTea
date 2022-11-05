@@ -567,31 +567,31 @@ namespace gte {
 				gui::UISettings settings;
 
 				settings.ResetValue = 1.0f;
-				gui::DrawColorPicker("ColorBegin", psc.Props.ColorBegin, settings);
-				gui::DrawColorPicker("ColorEnd", psc.Props.ColorEnd, settings);
+				gui::DrawColorPicker("ColorBegin", psc.Props.ColorBegin, settings, "Define the color that the particle will start with\nUse the color picker to set the color of the particle.");
+				gui::DrawColorPicker("ColorEnd", psc.Props.ColorEnd, settings, "Define the color that the particle will end with\nUse the color picker to set the color of the particle.");
 
 				settings.ResetValue = 0.0f;
-				gui::DrawVec2Control("Position", psc.Props.Position, settings);
+				gui::DrawVec2Control("Position", psc.Props.Position, settings, "Specify the coordinates of where particles will spawn in local 2D space.");
 				settings.MinFloat = 0.0f;
 				settings.MaxFloat = FLT_MAX;
-				gui::DrawVec2Control("Size Begin", psc.Props.SizeBegin, settings);
-				gui::DrawVec2Control("Size End", psc.Props.SizeEnd, settings);
+				gui::DrawVec2Control("Size Begin", psc.Props.SizeBegin, settings, "Specify the local size that the particle will start with.");
+				gui::DrawVec2Control("Size End", psc.Props.SizeEnd, settings, "Specify the local size that the particle will end with.");
 				settings.MaxFloat = 0.0f;
-				gui::DrawVec2Control("Velocity", psc.Props.Velocity, settings);
-				gui::DrawVec2Control("Velocity Variation", psc.Props.VelocityVariation, settings);
+				gui::DrawVec2Control("Velocity", psc.Props.Velocity, settings, "Specify the basic velocity that the particle will spawn with.");
+				gui::DrawVec2Control("Velocity Variation", psc.Props.VelocityVariation, settings, "Specify a value that will variate the basic Velocity with which the particle will spawn.\nFor example a Velocity Variation of 1.0f will add a value in range [-0.5f, 0.5f] to the Velocity.");
 				settings.MinFloat = -180.0f;
 				settings.MaxFloat = 180.0f;
-				gui::DrawFloatControl("Rotation", psc.Props.Rotation, settings);
-				gui::DrawFloatControl("Ang. Velocity", psc.Props.AngularVelocity, settings);
+				gui::DrawFloatControl("Rotation", psc.Props.Rotation, settings, "Specify the starting rotation that the particle will spawn with.");
+				gui::DrawFloatControl("Ang. Velocity", psc.Props.AngularVelocity, settings, "Specify the basic Angular Velocity that the particle will spawn with.");
 				settings.MinFloat = 0.0f;
-				gui::DrawFloatControl("Ang. Vel. Variation", psc.Props.AngularVelocityVariation, settings);
-				gui::DrawFloatControl("Duration", psc.Props.Duration, settings);
-				gui::DrawFloatControl("Life Time", psc.Props.LifeTime, settings);
-				gui::DrawFloatControl("Emition Rate", psc.Props.EmitionRate, settings);
+				gui::DrawFloatControl("Ang. Vel. Variation", psc.Props.AngularVelocityVariation, settings, "Specify a value that will variate the basic Angular Velocity with which the particle spawn.\nFor example a Angular Velocity Variation of 1.0f will add a value in range [-0.5f, 0.5f] ot the Angular Velocity.");
+				gui::DrawFloatControl("Duration", psc.Props.Duration, settings, "Specify the number of seconds that the Particle System will be spawning new particles.");
+				gui::DrawFloatControl("Life Time", psc.Props.LifeTime, settings, "Specify the number of seconds that a Particle should live for.");
+				gui::DrawFloatControl("Emition Rate", psc.Props.EmitionRate, settings, "Specify the number of seconds that will take between spawning a new particle.");
 				settings.MinUint = 0;
 				settings.MaxUint = std::numeric_limits<uint32>::max();
-				gui::DrawUint32Control("Max Particles", psc.Props.MaxParticles, settings);
-				gui::DrawBoolControl("Looping", psc.Props.Looping, settings);
+				gui::DrawUint32Control("Max Particles", psc.Props.MaxParticles, settings, "Specify the maximum number of particles that the System can hold.\nIf this number is reached while they are particles alive the the new particle spawned will replace the oldest one.");
+				gui::DrawBoolControl("Looping", psc.Props.Looping, settings, "If checked the duration parameter is being ingored and the particle system will not stop emmiting new particle ever.");
 				gui::DrawBoolControl("Play On Start", psc.PlayOnStart, settings, "If checked starts emmiting particles once the Entity spawns.");
 			});
 		}
