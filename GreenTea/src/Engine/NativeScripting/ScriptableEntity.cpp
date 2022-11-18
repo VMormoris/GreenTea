@@ -31,7 +31,7 @@ namespace gte {
 		if (entity.HasComponent<NativeScriptComponent>())
 			entity.GetComponent<NativeScriptComponent>().State = ScriptState::MustBeDestroyed;
 		else
-			internal::GetContext()->ActiveScene->DestroyEntity(entity);
+			internal::GetContext()->ActiveScene->DestroyEntity(entity, false);
 	}
 
 	[[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag) { return internal::GetContext()->ActiveScene->GetEntitiesByTag(tag); }
