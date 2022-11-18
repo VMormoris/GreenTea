@@ -282,7 +282,7 @@ namespace gte {
 				sprite.Color = renderable["Color"].as<glm::vec4>();
 				sprite.Visible = renderable["Visible"].as<bool>();
 				uuid texID = renderable["Texture"].as<std::string>();
-				if (id.IsValid())
+				if (texID.IsValid())
 				{
 					sprite.Texture->ID = texID;
 					sprite.TilingFactor = renderable["TilingFactor"].as<float>();
