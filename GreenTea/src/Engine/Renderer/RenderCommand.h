@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/GPU/VertexArray.h>
+#include <Engine/GPU/FrameBuffer.h>
 
 #include <glm.hpp>
 
@@ -44,6 +45,8 @@ namespace gte {
 		static void DrawLines(const GPU::VertexArray* va, uint32 lines);
 
 		static void SetLineThickness(float thickness);
+
+		static void DrawFramebuffer(const GPU::FrameBuffer* fbo);
 	};
 
 }

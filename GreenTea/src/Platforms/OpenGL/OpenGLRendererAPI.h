@@ -13,6 +13,7 @@ namespace gte::GPU::OpenGL {
 		void DrawIndexed(const VertexArray* va, uint32 indices) noexcept override; 
 		void DrawLines(const VertexArray* va, uint32 lines) noexcept override;
 		void SetLineThickness(float thickness) noexcept override;
+		void DrawFramebuffer(const FrameBuffer* fbo) noexcept override;
 	};
 
 }

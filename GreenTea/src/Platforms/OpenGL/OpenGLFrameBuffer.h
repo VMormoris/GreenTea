@@ -10,6 +10,7 @@ namespace gte::GPU::OpenGL {
 		OpenGLFrameBuffer(const FrameBufferSpecification& specification) noexcept;
 		~OpenGLFrameBuffer(void) noexcept;
 
+		void ReadBind(void) const noexcept override;
 		void Bind(void) const noexcept override;
 		void Unbind(void) const noexcept override;
 
@@ -18,6 +19,7 @@ namespace gte::GPU::OpenGL {
 		[[nodiscard]] const FrameBufferSpecification& GetSpecification(void) const noexcept override;
 
 		[[nodiscard]] uint64 GetColorAttachmentID(uint32 attachement) const noexcept override;
+
 		void Clear(uint32 attachment, const void* data) const noexcept override;
 
 		void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept override;

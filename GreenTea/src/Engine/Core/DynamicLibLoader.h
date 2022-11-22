@@ -46,20 +46,7 @@ namespace gte::internal {
 		* @warning This helper function is meant to be used only for Scripting Classes
 		*/
 		template<typename T>
-		T* CreateInstance(const std::string& type)
-		{
-			//Check if the specific function is already loaded
-			if (mCreateFunctions.find(type) == mCreateFunctions.end())
-			{
-				CreateFunc newFunc = NULL;
-				std::string funcName = "Create" + std::string(type);
-				std::replace(funcName.begin(), funcName.end(), ' ', '_');
-				newFunc = (CreateFunc)GetProcAddress((HMODULE)mHdll, funcName.c_str());
-				if (!newFunc) return nullptr;
-				mCreateFunctions.insert({ type, newFunc });
-			}
-			return static_cast<T*>(mCreateFunctions[type]());
-		}
+		T* CreateInstance(const std::string& type);
 
 	private:
 
@@ -81,3 +68,7 @@ namespace gte::internal {
 	};
 
 }
+
+#ifdef PLATFORM_WINDOWS
+	#include <Platforms/Windows/DynamicLibLoader.hpp> 
+#endif

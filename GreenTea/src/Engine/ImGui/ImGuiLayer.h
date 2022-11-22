@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef GT_DIST
+
 #include <Engine/GPU/GraphicsContext.h>
 
 //Forward Declerations
@@ -49,3 +51,5 @@ namespace gte::gui {
 	};
 
 }
+
+#endif

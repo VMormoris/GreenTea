@@ -46,6 +46,15 @@ namespace gte::GPU::OpenGL {
 		glDrawArrays(GL_LINES, 0, lines);
 	}
 
+	void OpenGLRendererAPI::DrawFramebuffer(const FrameBuffer* fbo) noexcept
+	{
+		const auto& spec = fbo->GetSpecification();
+		fbo->ReadBind();
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, spec.Width, spec.Height, 0, 0, spec.Width, spec.Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+
 	void OpenGLRendererAPI::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) noexcept { glViewport(x, y, width, height); }
 	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color) noexcept { glClearColor(color.r, color.g, color.b, color.a); }
 	void OpenGLRendererAPI::Clear(void) noexcept { glClear(GL_COLOR_BUFFER_BIT); }

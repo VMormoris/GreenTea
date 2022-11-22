@@ -38,17 +38,17 @@ namespace gte::internal {
 		*/
 		void LoadProject(const std::filesystem::path& projectdir);
 
+#ifndef GT_DIST
 		/**
 		* @brief Checks for changes in assets for the project
 		* @return Whether was a change or not
 		*/
 		[[nodiscard]] bool Reload(void);
-
 		/**
 		* @brief Returns the identifiers of the assets that may need to be reloaded since the last time Reload called
 		*/
 		[[nodiscard]] const std::vector<uuid>& GetChanges(void) const noexcept;
-		
+#endif
 		/**
 		* @brief Returns the filepath for the specified identiefier
 		* @param id Identifier for the Asset you are looking for
@@ -62,22 +62,29 @@ namespace gte::internal {
 
 		void FindFiles(void);
 
+#ifndef GT_DIST
 		[[nodiscard]] bool IsBuilding(void) const noexcept;
+#endif
 
 	private:
 
 		uuid ReloadFile(const std::filesystem::path& filepath);
+
+#ifndef GT_DIST
 		uuid Remove(const std::string& filepath) noexcept;
+#endif
 		
 	private:
+		std::unordered_map<uuid, std::string> mFilePaths;
+		std::filesystem::path mProjectDir;
+#ifndef GT_DIST
 		void* mFileHandle = (void*)(int64)-1;
 		_OVERLAPPED* mOverlapped = nullptr;
 		byte mChangeBuffer[4096] = { 0 };
-		std::filesystem::path mProjectDir;
 		std::vector<uuid> mChanged;
-		std::unordered_map<uuid, std::string> mFilePaths;
 		std::filesystem::file_time_type mLastNotificationWrite;
 		bool mBuilding = false;
+#endif
 	};
 
 }

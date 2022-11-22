@@ -1,3 +1,4 @@
+#ifndef GT_DIST
 #include "ImGuiWidgets.h"
 #include <Engine/Core/Context.h>
 
@@ -1298,3 +1299,5 @@ bool DrawCoordinate(const char* label, glm::vec2& value, const glm::vec2& resets
 	DrawPostfix();
 	return changed;
 }
+
+#endif

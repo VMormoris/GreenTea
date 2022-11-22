@@ -74,3 +74,8 @@ project (ProjectName)
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
+
+	filter "configuration:Dist"
+		runtime "Release"
+		optimize "on"
+		symbols "off"

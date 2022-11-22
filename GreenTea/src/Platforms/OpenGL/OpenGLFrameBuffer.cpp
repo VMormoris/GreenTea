@@ -63,6 +63,7 @@ namespace gte::GPU::OpenGL {
 		delete[] mColorAttachmentID;
 	}
 
+	void OpenGLFrameBuffer::ReadBind(void) const noexcept { glBindFramebuffer(GL_READ_FRAMEBUFFER, mID); }
 	void OpenGLFrameBuffer::Bind(void) const noexcept { glBindFramebuffer(GL_FRAMEBUFFER, mID); }
 	void OpenGLFrameBuffer::Unbind(void) const noexcept { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 

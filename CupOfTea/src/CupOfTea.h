@@ -10,7 +10,7 @@ class CupOfTea : public gte::Application {
 public:
 	CupOfTea(const std::string& filepath);
 	~CupOfTea(void);
-	void Update(float) override;
+	virtual void Update(float) override;
 
 private:
 

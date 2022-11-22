@@ -2,6 +2,7 @@
 
 #include <Engine/Core/Engine.h>
 #include "VertexArray.h"
+#include "Framebuffer.h"
 
 #include <glm.hpp>
 
@@ -51,6 +52,8 @@ namespace gte::GPU {
 		virtual void DrawLines(const VertexArray* va, uint32 lines) noexcept = 0;
 
 		virtual void SetLineThickness(float thickness) noexcept = 0;
+
+		virtual void DrawFramebuffer(const FrameBuffer* fbo) noexcept = 0;
 
 		/**
 		* @brief Creates a new RendererAPI

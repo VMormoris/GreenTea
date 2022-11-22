@@ -17,4 +17,5 @@ namespace gte {
 	void RenderCommand::DrawLines(const GPU::VertexArray* va, uint32 lines) { internal::GetContext()->Renderer->DrawLines(va, lines); }
 
 	void RenderCommand::SetLineThickness(float thickness) { internal::GetContext()->Renderer->SetLineThickness(thickness); }
+	void RenderCommand::DrawFramebuffer(const GPU::FrameBuffer* fbo) { internal::GetContext()->Renderer->DrawFramebuffer(fbo); }
 }

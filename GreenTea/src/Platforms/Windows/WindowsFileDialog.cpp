@@ -1,3 +1,5 @@
+#ifndef GT_DIST
+
 #include <Engine/Core/FileDialog.h>
 #include <Engine/Core/Context.h>
 
@@ -61,3 +63,5 @@ namespace gte::internal {
 	}
 
 }
+
+#endif

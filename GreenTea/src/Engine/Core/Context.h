@@ -7,7 +7,7 @@
 #include <Engine/Assets/AssetManager.h>
 #include <Engine/Audio/AudioDevice.h>
 #include <Engine/Core/Window.h>
-#include <Engine/Core/DynamicLoader.h>
+#include <Engine/Core/DynamicLibLoader.h>
 #include <Engine/Events/EventDispatcher.h>
 #include <Engine/NativeScripting/ScriptingEngine.h>
 #include <Engine/GPU/RendererAPI.h>
@@ -28,7 +28,7 @@ namespace gte::internal {
 
 		Window* GlobalWindow = nullptr;
 		byte WindowCount = 0;
-		glm::vec2 ViewportOffset;
+		glm::vec2 ViewportOffset = { 0.0f, 0.0f };
 		glm::vec2 ViewportSize;
 		EventDispatcher Dispatcher;
 		

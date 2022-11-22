@@ -30,6 +30,7 @@ namespace gte::internal {
 	{
 		delete context->CDispatcher;
 		delete context->AudioDevice;
+		delete context->PixelBufferObject;
 		delete context->ViewportFBO;
 		delete context->Renderer;
 		delete context->ActiveScene;

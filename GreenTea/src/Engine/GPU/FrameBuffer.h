@@ -18,9 +18,10 @@ namespace gte::GPU {
 
 		virtual ~FrameBuffer(void) = default;
 
+		virtual void ReadBind(void) const noexcept = 0;
 		virtual void Bind(void) const noexcept = 0;
 		virtual void Unbind(void) const noexcept = 0;
-
+		
 		virtual void Resize(uint32 width, uint32 height) noexcept = 0;
 
 		[[nodiscard]] virtual const FrameBufferSpecification& GetSpecification(void) const noexcept = 0;

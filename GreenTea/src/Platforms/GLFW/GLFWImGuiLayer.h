@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef GT_DIST
+
 #include <Engine/ImGui/ImGuiLayer.h>
 
 namespace gte::GLFW {
@@ -22,3 +24,4 @@ namespace gte::GLFW {
 	};
 
 }
+#endif // !GT_DIST

@@ -35,10 +35,14 @@ namespace gte::GLFW {
 
 		mWindow = glfwCreateWindow(mProps.Width, mProps.Height, spec.Title.c_str(), nullptr, nullptr);
 		internal::GetContext()->WindowCount++;
-		//if (spec.Maximized)
-		//	glfwMaximizeWindow(mWindow);
+
+		if (!(spec.Maximized || spec.Center || spec.FullScreen))
+			glfwSetWindowPos(mWindow, spec.X, spec.Y);
+
 		if (spec.Center)
 			Center();
+		if (spec.FullScreen)
+			FullScreen();
 
 		GLFWimage logo[1];
 		logo[0].pixels = stbi_load("../Assets/Icons/GreenTea.png", &logo[0].width, &logo[0].height, 0, 4);
@@ -146,6 +150,20 @@ namespace gte::GLFW {
 		x = x + static_cast<int32>((width - mProps.Width) / 2.0f);
 		y = y + static_cast<int32>((height - mProps.Height) / 2.0f);
 		glfwSetWindowPos(mWindow, x, y);
+	}
+
+	void GLFWWindow::FullScreen(void) noexcept
+	{
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		if (monitor)
+		{
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			glfwSetWindowMonitor(mWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			mProps.Width = mode->width;
+			mProps.Height = mode->height;
+		}
+		else
+			GTE_ERROR_LOG("Couldn't get monitor pointer");
 	}
 
 	GLFWWindow::~GLFWWindow(void) noexcept

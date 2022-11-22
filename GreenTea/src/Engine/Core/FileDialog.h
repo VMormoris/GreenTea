@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef GT_DIST
+
 #include "Engine.h"
 
 #include <string>
@@ -26,3 +28,5 @@ namespace gte::internal {
 
 	ENGINE_API std::string PeekDirectory(void);
 }
+
+#endif
