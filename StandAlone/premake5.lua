@@ -41,6 +41,7 @@ project "StandAlone"
 		"src/**.h",
 		"src/**.hpp",
 		"src/**.cpp",
+		"StandAlone.rc",
 	}
 
     disablewarnings {4251, 4275}

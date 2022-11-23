@@ -45,7 +45,7 @@ namespace gte::GLFW {
 			FullScreen();
 
 		GLFWimage logo[1];
-		logo[0].pixels = stbi_load("../Assets/Icons/GreenTea.png", &logo[0].width, &logo[0].height, 0, 4);
+		logo[0].pixels = stbi_load("../Assets/Icons/Logo.png", &logo[0].width, &logo[0].height, 0, 4);
 		if (logo[0].pixels != NULL)
 		{
 			glfwSetWindowIcon(mWindow, 1, logo);
