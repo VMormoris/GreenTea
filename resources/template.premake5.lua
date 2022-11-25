@@ -62,26 +62,17 @@ project (ProjectName)
 		pic "On"
 		systemversion "latest"
 
-		libdirs = { (GreenTeaDir .. "/StandAlone/bin/Dist-linux/GreenTea") }
-		links = { "GreenTea" }
+		libdirs { (GreenTeaDir .. "/StandAlone/bin/Dist-linux/GreenTea") }
+		links { "GreenTea" }
 
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
 
-		prebuildcommands
-		{
-			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
-		}
-		postbuildcommands
-		{
-			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
-		}
+		prebuildcommands { gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}" }
+		postbuildcommands { gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}" }
 
-		links
-		{
-			(GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib"),
-		}
+		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib") }
 
 	filter "configurations:StandAlone"
 		defines "GT_DIST"
@@ -89,7 +80,4 @@ project (ProjectName)
 		optimize "on"
 		symbols "off"
 
-		links
-		{
-			(GreenTeaDir .. "/StandAlone/bin/Dist-windows/GreenTea/GreenTea.lib"),
-		}
+		links { (GreenTeaDir .. "/StandAlone/bin/Dist-windows/GreenTea/GreenTea.lib") }

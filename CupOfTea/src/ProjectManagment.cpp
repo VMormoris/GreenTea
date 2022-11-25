@@ -309,16 +309,17 @@ void OpenProject(const std::string& path) noexcept
 	//Change premake5 file
 	const auto premake5 = prjdir.string() + "/premake5.lua";
 	std::vector<std::string> lines;
-	std::ifstream is(premake5, std::ios::binary);
+	std::ifstream is("../resources/template.premake5.lua", std::ios::binary);
 	std::string line;
 	while (std::getline(is, line))
 		lines.emplace_back(line);
 	is.close();
 
 	std::ofstream os(premake5, std::ios::binary);
-	os << lines[0] << '\n';
+	os << "ProjectName = \"" << name << "\"\n";
 	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
-	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n";
+	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n\n";
+	os << lines[1] << '\n';
 	for (size_t i = 3; i < lines.size(); i++)
 		os << lines[i] << '\n';
 	os.close();

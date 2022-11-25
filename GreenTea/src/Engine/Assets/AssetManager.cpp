@@ -1,7 +1,7 @@
 #include "AssetManager.h"
 #include "Font.h"
+#include "Prefab.h"
 
-#include <Engine/Assets/Prefab.h>
 #include <Engine/Core/Context.h>
 #include <Engine/GPU/Texture.h>
 

@@ -8,9 +8,13 @@ project "GreenTea"
 	
 	files
 	{
-		"src/**.h",
-		"src/**.hpp",
-		"src/**.cpp",
+		"src/Engine/**.h",
+		"src/Engine/**.hpp",
+		"src/Engine/**.cpp",
+		"src/Platforms/GLFW/**.h",
+		"src/Platforms/GLFW/**.cpp",
+		"src/Platforms/OpenGL/**.h",
+		"src/Platforms/OpenGL/**.cpp",
 		"%{wks.location}/3rdParty/imgui/backends/imgui_impl_glfw.h",
 		"%{wks.location}/3rdParty/imgui/backends/imgui_impl_glfw.cpp",
 		"%{wks.location}/3rdParty/imgui/backends/imgui_impl_opengl3.h",
@@ -61,6 +65,13 @@ project "GreenTea"
 	filter "system:windows"
 		systemversion "latest"
 		
+		files
+		{
+			"src/Platforms/Windows/**.h",
+			"src/Platforms/Windows/**.hpp",
+			"src/Platforms/Windows/**.cpp",
+		}
+
 		defines
 		{
 			"PLATFORM_WINDOWS",
