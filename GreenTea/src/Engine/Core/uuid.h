@@ -4,8 +4,13 @@
 #include <string>
 #include <ostream>
 
-#include <combaseapi.h>
-#pragma comment( lib, "rpcrt4.lib" )
+
+#ifdef PLATFORM_WINDOWS
+	#include <combaseapi.h>
+	#pragma comment( lib, "rpcrt4.lib" )
+#else
+	#include <uuid/uuid.h>
+#endif
 
 namespace gte {
 
@@ -65,7 +70,7 @@ namespace gte {
 		[[nodiscard]] bool operator!=(const uuid& lhs) const noexcept;
 
 	private:
-		_GUID mUUID;
+		uuid_t mUUID;
 		friend struct std::hash<uuid>;
 	};
 

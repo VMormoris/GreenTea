@@ -6,6 +6,7 @@
 #include <Engine/Scene/Entity.h>
 
 #include <yaml-cpp/yaml.h>
+#include <cstring>
 
 namespace gte::internal {
 

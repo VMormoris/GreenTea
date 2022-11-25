@@ -8,9 +8,13 @@ project "GreenTea"
 
     files
 	{
-		"src/**.h",
-		"src/**.hpp",
-		"src/**.cpp",
+		"src/Engine/**.h",
+		"src/Engine/**.hpp",
+		"src/Engine/**.cpp",
+		"src/Platforms/GLFW/**.h",
+		"src/Platforms/GLFW/**.cpp",
+		"src/Platforms/OpenGL/**.h",
+		"src/Platforms/OpenGL/**.cpp",
 	}
 
     disablewarnings {4251, 4275}
@@ -43,12 +47,6 @@ project "GreenTea"
 		"GLFW_INCLUDE_NONE",
 		"AL_LIBTYPE_STATIC",
 	}
-    
-    postbuildcommands
-    {
-        ("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
-		("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
-    }
 
     filter "system:windows"
 		systemversion "latest"
@@ -58,11 +56,53 @@ project "GreenTea"
 			"PLATFORM_WINDOWS",
 		}
 
+		files
+		{
+			"src/Platforms/Windows/**.h",
+			"src/Platforms/Windows/**.hpp",
+			"src/Platforms/Windows/**.cpp",
+		}
+
 		links
 		{
 			"Winmm.lib",
 			"opengl32.lib",
 			"../3rdParty/openal-soft/Release/OpenAl32.lib",
+		}
+
+		postbuildcommands
+		{
+			("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
+			("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
+		}
+
+	filter "system:linux"
+		pic "On"
+		systemversion "latest"
+
+		files
+		{
+			"src/Platforms/Linux/**.h",
+			"src/Platforms/Linux/**.hpp",
+			"src/Platforms/Linux/**.cpp",
+		}
+
+		libdirs
+		{
+			"../3rdParty/openal-soft/Release",
+		}
+
+		links
+		{
+			"uuid",
+			"dl",
+			"pthread",
+			"openal:shared",
+		}
+
+		postbuildcommands
+		{
+			--("{COPY} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libGreenTea.so %{wks.location}/bin/" .. outputdir .. "/StandAlone"),
 		}
 
     filter "configurations:Dist"

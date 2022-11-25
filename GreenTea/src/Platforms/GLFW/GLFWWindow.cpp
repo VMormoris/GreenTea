@@ -3,8 +3,13 @@
 #include <Engine/Core/Context.h>
 #include <Engine/Events/Input.h>
 
-#define GLFW_EXPOSE_NATIVE_WIN32
-#define GLFW_NATIVE_INCLUDE_NONE
+
+#ifdef PLATFORM_WINDOWS
+	#define GLFW_EXPOSE_NATIVE_WIN32
+	#define GLFW_NATIVE_INCLUDE_NONE
+#else
+	#define GLFW_EXPOSE_NATIVE_X11
+#endif
 #include <GLFW/glfw3native.h>
 #include <stb_image.h>
 
@@ -202,9 +207,13 @@ namespace gte::GLFW {
 	[[nodiscard]] GPU::GraphicsContext* GLFWWindow::GetContext(void) noexcept { return mGraphicsContext; }
 	[[nodiscard]] const GPU::GraphicsContext* GLFWWindow::GetContext(void) const noexcept { return mGraphicsContext; }
 
-	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return static_cast<void*>(glfwGetWin32Window(mWindow)); }
-
 	[[nodiscard]] const void* GLFWWindow::GetNativeWindow(void) const noexcept { return GetNativeWindow(); }
+
+#ifdef PLATFORM_WINDOWS
+	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return static_cast<void*>(glfwGetWin32Window(mWindow)); }
+#else
+	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return reinterpret_cast<void*>(glfwGetX11Window(mWindow)); }
+#endif
 
 }
 

@@ -66,12 +66,12 @@ namespace gte::internal {
 			{
 				entt::delegate<bool(void)> temp;
 				temp.connect<Func>(instance);
-				mSpecialPool.emplace(std::make_pair(&instance, type), temp);
+				mSpecialPool.template emplace(std::make_pair(&instance, type), temp);
 			}
 			else
 			{
 				auto listeners = static_cast<pool<type>*>(mPools[index<type>()]);
-				listeners->sink.connect<Func>(instance);
+				listeners->sink.template connect<Func>(instance);
 			}
 		}
 

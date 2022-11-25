@@ -41,7 +41,6 @@ project "StandAlone"
 		"src/**.h",
 		"src/**.hpp",
 		"src/**.cpp",
-		"StandAlone.rc",
 	}
 
     disablewarnings {4251, 4275}
@@ -78,9 +77,29 @@ project "StandAlone"
 			"PLATFORM_WINDOWS",
 		}
 
+		files
+		{
+			"StandAlone.rc",
+		}
+
 		links
 		{
 			"opengl32.lib",
+		}
+
+	filter "system:linux"
+		pic "On"
+		systemversion "latest"
+
+		libdirs
+		{
+			"../3rdParty/openal-soft/Release",
+		}
+
+		links
+		{
+			"openal:shared",
+			--"opengl32",
 		}
 
 	filter "configurations:Dist"

@@ -20,10 +20,7 @@ IncludeDirs =
 	(GreenTeaDir .. "/3rdParty/IconFontCppHeaders"),
 }
 
-LibFiles =
-{
-	--(GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib"),
-}
+LibFiles = { }
 
 require (GreenTeaDir .. "/resources/gt")
 
@@ -60,6 +57,13 @@ project (ProjectName)
 		{
 			"PLATFORM_WINDOWS",
 		}		
+
+	filter "system:linux"
+		pic "On"
+		systemversion "latest"
+
+		libdirs = { (GreenTeaDir .. "/StandAlone/bin/Dist-linux/GreenTea") }
+		links = { "GreenTea" }
 
 	filter "configurations:Release"
 		runtime "Release"

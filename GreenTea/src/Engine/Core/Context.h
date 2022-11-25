@@ -36,7 +36,7 @@ namespace gte::internal {
 		ScriptingEngine* ScriptEngine = nullptr;
 		DynamicLibLoader DynamicLoader;
 		ProjectManager AssetWatcher;
-		AssetManager AssetManager;
+		gte::AssetManager AssetManager;
 
 		Scene* ActiveScene = nullptr;
 

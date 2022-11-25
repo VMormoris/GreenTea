@@ -8,6 +8,7 @@
 #include <Engine/Audio/AudioBuffer.h>
 
 #include <fstream>
+#include <cstring>
 #include <yaml-cpp/yaml.h>
 
 namespace gte::internal {
@@ -57,7 +58,7 @@ namespace gte::internal {
 			internal::NativeScript* script = new NativeScript();
 			script->Load(data);
 			if (asset.Data)
-				delete asset.Data;
+				delete (internal::NativeScript*)asset.Data;
 			asset.Data = script;
 			break;
 		}
@@ -66,7 +67,7 @@ namespace gte::internal {
 			Image* img = new Image();
 			img->Load((byte*)buffer);
 			if (asset.Data)
-				delete asset.Data;
+				delete (Image*)asset.Data;
 			asset.Data = img;
 			break;
 		}

@@ -56,7 +56,8 @@ namespace gte::GPU::OpenGL {
 
 	OpenGLShader::OpenGLShader(const char* shader_file) noexcept {
 		const char* data = readfile(shader_file);
-		PreProcess(std::string(data));
+		std::string text = std::string(data);
+		PreProcess(text);
 		delete[] data;
 		CreateProgram();
 	}

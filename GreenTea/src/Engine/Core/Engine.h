@@ -1,27 +1,30 @@
 #pragma once
-//TODO(Vasilis): Better change check for __clang__ to MACRO that will be define only in reflection
 
 //declspecs for Engine
-#ifdef __clang__
-	#define ENGINE_API
-#else
+#ifdef PLATFORM_WINDOWS
 	#ifdef ENGINE_DLL
 		#define ENGINE_API __declspec(dllexport)
 	#else
 		#define ENGINE_API __declspec(dllimport)
 	#endif
+#else
+	#define ENGINE_API
 #endif
 
 //declspecs for game's logic
-#ifdef GAME_DLL
-	#define GAME_API __declspec(dllexport)
+#ifdef PLATFORM_WINDOWS
+	#ifdef GAME_DLL
+		#define GAME_API __declspec(dllexport)
+	#else
+		#define GAME_API __declspec(dllimport)
+	#endif
 #else
-	#define GAME_API __declspec(dllimport)
+	#define GAME_API
 #endif
 
 #ifdef PLATFORM_WINDOWS
 	#define BREAK __debugbreak()
-#elif PLATFORM_UNIX
+#else
 	#include <signal.h>
 	#define BREAK raise(SIGTRAP)
 #endif

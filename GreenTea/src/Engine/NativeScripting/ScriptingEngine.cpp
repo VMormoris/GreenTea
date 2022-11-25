@@ -4,6 +4,7 @@
 #include <Engine/Core/Context.h>
 
 #include <filesystem>
+#include <cstring>
 #include <yaml-cpp/yaml.h>
 
 namespace gte::internal {

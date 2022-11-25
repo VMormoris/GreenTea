@@ -1,6 +1,8 @@
 #include "Random.h"
-#include <random>
+
 #include <array>
+#include <algorithm>
+#include <random>
 
 static std::mt19937 sEngine;
 static std::uniform_int_distribution<std::mt19937::result_type> sUniformDistrubution;

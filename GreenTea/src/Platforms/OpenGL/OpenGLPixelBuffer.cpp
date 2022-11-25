@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 #include <chrono>
+#include <cstring>
 
 namespace gte::GPU::OpenGL {
 

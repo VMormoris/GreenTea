@@ -1,8 +1,11 @@
 #include "AssetManager.h"
 #include "Font.h"
 
+#include <Engine/Assets/Prefab.h>
 #include <Engine/Core/Context.h>
 #include <Engine/GPU/Texture.h>
+
+#include <thread>
 
 namespace gte {
 
@@ -114,9 +117,10 @@ namespace gte {
 
 	void AssetManager::Clear(void)
 	{
+		
 		for (auto& [id, asset] : mVRAM)
 		{
-			delete asset->Data;
+			delete (GPU::Texture*)mVRAM.at(id)->Data;
 			asset->Type = AssetType::INVALID;
 			asset->Size = 0;
 		}
@@ -124,7 +128,29 @@ namespace gte {
 		
 		for (auto& [id, asset] : mRAM)
 		{
-			delete asset->Data;
+			switch (asset->Type)
+			{
+			case AssetType::ANIMATION:
+				delete (internal::Animation*)asset->Data;
+				break;
+			case AssetType::AUDIO:
+				delete (audio::AudioBuffer*)asset->Data;
+				break;
+			case AssetType::FONT:
+				delete (internal::Font*)asset->Data;
+				break;
+			case AssetType::IMAGE:
+				delete (Image*)asset->Data;
+				break;
+			case AssetType::NATIVE_SCRIPT:
+				delete (internal::NativeScript*)asset->Data;
+				break;
+			case AssetType::PREFAB:
+				delete (Prefab*)asset->Data;
+				break;
+			default://TODO(Vasilis): Error since it's unreachable
+				break;
+			}
 			asset->Type = AssetType::INVALID;
 			asset->Size = 0;
 		}
@@ -142,13 +168,36 @@ namespace gte {
 	{
 		if (mVRAM.find(id) != mVRAM.end())
 		{
-			delete mVRAM.at(id)->Data;
+			delete (GPU::Texture*)mVRAM.at(id)->Data;
 			mVRAM.erase(id);
 		}
 
 		if (mRAM.find(id) != mRAM.end())
 		{
-			delete mRAM.at(id)->Data;
+			auto& asset = mRAM.at(id);
+			switch (asset->Type)
+			{
+			case AssetType::ANIMATION:
+				delete (internal::Animation*)asset->Data;
+				break;
+			case AssetType::AUDIO:
+				delete (audio::AudioBuffer*)asset->Data;
+				break;
+			case AssetType::FONT:
+				delete (internal::Font*)asset->Data;
+				break;
+			case AssetType::IMAGE:
+				delete (Image*)asset->Data;
+				break;
+			case AssetType::NATIVE_SCRIPT:
+				delete (internal::NativeScript*)asset->Data;
+				break;
+			case AssetType::PREFAB:
+				delete (Prefab*)asset->Data;
+				break;
+			default://TODO(Vasilis): Error since it's unreachable
+				break;
+			}
 			mRAM.erase(id);
 		}
 	}

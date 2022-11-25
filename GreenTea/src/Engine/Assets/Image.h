@@ -66,8 +66,8 @@ namespace gte {
 		template<typename T>
 		[[nodiscard]] T& GetPixel(size_t x, size_t y)
 		{
-			ASSERT(x < _width && y < _height, "Pixel is out of bounds!");
-			T* tbuffer = (T*)buffer + y * _width + x;
+			ASSERT(x < mWidth && y < mHeight, "Pixel is out of bounds!");
+			T* tbuffer = (T*)mBuffer + y * mWidth + x;
 			return *tbuffer;
 		}
 
