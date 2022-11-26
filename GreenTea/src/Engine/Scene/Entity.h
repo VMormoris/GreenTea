@@ -10,7 +10,7 @@ namespace gte {
 	*/
 	class ENGINE_API Entity {
 	public:
-		Entity(void) = default;
+		Entity(void);
 		Entity(entt::entity entity, Scene* owner)
 			: mEntityHandle(entity), mOwner(owner) {}
 		

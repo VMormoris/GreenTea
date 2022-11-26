@@ -9,7 +9,6 @@
 #include <fstream>
 #include <Engine/Renderer/Renderer2D.h>
 
-static gte::GPU::Texture* sIcon = nullptr;
 static bool sLoaded = false;
 static ImGuizmo::OPERATION sGuizmoOP = ImGuizmo::OPERATION::BOUNDS;
 static gte::GPU::FrameBuffer* sCamFBO = nullptr;
@@ -246,7 +245,6 @@ void CupOfTea::RenderGUI(void)
 	bool exportGame = false;
 	if (ImGui::BeginMainMenuBar())
 	{
-		//ImGui::Image(sIcon->GetID(), { 64.0f, 51.0f }, { 0, 1 }, { 1, 0 });
 		if (ImGui::BeginMenu("File"))
 		{
 			const char biggest[] = "Save Scene As...Ctrl+Shift+N";
@@ -578,9 +576,6 @@ CupOfTea::CupOfTea(const std::string& filepath)
     gui = gte::gui::ImGuiLayer::Create();
     gui->Init(window->GetPlatformWindow(), window->GetContext());
 
-	gte::Image img("../Assets/Icons/GreenTea.png");
-	sIcon = gte::GPU::Texture2D::Create(img);
-
 	std::filesystem::path prjdir = filepath;
 	prjdir = prjdir.parent_path();
 	std::filesystem::current_path(prjdir);
@@ -638,7 +633,6 @@ CupOfTea::CupOfTea(const std::string& filepath)
 CupOfTea::~CupOfTea(void)
 {
 	UNREGISTER(this);
-	delete sIcon;
     gui->Shutdown();
 	delete sCamFBO;
     delete gui;
@@ -690,6 +684,15 @@ void CupOfTea::SaveSceneAs(const std::filesystem::path& path)
 	filepath.replace_extension("gtscene");
 	gte::internal::SceneSerializer serializer(gte::internal::GetContext()->ActiveScene);
 	serializer.Serialize(filepath.string());
+	mScenePath = filepath.string();
+	
+	const auto prjdir = std::filesystem::current_path();
+	auto file = prjdir.filename().string() + ".gt";
+	std::ofstream os(prjdir / file);
+	file = std::filesystem::relative(filepath, prjdir / "Assets").string();
+	std::replace(file.begin(), file.end(), '\\', '/');
+	os << file;
+	os.close();
 }
 
 bool CupOfTea::OnKeyDown(gte::KeyCode keycode)

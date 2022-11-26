@@ -5,7 +5,7 @@
 #include <ostream>
 
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) || defined(REFLECTION)
 	#include <combaseapi.h>
 	#pragma comment( lib, "rpcrt4.lib" )
 #else

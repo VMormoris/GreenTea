@@ -69,7 +69,7 @@ namespace gte::internal {
 
 }
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) || defined(REFLECTION)
 	#include <Platforms/Windows/DynamicLibLoader.hpp>
 #else
 	#include <Platforms/Linux/DynamicLibLoader.hpp>
