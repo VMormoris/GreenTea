@@ -265,7 +265,8 @@ void CreateProject(const std::string& location, const std::string& name) noexcep
 	std::filesystem::create_directories(prjdir / name / "src");
 
 	//Copy files
-	auto GreenTeaDir = gte::internal::GetContext()->GreenTeaDir;
+	auto GreenTeaDir = std::filesystem::absolute(std::filesystem::current_path() / "../../..").string();
+	std::replace(GreenTeaDir.begin(), GreenTeaDir.end(), '\\', '/');
 
 	std::filesystem::copy("../resources/template.gitignore", prjdir / ".gitignore");
 	std::filesystem::copy("../resources/imgui.ini", prjdir / "imgui.ini");
@@ -300,7 +301,8 @@ void CreateProject(const std::string& location, const std::string& name) noexcep
 
 void OpenProject(const std::string& path) noexcept
 {
-	auto GreenTeaDir = gte::internal::GetContext()->GreenTeaDir;
+	auto GreenTeaDir = std::filesystem::absolute(std::filesystem::current_path() / "../../..").string();
+	std::replace(GreenTeaDir.begin(), GreenTeaDir.end(), '\\', '/');
 
 	auto prjdir = std::filesystem::path(path).parent_path();
 	const std::string name = prjdir.filename().string();
@@ -316,7 +318,11 @@ void OpenProject(const std::string& path) noexcept
 	is.close();
 
 	std::ofstream os(premake5, std::ios::binary);
+<<<<<<< HEAD
 	os << "ProjectName = \"" << name << "\"\n";
+=======
+	os << lines[0];
+>>>>>>> parent of 54e12de (Create export functionality for Windows)
 	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
 	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n\n";
 	os << lines[1] << '\n';

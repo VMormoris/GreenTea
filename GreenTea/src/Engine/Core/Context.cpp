@@ -11,8 +11,6 @@ namespace gte::internal {
 		if (sContext)
 			delete sContext;
 		sContext = new Context;
-		sContext->GreenTeaDir = std::filesystem::absolute(std::filesystem::current_path() / "../../..").string();
-		std::replace(sContext->GreenTeaDir.begin(), sContext->GreenTeaDir.end(), '\\', '/');
 		return sContext;
 	}
 
