@@ -64,14 +64,14 @@ project "GreenTea"
 	
 	filter "system:windows"
 		systemversion "latest"
-		
+
 		files
 		{
 			"src/Platforms/Windows/**.h",
 			"src/Platforms/Windows/**.hpp",
 			"src/Platforms/Windows/**.cpp",
 		}
-
+		
 		defines
 		{
 			"PLATFORM_WINDOWS",

@@ -98,25 +98,33 @@ namespace gte::internal {
 	ENGINE_API [[nodiscard]] inline Logger::Type operator~(Logger::Type rhs) noexcept { return static_cast<Logger::Type>(~static_cast<byte>(rhs)); }
 }
 
-/**
-* @brief Trace LOG
-*/
-#define GTE_TRACE_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::TRACE, __VA_ARGS__)
-/**
-* @brief Information Log
-*/
-#define GTE_INFO_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::INFO, __VA_ARGS__)
-/**
-* @brief Warning Log
-*/
-#define GTE_WARN_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::WARNING, __VA_ARGS__)
-/**
-* @brief Error Log
-*/
-#define GTE_ERROR_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::ERR, __VA_ARGS__)
-/**
-* @brief Fatal Error Log
-*/
-#define GTE_FATAL_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::FATAL, __VA_ARGS__)
+#ifndef GT_DIST
+	/**
+	* @brief Trace LOG
+	*/
+	#define GTE_TRACE_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::TRACE, __VA_ARGS__)
+	/**
+	* @brief Information Log
+	*/
+	#define GTE_INFO_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::INFO, __VA_ARGS__)
+	/**
+	* @brief Warning Log
+	*/
+	#define GTE_WARN_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::WARNING, __VA_ARGS__)
+	/**
+	* @brief Error Log
+	*/
+	#define GTE_ERROR_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::ERR, __VA_ARGS__)
+	/**
+	* @brief Fatal Error Log
+	*/
+	#define GTE_FATAL_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::FATAL, __VA_ARGS__)
+#else
+	#define GTE_TRACE_LOG(...)
+	#define GTE_INFO_LOG(...)
+	#define GTE_WARN_LOG(...)
+	#define GTE_ERROR_LOG(...)
+	#define GTE_FATAL_LOG(...)
+#endif
 
 #include "Logger.hpp"

@@ -1,6 +1,11 @@
 #include "OpenGLRendererAPI.h"
 
-#include <glad/glad.h>
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
 
 void OpenGLMessageCallback(
 	unsigned source,
@@ -11,6 +16,7 @@ void OpenGLMessageCallback(
 	const char* message,
 	const void* userParam)
 {
+#ifndef GT_WEB
 	switch (severity)
 	{
 	case GL_DEBUG_SEVERITY_HIGH:         GTE_FATAL_LOG(message); return;
@@ -18,7 +24,7 @@ void OpenGLMessageCallback(
 	case GL_DEBUG_SEVERITY_LOW:          GTE_WARN_LOG(message); return;
 	case GL_DEBUG_SEVERITY_NOTIFICATION: GTE_INFO_LOG(message); return;
 	}
-
+#endif
 	ENGINE_ASSERT(false, "Unknown severity level!");
 }
 
@@ -28,10 +34,14 @@ namespace gte::GPU::OpenGL {
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+#ifndef GT_WEB
+
 		glEnable(GL_LINE_SMOOTH);
 
 		glDebugMessageCallback(OpenGLMessageCallback, NULL);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+#endif
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(const VertexArray* va, uint32 indices) noexcept

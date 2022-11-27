@@ -26,6 +26,7 @@ namespace gte::internal {
 	struct ENGINE_API Context {
 		Logger logger;
 
+		std::string GreenTeaDir = "";
 		Window* GlobalWindow = nullptr;
 		byte WindowCount = 0;
 		glm::vec2 ViewportOffset = { 0.0f, 0.0f };

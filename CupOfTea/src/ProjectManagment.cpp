@@ -311,21 +311,16 @@ void OpenProject(const std::string& path) noexcept
 	//Change premake5 file
 	const auto premake5 = prjdir.string() + "/premake5.lua";
 	std::vector<std::string> lines;
-	std::ifstream is("../resources/template.premake5.lua", std::ios::binary);
+	std::ifstream is(premake5, std::ios::binary);
 	std::string line;
 	while (std::getline(is, line))
 		lines.emplace_back(line);
 	is.close();
 
 	std::ofstream os(premake5, std::ios::binary);
-<<<<<<< HEAD
 	os << "ProjectName = \"" << name << "\"\n";
-=======
-	os << lines[0];
->>>>>>> parent of 54e12de (Create export functionality for Windows)
 	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
-	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n\n";
-	os << lines[1] << '\n';
+	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n";
 	for (size_t i = 3; i < lines.size(); i++)
 		os << lines[i] << '\n';
 	os.close();

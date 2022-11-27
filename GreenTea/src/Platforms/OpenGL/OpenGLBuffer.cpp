@@ -1,6 +1,11 @@
 #include "OpenGLBuffer.h"
 
-#include <glad/glad.h>
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
 
 namespace gte::GPU::OpenGL {
 

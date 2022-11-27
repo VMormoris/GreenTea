@@ -1,8 +1,17 @@
 #include "OpenGLVertexArray.h"
 
-#include <glad/glad.h>
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
 
+#ifndef GT_WEB
 static [[nodiscard]] GLenum GTEtoOpenGL(gte::GPU::ShaderDataType type) noexcept
+#else
+static GLenum GTEtoOpenGL(gte::GPU::ShaderDataType type) noexcept
+#endif
 {
 	switch(type)
 	{

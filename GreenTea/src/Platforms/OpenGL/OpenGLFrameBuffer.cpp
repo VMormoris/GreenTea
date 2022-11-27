@@ -1,7 +1,13 @@
 #include "OpenGLFrameBuffer.h"
 #include "OpenGLTexture.h"
 
-#include <glad/glad.h>
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
+
 #include <chrono>
 
 static constexpr uint32 MaxSize = 8192;
@@ -19,7 +25,11 @@ namespace gte::GPU::OpenGL {
 			delete[] mColorAttachmentID;
 		}
 
+#ifndef GT_WEB
 		glCreateFramebuffers(1, &mID);
+#else
+		glGenFramebuffers(1, &mID);
+#endif
 		glBindFramebuffer(GL_FRAMEBUFFER, mID);
 
 
@@ -29,7 +39,11 @@ namespace gte::GPU::OpenGL {
 		ENGINE_ASSERT(mSpecification.Attachments.size() <= MaxColorAttachments, "GPU supports up to: ", MaxColorAttachments, " color attachments per buffer!");
 		
 		mColorAttachmentID = new uint32[mSpecification.Attachments.size()];
+#ifndef GT_WEB
 		glCreateTextures(GL_TEXTURE_2D, static_cast<int32>(mSpecification.Attachments.size()), mColorAttachmentID);
+#else
+		glGenTextures(static_cast<int32>(mSpecification.Attachments.size()), mColorAttachmentID);
+#endif
 		for (int32 i = 0; i < mSpecification.Attachments.size(); i++)
 		{
 			const TextureFormat format = mSpecification.Attachments[i];
@@ -84,7 +98,15 @@ namespace gte::GPU::OpenGL {
 	void OpenGLFrameBuffer::Clear(uint32 attachement, const void* data) const noexcept
 	{
 		Bind();
+#ifndef GT_WEB
 		glClearTexImage(mColorAttachmentID[attachement], 0, GL_RED_INTEGER, GL_UNSIGNED_INT, data);
+#else
+		const TextureFormat format = mSpecification.Attachments[attachement];
+		const auto NativeFormat = GetNativeTextureFormat(format);
+		uint32* tdata = new uint32[mSpecification.Width * mSpecification.Height];
+		memset(tdata, (uint32)(uint64)data, mSpecification.Width * mSpecification.Height * sizeof(uint32));
+		glTexImage2D(GL_TEXTURE_2D, 0, NativeFormat.first, mSpecification.Width, mSpecification.Height, 0, NativeFormat.second, GL_UNSIGNED_INT, tdata);
+#endif
 	}
 
 	void OpenGLFrameBuffer::GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept

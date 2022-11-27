@@ -65,8 +65,8 @@ namespace gte::internal {
 			if constexpr (type == EventType::Click || type == EventType::HoverEnter || type == EventType::HoverExit)
 			{
 				entt::delegate<bool(void)> temp;
-				temp.connect<Func>(instance);
-				mSpecialPool.template emplace(std::make_pair(&instance, type), temp);
+				temp.template connect<Func>(instance);
+				mSpecialPool.emplace(std::make_pair(&instance, type), temp);
 			}
 			else
 			{

@@ -1,6 +1,12 @@
 #include "OpenGLShader.h"
 //#include "GreenTea/Core/utils.h"
-#include <glad/glad.h>
+
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
 
 #include <gtc/type_ptr.hpp>
 
@@ -30,7 +36,12 @@ static void PrintLog(GLuint object)
 	delete[] log;
 }
 
-static [[nodiscard]] uint32 GenerateShader(const char* filename, GLenum shaderType) {
+#ifndef GT_WEB
+static [[nodiscard]] uint32 GenerateShader(const char* filename, GLenum shaderType)
+#else
+static uint32 GenerateShader(const char* filename, GLenum shaderType)
+#endif
+{
 
 	uint32 res = glCreateShader(shaderType);
 
@@ -50,14 +61,18 @@ static [[nodiscard]] uint32 GenerateShader(const char* filename, GLenum shaderTy
 
 }
 
+#ifndef GT_WEB
 static [[nodiscard]] const char* readfile(const char* filepath) noexcept;
+#else
+static const char* readfile(const char* filepath) noexcept;
+#endif
 
 namespace gte::GPU::OpenGL {
 
 	OpenGLShader::OpenGLShader(const char* shader_file) noexcept {
 		const char* data = readfile(shader_file);
-		std::string text = std::string(data);
-		PreProcess(text);
+		std::string content = std::string(data);
+		PreProcess(content);
 		delete[] data;
 		CreateProgram();
 	}
@@ -148,7 +163,11 @@ namespace gte::GPU::OpenGL {
 	void OpenGLShader::AddUniform(const std::string& uniform) noexcept { mUniforms[uniform] = glGetUniformLocation(mProgramID, uniform.c_str()); }
 }
 
+#ifndef GT_WEB
 static [[nodiscard]] const char* readfile(const char* filepath) noexcept
+#else
+static const char* readfile(const char* filepath) noexcept
+#endif
 {
 	std::ifstream in(filepath, std::ifstream::ate | std::ifstream::binary);
 	if (!in.is_open())

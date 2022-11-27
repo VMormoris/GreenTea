@@ -1018,8 +1018,8 @@ namespace gte {
 		for (auto entityID: view)
 		{
 			const auto& rel = view.get<RelationshipComponent>(entityID);
-			glm::mat4 toIngore = glm::mat4{ 1.0f };
-			if (HasParentTransform(rel, mReg, toIngore))
+			glm::mat4 ignored;
+			if (HasParentTransform(rel, mReg, ignored))
 				continue;
 			UpdateTransform({ entityID, this }, false);
 		}

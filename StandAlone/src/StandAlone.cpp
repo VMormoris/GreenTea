@@ -112,6 +112,7 @@ void StandAlone::Update(float dt)
 		if (!loading)
 		{
 			loaded = true;
+			internal::GetContext()->Playing = true;
 			internal::GetContext()->ActiveScene->OnStart();
 		}
 	}

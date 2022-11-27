@@ -3,9 +3,9 @@ bin
 bin-int
 !3rdParty/gtreflect/bin
 
-#Make Files
-**/Makefile
-**/**.make
+# Assets
+#	Some assets maybe avaliable to be able to follow the wiki
+Assets/Scenes
 
 # Engine's Logs
 **.gtlog
@@ -17,8 +17,9 @@ bin-int
 **.vcxproj.filters
 **.vcxproj.user
 
-# Visual Studio Code
-.vscode
+#Make files
+**/Makefile
+**/**.make
 
 #NextCloud
 **/Thumbs.db

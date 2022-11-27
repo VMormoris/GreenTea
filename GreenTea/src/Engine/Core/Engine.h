@@ -12,17 +12,13 @@
 #endif
 
 //declspecs for game's logic
-#ifdef PLATFORM_WINDOWS
-	#ifdef GAME_DLL
-		#define GAME_API __declspec(dllexport)
-	#else
-		#define GAME_API __declspec(dllimport)
-	#endif
+#ifdef GAME_DLL
+	#define GAME_API __declspec(dllexport)
 #else
-	#define GAME_API
+	#define GAME_API __declspec(dllimport)
 #endif
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) || defined(REFLECTION)
 	#define BREAK __debugbreak()
 #else
 	#include <signal.h>
@@ -65,13 +61,13 @@ typedef double float64;
 typedef unsigned char byte;
 
 //Reflection macros
-#ifdef __clang__
+#ifdef REFLECTION
 	#define ENUM(...) enum class __attribute__((annotate("enum:" #__VA_ARGS__)))
 	#define COMPONENT(...) struct __attribute__((annotate("component:" #__VA_ARGS__)))
 	#define SYSTEM(...) class __attribute__((annotate("system:" #__VA_ARGS__)))
 	#define CLASS(...) class __attribute__((annotate("class:" #__VA_ARGS__)))
 	#define PROPERTY(...) __attribute__((annotate("property:" #__VA_ARGS__)))
-#elif defined(_WIN32)//TODO(Vasilis): #else when and if we change __clang__ to a MACRO
+#else
 	#define ENUM(...) enum class GAME_API
 	#define COMPONENT(...) struct GAME_API
 	#define SYSTEM(...) class GAME_API

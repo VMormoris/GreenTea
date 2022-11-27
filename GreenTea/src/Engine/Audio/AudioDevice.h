@@ -2,9 +2,13 @@
 
 #include <Engine/Core/Engine.h>
 
-//Forward declaration(s)
-struct ALCdevice;
-struct ALCcontext;
+#ifndef GT_WEB
+	//Forward declaration(s)
+	struct ALCdevice;
+	struct ALCcontext;
+#else
+	#include <AL/alc.h>
+#endif
 
 namespace gte::audio {
 

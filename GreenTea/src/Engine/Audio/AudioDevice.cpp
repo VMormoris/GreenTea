@@ -2,7 +2,9 @@
 
 #include <Engine/Core/Context.h>
 
-#include <AL/alc.h>
+#ifndef GT_WEB
+	#include <AL/alc.h>
+#endif
 
 namespace gte::audio {
 

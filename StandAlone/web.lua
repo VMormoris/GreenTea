@@ -1,15 +1,15 @@
 workspace "StandAlone"
 	location "."
-	architecture "x64"
+	architecture "x32"
 
 	configurations
 	{
-        "Dist",
+        "Web",
 	}
 
 	startproject  "StandAlone"
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}"
+outputdir = "%{cfg.buildcfg}"
 
 IncludeDirs={}
 IncludeDirs["entt"]="../3rdParty/entt/single_include/entt"
@@ -19,11 +19,8 @@ IncludeDirs["Glad"]="../3rdParty/glad/include"
 IncludeDirs["glm"]="../3rdParty/glm/glm"
 IncludeDirs["stb"]="../3rdParty/stb"
 IncludeDirs["box2d"]="../3rdParty/box2d/include"
-IncludeDirs["openal"]="../3rdParty/openal-soft/include"
 
 include "../3rdParty/box2d"
-include "../3rdParty/glad"
-include "../3rdParty/glfw"
 include "../3rdParty/yaml-cpp"
 include "../GreenTea/StandAlone.lua"
 
@@ -49,10 +46,7 @@ project "StandAlone"
 		"src",
 		"%{IncludeDirs.entt}",
         "%{IncludeDirs.yaml}",
-		"%{IncludeDirs.GLFW}",
-		"%{IncludeDirs.Glad}",
 		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.openal}",
 	}
 
 	links
@@ -65,39 +59,17 @@ project "StandAlone"
 	{
 		"_CRT_SECURE_NO_WARNINGS",
 		"GLFW_INCLUDE_NONE",
+		"GT_DIST",
+		"GT_WEB",
 	}
 
-	filter "system:windows"
-		systemversion "latest"
-		
-		defines
-		{
-			"PLATFORM_WINDOWS",
-		}
-
-		links
-		{
-			"opengl32",
-		}
-
-		disablewarnings {4251, 4275}
+	--buildoptions { "-sERROR_ON_UNDEFINED_SYMBOLS=0" }
 
 	filter "system:linux"
 		pic "On"
 		systemversion "latest"
 
-		libdirs
-		{
-			"../3rdParty/openal-soft/Release",
-		}
-
-		links
-		{
-			"openal:shared",
-		}
-
-	filter "configurations:Dist"
-		defines "GT_DIST"
+	filter "configurations:Web"
 		runtime "Release"
 		optimize "on"
 		symbols "off"

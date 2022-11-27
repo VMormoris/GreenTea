@@ -6,6 +6,7 @@
 #include <entt.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <gtx/compatibility.hpp>
+
 #include <cstring>
 
 namespace gte::internal {

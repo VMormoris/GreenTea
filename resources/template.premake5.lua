@@ -1,11 +1,12 @@
 
 workspace (ProjectName)
-    architecture "x64"
+	architecture "x64"
 
-    configurations
-    {
-        "Release"
-    }
+	configurations
+	{
+		"Release",
+		"StandAlone",
+	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
 
@@ -19,14 +20,7 @@ IncludeDirs =
 	(GreenTeaDir .. "/3rdParty/IconFontCppHeaders"),
 }
 
-<<<<<<< HEAD
 LibFiles = { }
-=======
-LibFiles =
-{
-	(GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib"),
-}
->>>>>>> parent of 54e12de (Create export functionality for Windows)
 
 require (GreenTeaDir .. "/resources/gt")
 
@@ -35,58 +29,47 @@ project (ProjectName)
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++17"
-	
+
 	targetdir("bin/" .. outputdir .. "/%{prj.name}")
 	objdir("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    files
+	files
 	{
 		"%{prj.name}/**.h",
-        "%{prj.name}/**.hpp",
+		"%{prj.name}/**.hpp",
 		"%{prj.name}/**.cpp",
 	}
 
-    includedirs (IncludeDirs)
+	includedirs (IncludeDirs)
 	links (LibFiles)
 
 	disablewarnings {4251}
 
-    defines
+	defines
 	{
 		"GAME_DLL"
 	}
 
-	prebuildcommands
-	{
-		"{ECHO} BuildStarted> %{wks.location}.gt/Notifications",
-		gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
-	}
-	postbuildcommands
-	{
-		gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
-		"{ECHO} BuildEnded> %{wks.location}.gt/Notifications"
-	}
-	
 	filter "system:windows"
 		systemversion "latest"
 		
 		defines
 		{
 			"PLATFORM_WINDOWS",
-		}		
-
-	filter "system:linux"
-		pic "On"
-		systemversion "latest"
-
-		libdirs { (GreenTeaDir .. "/StandAlone/bin/Dist-linux/GreenTea") }
-		links { "GreenTea" }
+		}
 
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
 
-	filter "configuration:Dist"
+		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib") }
+
+		prebuildcommands { gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}" }
+		postbuildcommands { gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}" }
+
+	filter "configurations:StandAlone"
 		runtime "Release"
 		optimize "on"
 		symbols "off"
+
+		links { (GreenTeaDir .. "/StandAlone/bin/Dist-windows/GreenTea/GreenTea.lib") }

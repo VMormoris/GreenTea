@@ -2,7 +2,12 @@
 
 #include <Engine/GPU/Texture.h>
 
-#include <glad/glad.h>
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
 
 #include <string>
 
@@ -29,7 +34,7 @@ namespace gte::GPU::OpenGL {
 		[[nodiscard]] uint32 GetWidth(void) const noexcept override { return mWidth; }
 		[[nodiscard]] void* GetID(void) const noexcept override { return (void*)(uint64)mID; }
 
-		void Bind(uint32 slot = 0) const noexcept;
+		void Bind(uint32 slot = 0) const noexcept override;
 		void SetData(void* data, size_t size) noexcept override;
 		void SetData(const Image& image, ImageFormat format) noexcept override;
 

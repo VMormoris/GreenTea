@@ -17,7 +17,7 @@ namespace gte::internal {
 		//Prefix buffer for time (format: [DD/MM/YYYY HH:MM:SS])
 		time_t raw_time = time(NULL);
 		struct tm tm_buf;
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) || defined(REFLECTION) 
 		localtime_s(&tm_buf, &raw_time);
 #else
 		localtime_r(&raw_time, &tm_buf);

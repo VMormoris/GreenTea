@@ -3,14 +3,16 @@
 #include <Engine/Core/Context.h>
 #include <Engine/Events/Input.h>
 
-
 #ifdef PLATFORM_WINDOWS
 	#define GLFW_EXPOSE_NATIVE_WIN32
 	#define GLFW_NATIVE_INCLUDE_NONE
 #else
 	#define GLFW_EXPOSE_NATIVE_X11
 #endif
-#include <GLFW/glfw3native.h>
+#ifndef GT_WEB
+	#include <GLFW/glfw3native.h>
+#endif
+
 #include <stb_image.h>
 
 //#include <dwmapi.h>
@@ -50,7 +52,7 @@ namespace gte::GLFW {
 			FullScreen();
 
 		GLFWimage logo[1];
-		logo[0].pixels = stbi_load("../Assets/Icons/GreenTea.png", &logo[0].width, &logo[0].height, 0, 4);
+		logo[0].pixels = stbi_load("../Assets/Icons/Logo.png", &logo[0].width, &logo[0].height, 0, 4);
 		if (logo[0].pixels != NULL)
 		{
 			glfwSetWindowIcon(mWindow, 1, logo);
@@ -146,6 +148,7 @@ namespace gte::GLFW {
 
 	void GLFWWindow::Center(void) noexcept
 	{
+#ifndef GT_WEB
 		GLFWmonitor* primary = glfwGetPrimaryMonitor();
 		if (!primary)
 			return;
@@ -155,10 +158,12 @@ namespace gte::GLFW {
 		x = x + static_cast<int32>((width - mProps.Width) / 2.0f);
 		y = y + static_cast<int32>((height - mProps.Height) / 2.0f);
 		glfwSetWindowPos(mWindow, x, y);
+#endif
 	}
 
 	void GLFWWindow::FullScreen(void) noexcept
 	{
+#ifndef GT_WEB
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		if (monitor)
 		{
@@ -169,6 +174,7 @@ namespace gte::GLFW {
 		}
 		else
 			GTE_ERROR_LOG("Couldn't get monitor pointer");
+#endif
 	}
 
 	GLFWWindow::~GLFWWindow(void) noexcept
@@ -209,7 +215,9 @@ namespace gte::GLFW {
 
 	[[nodiscard]] const void* GLFWWindow::GetNativeWindow(void) const noexcept { return GetNativeWindow(); }
 
-#ifdef PLATFORM_WINDOWS
+#ifdef GT_WEB
+	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return nullptr; }
+#elif PLATFORM_WINDOWS
 	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return static_cast<void*>(glfwGetWin32Window(mWindow)); }
 #else
 	[[nodiscard]] void* GLFWWindow::GetNativeWindow(void) noexcept { return reinterpret_cast<void*>(glfwGetX11Window(mWindow)); }

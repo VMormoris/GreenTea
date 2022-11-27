@@ -5,7 +5,7 @@
 //From https://stackoverflow.com/questions/36262070/what-does-htons-do-on-a-big-endian-system
 #define FLIP_BYTES_S(n) (((((unsigned short)(n) & 0xFF)) << 8) | (((unsigned short)(n) & 0xFF00) >> 8))
 
-static constexpr GUID null = { 0 };
+static constexpr uuid_t null = { 0 };
 static constexpr char nullstr[] = "00000000-0000-0000-0000-000000000000";
 
 namespace gte {
@@ -61,10 +61,10 @@ namespace gte {
 		return newone;
 	}
 
-	uuid::uuid(void) noexcept { memset(&mUUID, 0, sizeof(GUID)); }
-	[[nodiscard]] bool uuid::operator==(const uuid& rhs) const noexcept { return memcmp(&mUUID, &rhs.mUUID, sizeof(GUID)) == 0; }
-	[[nodiscard]] bool uuid::operator!=(const uuid& rhs) const noexcept { return memcmp(&mUUID, &rhs.mUUID, sizeof(GUID)) != 0; }
-	[[nodiscard]] bool uuid::IsValid(void) const noexcept { return memcmp(&mUUID, &null, sizeof(GUID)) != 0; }
+	uuid::uuid(void) noexcept { memset(&mUUID, 0, sizeof(uuid_t)); }
+	[[nodiscard]] bool uuid::operator==(const uuid& rhs) const noexcept { return memcmp(&mUUID, &rhs.mUUID, sizeof(uuid_t)) == 0; }
+	[[nodiscard]] bool uuid::operator!=(const uuid& rhs) const noexcept { return memcmp(&mUUID, &rhs.mUUID, sizeof(uuid_t)) != 0; }
+	[[nodiscard]] bool uuid::IsValid(void) const noexcept { return memcmp(&mUUID, &null, sizeof(uuid_t)) != 0; }
 
 }
 
@@ -79,7 +79,7 @@ namespace std {
 	[[nodiscard]] size_t hash<gte::uuid>::operator()(const gte::uuid& id) const
 	{
 		RPC_STATUS status = RPC_S_OK;
-		unsigned short value = UuidHash(&const_cast<GUID&>(id.mUUID), &status);
+		unsigned short value = UuidHash(&const_cast<uuid_t&>(id.mUUID), &status);
 		//TODO(Vasilis): Add assertion
 		return std::hash<unsigned short>()(value);
 	}

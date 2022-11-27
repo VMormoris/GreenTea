@@ -17,27 +17,27 @@ project "GreenTea"
 		"src/Platforms/OpenGL/**.cpp",
 	}
 
-    disablewarnings {4251, 4275}
+	removefiles
+	{
+		"src/Engine/ImGui/**.h",
+		"src/Engine/ImGui/**.hpp",
+		"src/Engine/ImGui/**.cpp",
+	}
 
     includedirs
 	{
 		"src",
 		"%{IncludeDirs.entt}",
         "%{IncludeDirs.yaml}",
-		"%{IncludeDirs.GLFW}",
-		"%{IncludeDirs.Glad}",
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.stb}",
 		"%{IncludeDirs.box2d}",
-		"%{IncludeDirs.openal}",
 	}
 
     links
     {
         "Box2D",
-		"GLFW",
         "yaml-cpp",
-		"Glad",
     }
 
     defines
@@ -47,20 +47,27 @@ project "GreenTea"
 		"GLFW_INCLUDE_NONE",
 		"AL_LIBTYPE_STATIC",
 	}
+    
+    --postbuildcommands
+    --{
+    --    ("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
+	--	("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
+    --}
 
     filter "system:windows"
 		systemversion "latest"
-		
-		defines
-		{
-			"PLATFORM_WINDOWS",
-		}
 
+		disablewarnings {4251, 4275}
+		
 		files
 		{
 			"src/Platforms/Windows/**.h",
-			"src/Platforms/Windows/**.hpp",
 			"src/Platforms/Windows/**.cpp",
+		}
+
+		defines
+		{
+			"PLATFORM_WINDOWS",
 		}
 
 		links
@@ -68,12 +75,6 @@ project "GreenTea"
 			"Winmm.lib",
 			"opengl32.lib",
 			"../3rdParty/openal-soft/Release/OpenAl32.lib",
-		}
-
-		postbuildcommands
-		{
-			("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.dll %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
-			("{COPY} %{wks.location}bin\\" .. outputdir .. "\\%{prj.name}\\**.lib %{wks.location}bin\\" .. outputdir .. "\\StandAlone"),
 		}
 
 	filter "system:linux"
@@ -87,6 +88,17 @@ project "GreenTea"
 			"src/Platforms/Linux/**.cpp",
 		}
 
+		links
+		{
+			"uuid",
+			"dl",
+			"pthread",
+		}
+
+	--buildoptions { "-mwasm64" }
+
+	filter { "system:linux", "configurations:Dist" }
+		
 		libdirs
 		{
 			"../3rdParty/openal-soft/Release",
@@ -94,19 +106,30 @@ project "GreenTea"
 
 		links
 		{
-			"uuid",
-			"dl",
-			"pthread",
 			"openal:shared",
-		}
-
-		postbuildcommands
-		{
-			--("{COPY} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/libGreenTea.so %{wks.location}/bin/" .. outputdir .. "/StandAlone"),
 		}
 
     filter "configurations:Dist"
         defines "GT_DIST"
+        runtime "Release"
+        optimize "on"
+        symbols "off"
+
+		includedirs
+		{
+			"%{IncludeDirs.Glad}",
+			"%{IncludeDirs.GLFW}",
+			"%{IncludeDirs.openal}",
+		}
+
+		links
+		{
+			"GLFW",
+			"Glad",
+		}
+
+	filter "configurations:Web"
+		defines { "GT_DIST", "GT_WEB" }
         runtime "Release"
         optimize "on"
         symbols "off"

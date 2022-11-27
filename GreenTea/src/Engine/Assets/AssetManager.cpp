@@ -117,7 +117,6 @@ namespace gte {
 
 	void AssetManager::Clear(void)
 	{
-		
 		for (auto& [id, asset] : mVRAM)
 		{
 			delete (GPU::Texture*)mVRAM.at(id)->Data;
@@ -174,7 +173,7 @@ namespace gte {
 
 		if (mRAM.find(id) != mRAM.end())
 		{
-			auto& asset = mRAM.at(id);
+			Ref<Asset> asset = mRAM.at(id);
 			switch (asset->Type)
 			{
 			case AssetType::ANIMATION:

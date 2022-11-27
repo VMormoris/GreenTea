@@ -1,7 +1,6 @@
 #include "ScriptableEntity.h"
 
 #include <Engine/Core/Context.h>
-
 #include <thread>
 
 static void SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent = {});

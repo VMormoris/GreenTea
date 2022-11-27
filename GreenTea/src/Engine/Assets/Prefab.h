@@ -2,7 +2,7 @@
 
 #include <Engine/Core/Engine.h>
 
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 
 namespace gte {
 

@@ -7,17 +7,19 @@ namespace gte::GPU::OpenGL {
 		switch (format)
 		{
 		case TextureFormat::RED8:	return { GL_R8, GL_RED };
-		case TextureFormat::RED16:	return { GL_R16, GL_RED };
 		case TextureFormat::RGB8:	return { GL_RGB8, GL_RGB };
-		case TextureFormat::RGB16:	return { GL_RGB16, GL_RGB };
 		case TextureFormat::RGBA8:	return { GL_RGBA8, GL_RGBA };
-		case TextureFormat::RGBA16:	return { GL_RGBA16, GL_RGBA };
 		case TextureFormat::Int8:	return { GL_R8I, GL_RED_INTEGER };
-		case TextureFormat::Int16:	return { GL_R16I, GL_RED_INTEGER };
-		case TextureFormat::Int32:	return { GL_R32I, GL_RED_INTEGER };
 		case TextureFormat::UInt8:	return { GL_R8UI, GL_RED_INTEGER };
+#ifndef GT_WEB
+		case TextureFormat::RED16:	return { GL_R16, GL_RED };
+		case TextureFormat::RGB16:	return { GL_RGB16, GL_RGB };
+		case TextureFormat::RGBA16:	return { GL_RGBA16, GL_RGBA };
+#endif
+		case TextureFormat::Int16:	return { GL_R16I, GL_RED_INTEGER };
 		case TextureFormat::UInt16:	return { GL_R16UI, GL_RED_INTEGER };
 		case TextureFormat::UInt32:	return { GL_R32UI, GL_RED_INTEGER };
+		case TextureFormat::Int32:	return { GL_R32I, GL_RED_INTEGER };
 		default:					return {0, 0};
 		}
 	}
@@ -75,14 +77,25 @@ namespace gte::GPU::OpenGL {
 		mInternalFormat = GL_RGBA8; mDataFormat = GL_RGBA;
 
 		glGenTextures(1, &mID);
+#ifndef GT_WEB
 		glTextureStorage2D(mID, 1, mInternalFormat, mWidth, mHeight);
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, mDataFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, nullptr);
+#endif
 
+#ifndef GT_WEB
 		glTextureParameteri(mID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTextureParameteri(mID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(mID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+#else
+		glTexParameteri(mID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+		glTexParameteri(mID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(mID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+#endif
 	}
 
 	void OpenGLTexture2D::SetData(const Image& image, ImageFormat format) noexcept
@@ -155,7 +168,15 @@ namespace gte::GPU::OpenGL {
 
 	OpenGLTexture2D::~OpenGLTexture2D(void) noexcept { glDeleteTextures(1, &mID); }
 
-	void OpenGLTexture2D::Bind(uint32 slot) const noexcept { glBindTextureUnit(slot, mID); }
+	void OpenGLTexture2D::Bind(uint32 slot) const noexcept
+	{
+#ifndef GT_WEB
+		glBindTextureUnit(slot, mID);
+#else
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, mID);
+#endif
+	}
 
 	void OpenGLTexture2D::SetData(void* data, size_t size) noexcept
 	{

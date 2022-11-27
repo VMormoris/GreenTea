@@ -6,7 +6,7 @@
 #include <cstring>
 #include <dlfcn.h>
 
-namespace gte::internal{
+namespace gte::internal {
 
 	template<typename T>
 	inline T* DynamicLibLoader::CreateInstance(const std::string& type)

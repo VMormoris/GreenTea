@@ -1,7 +1,13 @@
 #include "OpenGLPixelBuffer.h"
 #include "OpenGLTexture.h"
 
-#include <glad/glad.h>
+#ifndef GT_WEB
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_ES31
+	#include <GLFW/glfw3.h>
+#endif
+
 #include <chrono>
 #include <cstring>
 
@@ -61,6 +67,7 @@ namespace gte::GPU::OpenGL {
 		const uint32 index = (mGPUIndex + mIDs.size() - 1) % static_cast<uint32>(mIDs.size());
 		const size_t size = GetPixelSize(mFormat);
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mIDs[index]);
+#ifndef GT_WEB
 		byte* ptr = (byte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 		if (ptr)
 		{
@@ -71,6 +78,15 @@ namespace gte::GPU::OpenGL {
 			}
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		}
+#else
+		uint64 offset = (mWidth * size)* y + x * size;
+		void* ptr = glMapBufferRange(GL_PIXEL_PACK_BUFFER, offset, size, GL_READ_ONLY);
+		if (ptr)
+		{
+			memcpy(data, ptr, size);
+			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		}
+#endif
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	}
 
