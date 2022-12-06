@@ -21,7 +21,7 @@ static void PrintLog(GLuint object)
 		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
 	else
 	{
-		GTE_ERROR_LOG("printlog: Not a shader or a program\n");
+		GTE_ERROR_LOG("Not a shader or a program\n");
 		return;
 	}
 

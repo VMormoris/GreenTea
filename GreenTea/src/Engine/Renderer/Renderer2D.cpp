@@ -56,9 +56,11 @@ namespace gte {
 		const size_t MaxQuads = 20000;
 		const size_t MaxVertices = MaxQuads * 4;
 		const size_t MaxIndices = MaxQuads * 6;
-
+#ifdef GT_WEB
+		static const uint32 MaxTextureSlots = 8;
+#else
 		static const uint32 MaxTextureSlots = 32;
-
+#endif
 		GPU::VertexArray* QuadVA = nullptr;
 		GPU::VertexBuffer* QuadVB = nullptr;
 		GPU::IndexBuffer* QuadIB = nullptr;
@@ -69,7 +71,7 @@ namespace gte {
 		BufferData* QuadVertexBufferBase = nullptr;
 		BufferData* QuadVertexBufferPtr = nullptr;
 
-
+#ifndef GT_DIST
 		GPU::VertexArray* LineVA = nullptr;
 		GPU::VertexBuffer* LineVB = nullptr;
 		GPU::Shader* LineShader = nullptr;
@@ -79,7 +81,7 @@ namespace gte {
 		LineData* LineVertexBufferPtr = nullptr;
 
 		float LineThickness = 2.0f;
-
+#endif
 		GPU::VertexArray* CharVA = nullptr;
 		GPU::VertexBuffer* CharVB = nullptr;
 		GPU::IndexBuffer* CharIB = nullptr;
@@ -110,7 +112,11 @@ namespace gte {
 				{ GPU::ShaderDataType::Vec2, "_textCoordsOrLocalPosition" },
 				{ GPU::ShaderDataType::Float, "_textIDOrThickness" },
 				{ GPU::ShaderDataType::Float, "_TilingFactorOrFade" },
-				{ GPU::ShaderDataType::Int, "_objectID"},
+#ifndef GT_WEB
+				{ GPU::ShaderDataType::Int, "_objectID" },
+#else
+				{ GPU::ShaderDataType::Float, "_objectID" },
+#endif
 				{ GPU::ShaderDataType::Float, "_isCircle"}
 			}
 		);
@@ -125,7 +131,11 @@ namespace gte {
 				{ GPU::ShaderDataType::Vec4, "_color" },
 				{ GPU::ShaderDataType::Vec2, "_textCoords" },
 				{ GPU::ShaderDataType::Float, "_textID" },
+#ifndef GT_WEB
 				{ GPU::ShaderDataType::Int, "_objectID" },
+#else
+				{ GPU::ShaderDataType::Float, "_objectID" },
+#endif
 				{ GPU::ShaderDataType::Float, "_screenPxRange" },
 			}
 		);
@@ -152,6 +162,7 @@ namespace gte {
 		sData.CharVA->SetIndexBuffer(sData.CharIB);
 		delete[] quadIndices;
 
+#ifndef GT_WEB
 		sData.LineVA = GPU::VertexArray::Create();
 		sData.LineVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(LineData));
 		sData.LineVB->SetLayout
@@ -162,6 +173,7 @@ namespace gte {
 			}
 		);
 		sData.LineVA->AddVertexBuffer(sData.LineVB);
+#endif
 
 		sData.WhiteTexture = GPU::Texture2D::Create(1, 1);
 		uint32 WhiteColor = 0xFFFFFFFF;
@@ -171,22 +183,69 @@ namespace gte {
 		for (uint32 i = 0; i < sData.MaxTextureSlots; i++)
 			samplers[i] = i;
 
-		sData.Shader2D = GPU::Shader::Create("../Assets/Shaders/Shader2D.glsl");
+#ifdef GT_WEB
+		sData.Shader2D = GPU::Shader::Create("Assets/Shaders/webgl/Shader2D.glsl");
+#else
+		sData.Shader2D = GPU::Shader::Create("../Assets/Shaders/opengl/Shader2D.glsl");
+#endif
 		sData.Shader2D->Bind();
 		sData.Shader2D->AddUniform("u_eyeMatrix");
+#ifdef GT_WEB
+		sData.Shader2D->AddUniform("u_Texture0");
+		sData.Shader2D->SetUniform("u_Texture0", 0);
+		sData.Shader2D->AddUniform("u_Texture1");
+		sData.Shader2D->SetUniform("u_Texture1", 1);
+		sData.Shader2D->AddUniform("u_Texture2");
+		sData.Shader2D->SetUniform("u_Texture2", 2);
+		sData.Shader2D->AddUniform("u_Texture3");
+		sData.Shader2D->SetUniform("u_Texture3", 3);
+		sData.Shader2D->AddUniform("u_Texture4");
+		sData.Shader2D->SetUniform("u_Texture4", 4);
+		sData.Shader2D->AddUniform("u_Texture5");
+		sData.Shader2D->SetUniform("u_Texture5", 5);
+		sData.Shader2D->AddUniform("u_Texture6");
+		sData.Shader2D->SetUniform("u_Texture6", 6);
+		sData.Shader2D->AddUniform("u_Texture7");
+		sData.Shader2D->SetUniform("u_Texture7", 7);
+#else
 		sData.Shader2D->AddUniform("u_Textures");
 		sData.Shader2D->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
+#endif
 
-		sData.TextShader = GPU::Shader::Create("../Assets/Shaders/TextShader.glsl");
+#ifdef GT_WEB
+		sData.TextShader = GPU::Shader::Create("Assets/Shaders/webgl/TextShader.glsl");
+#else
+		sData.TextShader = GPU::Shader::Create("../Assets/Shaders/opengl/TextShader.glsl");
+#endif
 		sData.TextShader->Bind();
 		sData.TextShader->AddUniform("u_eyeMatrix");
-		sData.TextShader->AddUniform("u_Textures");
-		sData.TextShader->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
+#ifdef GT_WEB
+		sData.Shader2D->AddUniform("u_Texture0");
+		sData.Shader2D->SetUniform("u_Texture0", 0);
+		sData.Shader2D->AddUniform("u_Texture1");
+		sData.Shader2D->SetUniform("u_Texture1", 1);
+		sData.Shader2D->AddUniform("u_Texture2");
+		sData.Shader2D->SetUniform("u_Texture2", 2);
+		sData.Shader2D->AddUniform("u_Texture3");
+		sData.Shader2D->SetUniform("u_Texture3", 3);
+		sData.Shader2D->AddUniform("u_Texture4");
+		sData.Shader2D->SetUniform("u_Texture4", 4);
+		sData.Shader2D->AddUniform("u_Texture5");
+		sData.Shader2D->SetUniform("u_Texture5", 5);
+		sData.Shader2D->AddUniform("u_Texture6");
+		sData.Shader2D->SetUniform("u_Texture6", 6);
+		sData.Shader2D->AddUniform("u_Texture7");
+		sData.Shader2D->SetUniform("u_Texture7", 7);
+#else
+		sData.Shader2D->AddUniform("u_Textures");
+		sData.Shader2D->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
+#endif
 
-		sData.LineShader = GPU::Shader::Create("../Assets/Shaders/LineShader.glsl");
+#ifndef GT_DIST
+		sData.LineShader = GPU::Shader::Create("../Assets/Shaders/opengl/LineShader.glsl");
 		sData.LineShader->Bind();
 		sData.LineShader->AddUniform("u_eyeMatrix");
-
+#endif
 		//First Texture always the white one
 		sData.TextureSlots[0] = sData.WhiteTexture;
 
@@ -196,8 +255,11 @@ namespace gte {
 		sData.QuadVertexPositions[3] = glm::vec4(-0.5, 0.5f, 0.0f, 1.0f);
 
 		sData.QuadVertexBufferBase = new BufferData[sData.MaxVertices];
-		sData.LineVertexBufferBase = new LineData[sData.MaxVertices];
 		sData.CharVertexBufferBase = new CharData[sData.MaxVertices];
+
+#ifndef GT_DIST
+		sData.LineVertexBufferBase = new LineData[sData.MaxVertices];
+#endif
 	}
 
 	void Renderer2D::BeginScene(const glm::mat4& eyematrix)
@@ -214,10 +276,12 @@ namespace gte {
 		sData.TextShader->Bind();
 		sData.TextShader->SetUniform("u_eyeMatrix", eyematrix);
 
+#ifndef GT_DIST
 		sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
 		sData.LineVertexCount = 0;
 		sData.LineShader->Bind();
 		sData.LineShader->SetUniform("u_eyeMatrix", eyematrix);
+#endif
 	}
 
 	void Renderer2D::Flush(void)
@@ -255,6 +319,7 @@ namespace gte {
 			sData.FontTextureSlotIndex = 0;
 		}
 
+#ifndef GT_DIST
 		if (sData.LineVertexCount)
 		{
 			size_t dataSize = (byte*)sData.LineVertexBufferPtr - (byte*)sData.LineVertexBufferBase;
@@ -266,6 +331,7 @@ namespace gte {
 			sData.LineVertexCount = 0;
 			sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
 		}
+#endif
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transformation, uint32 ID, const glm::vec4& color, float tilingFactor)
@@ -398,6 +464,7 @@ namespace gte {
 		sData.QuadIndexCount += 6;
 	}
 
+#ifndef GT_DIST
 	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color)
 	{
 		if (sData.LineVertexCount > sData.MaxVertices)
@@ -424,6 +491,7 @@ namespace gte {
 		DrawLine(lineVertices[2], lineVertices[3], color);
 		DrawLine(lineVertices[3], lineVertices[0], color);
 	}
+#endif
 
 	void Renderer2D::DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, uint32 ID, const glm::vec4& color)
 	{
@@ -505,11 +573,12 @@ namespace gte {
 
 	void Renderer2D::Shutdown(void)
 	{
+#ifndef GT_DIST
 		delete[] sData.LineVertexBufferBase;
 		delete sData.LineShader;
 		delete sData.LineVB;
 		delete sData.LineVA;
-
+#endif
 		delete[] sData.CharVertexBufferBase;
 		delete sData.TextShader;
 		delete sData.CharIB;
@@ -526,7 +595,9 @@ namespace gte {
 
 	void Renderer2D::EndScene(void) { Flush(); }
 
+#ifndef GT_DIST
 	float Renderer2D::GetLineThickness(void) { return sData.LineThickness; }
 	void Renderer2D::SetLineThickness(float thickness) { sData.LineThickness = thickness; }
+#endif
 
 }

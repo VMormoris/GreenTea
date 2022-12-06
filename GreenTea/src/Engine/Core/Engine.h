@@ -12,10 +12,14 @@
 #endif
 
 //declspecs for game's logic
-#ifdef GAME_DLL
-	#define GAME_API __declspec(dllexport)
+#ifdef PLATFORM_WINDOWS
+	#ifdef GAME_DLL
+		#define GAME_API __declspec(dllexport)
+	#else
+		#define GAME_API __declspec(dllimport)
+	#endif
 #else
-	#define GAME_API __declspec(dllimport)
+	#define GAME_API
 #endif
 
 #if defined(PLATFORM_WINDOWS) || defined(REFLECTION)

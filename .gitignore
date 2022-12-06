@@ -10,6 +10,9 @@ Assets/Scenes
 # Engine's Logs
 **.gtlog
 
+# Visual Studio Code
+.vscode
+
 # Visual Studio
 .vs
 **.sln

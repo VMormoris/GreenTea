@@ -52,7 +52,11 @@ namespace gte::GLFW {
 			FullScreen();
 
 		GLFWimage logo[1];
+#ifndef GT_WEB
 		logo[0].pixels = stbi_load("../Assets/Icons/Logo.png", &logo[0].width, &logo[0].height, 0, 4);
+#else
+		logo[0].pixels = stbi_load("Assets/Icons/Logo.png", &logo[0].width, &logo[0].height, 0, 4);
+#endif
 		if (logo[0].pixels != NULL)
 		{
 			glfwSetWindowIcon(mWindow, 1, logo);
@@ -64,8 +68,9 @@ namespace gte::GLFW {
 
 		glfwGetWindowPos(mWindow, &mProps.x, &mProps.y);
 		glfwSetWindowUserPointer(mWindow, &mProps);
+#ifndef GT_WEB
 		SetVSync(true);
-		
+#endif
 		//Window events' Callbacks
 		glfwSetWindowCloseCallback(mWindow, [](GLFWwindow* window) { internal::GetContext()->Dispatcher.Dispatch<EventType::WindowClose>(); });
 		
@@ -115,9 +120,11 @@ namespace gte::GLFW {
 			{
 			case GLFW_PRESS:
 			{
+#ifndef GT_WEB
 				Entity entity = Input::GetHoveredEntity();
 				if (entity && entity.HasComponent<NativeScriptComponent>())
 					internal::GetContext()->Dispatcher.Dispatch<EventType::Click>(entity);
+#endif
 				internal::GetContext()->Dispatcher.Dispatch<EventType::MouseButtonPressed>(code);
 				break;
 			}
@@ -131,6 +138,7 @@ namespace gte::GLFW {
 
 		glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos)
 		{
+#ifndef GT_WEB
 			static Entity hovered = {};
 			Entity entity = Input::GetHoveredEntity();
 			if (entity != hovered)
@@ -141,6 +149,7 @@ namespace gte::GLFW {
 					internal::GetContext()->Dispatcher.Dispatch<EventType::HoverEnter>(entity);
 			}
 			hovered = entity;
+#endif
 			internal::GetContext()->Dispatcher.Dispatch<EventType::MouseMove>((int32)xpos, (int32)ypos);
 		});
 

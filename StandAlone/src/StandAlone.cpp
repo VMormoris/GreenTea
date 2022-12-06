@@ -11,7 +11,11 @@ static bool loaded = false;
 StandAlone::StandAlone(void)
 	: Application({ "Stand alone", 0, 0, 1080, 720, false, true, false, true })
 {
+#ifndef GT_WEB
 	Image img("../Assets/Icons/GreenTeaLogo.png");
+#else
+	Image img("Assets/Icons/GreenTeaLogo.png");
+#endif
 	engineLogo = GPU::Texture2D::Create(img);
 
 	Window* window = internal::GetContext()->GlobalWindow;
@@ -25,8 +29,9 @@ StandAlone::StandAlone(void)
 	internal::GetContext()->PixelBufferObject = gte::GPU::PixelBuffer::Create(spec.Width, spec.Height, gte::GPU::TextureFormat::UInt32);
 	internal::GetContext()->PixelBufferObject->SetFramebuffer(gte::internal::GetContext()->ViewportFBO);
 
-
+#ifndef GT_WEB
 	std::filesystem::current_path("..");
+#endif
 	internal::GetContext()->AssetWatcher.LoadProject("./GameData");
 	
 	//Loading Script Assets
@@ -42,7 +47,6 @@ StandAlone::StandAlone(void)
 				loading = true;
 		}
 	}
-
 	//Find First Scene
 	std::string gtfile;
 	for (const auto& entry : std::filesystem::directory_iterator("./GameData/"))
@@ -55,7 +59,7 @@ StandAlone::StandAlone(void)
 	std::getline(is, scenename);
 	is.close();
 
-	//Setup startup scene
+	////Setup startup scene
 	Scene* scene = new Scene();
 	internal::GetContext()->ActiveScene = scene;
 	internal::SceneSerializer serializer(scene);
@@ -77,12 +81,16 @@ void StandAlone::Update(float dt)
 		scene->Update(dt);
 
 	//Render
+#ifndef GT_WEB
 	viewportFBO->Bind();
+#endif
 	const auto& spec = viewportFBO->GetSpecification();
 	RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
 	RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
 	RenderCommand::Clear();
+#ifndef GT_WEB
 	viewportFBO->Clear(1, &EnttNull);
+#endif
 	if (ready)
 	{
 		Entity camera = scene->GetPrimaryCameraEntity();
@@ -90,9 +98,11 @@ void StandAlone::Update(float dt)
 	}
 	else
 		RenderLogo();
+#ifndef GT_WEB
 	viewportFBO->Unbind();
 	internal::GetContext()->PixelBufferObject->ReadPixels(1);
-	
+#endif
+
 	mAccumulator += dt;
 	if (mAccumulator >= 5.0f && loaded)
 	{
@@ -117,7 +127,9 @@ void StandAlone::Update(float dt)
 		}
 	}
 
+#ifndef GT_WEB
 	RenderCommand::DrawFramebuffer(viewportFBO);
+#endif
 }
 
 StandAlone::~StandAlone(void) { internal::GetContext()->ActiveScene->OnStop(); }

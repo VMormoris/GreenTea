@@ -177,7 +177,11 @@ namespace gte::internal {
 		std::string dstDLL = "";
 		for (auto entry : std::filesystem::directory_iterator(mProjectDir / ".gt"))
 		{
+#ifdef PLATFORM_WINDOWS
 			if (entry.path().extension() == ".dll")
+#else
+			if (entry.path().extension() == ".so")
+#endif
 			{
 				dstDLL = entry.path().string();
 				break;

@@ -80,6 +80,7 @@ namespace gte::GPU::OpenGL {
 #ifndef GT_WEB
 		glTextureStorage2D(mID, 1, mInternalFormat, mWidth, mHeight);
 #else
+		glBindTexture(GL_TEXTURE_2D, mID);
 		glTexImage2D(GL_TEXTURE_2D, 0, mDataFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, nullptr);
 #endif
 
@@ -90,11 +91,11 @@ namespace gte::GPU::OpenGL {
 		glTextureParameteri(mID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(mID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 #else
-		glTexParameteri(mID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexParameteri(mID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(mID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 #endif
 	}
 

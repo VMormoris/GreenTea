@@ -11,6 +11,7 @@ namespace gte::internal {
 	}
 
 	bool DynamicLibLoader::Load(const char* filepath) {
+		printf("Loading: %s\n", filepath);
 		size_t size = strlen(filepath);
 		ENGINE_ASSERT(size < 512, "Filepath is too long!");
 		memcpy(mLibsFilePath, filepath, size);

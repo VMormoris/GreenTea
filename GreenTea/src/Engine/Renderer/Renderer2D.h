@@ -65,14 +65,16 @@ namespace gte {
 
 		static void DrawCircle(const glm::mat4& transform, const glm::vec4& color, uint32 ID, float thickness = 1.0f, float fade = 0.005f);
 
+		static void DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, uint32 ID, const glm::vec4& color = glm::vec4(1.0f));
+
+#ifndef GT_DIST
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color);
 
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color);
 
-		static void DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, uint32 ID, const glm::vec4& color = glm::vec4(1.0f));
-
 		static float GetLineThickness();
 		static void SetLineThickness(float width);
+#endif
 	};
 
 }
