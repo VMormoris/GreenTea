@@ -342,7 +342,7 @@ void OpenProject(const std::string& path) noexcept
 	std::string line;
 	while (std::getline(is, line))
 	{
-		if (line.compare("Includes = { }") == 0 || line.compare("LibFiles = { }") == 0)
+		if (line.compare("Includes = { }\r") == 0 || line.compare("LibFiles = { }\r") == 0)
 			continue;
 		os << line << '\n';
 	}
