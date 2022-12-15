@@ -1,4 +1,4 @@
-#include "DynamicLoader.h"
+#include "DynamicLibLoader.h"
 
 #include <Windows.h>
 
@@ -10,10 +10,16 @@ namespace gte::internal {
 		ZeroMemory(mLibsFilePath, 512);
 	}
 
-	bool DynamicLibLoader::Load(const char* filepath) {
+	void DynamicLibLoader::SetLibFile(const char* filepath)
+	{
 		size_t size = strlen(filepath);
 		ENGINE_ASSERT(size < 512, "Filepath is too long!");
 		memcpy(mLibsFilePath, filepath, size);
+	}
+
+	bool DynamicLibLoader::Load(const char* filepath)
+	{
+		SetLibFile(filepath);
 		return Reload();
 	}
 

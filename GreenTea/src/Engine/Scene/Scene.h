@@ -49,6 +49,7 @@ namespace gte {
 		void OnStart(void);
 		void OnStop(void);
 
+		void DestroyRuntime(void);
 		void PatchScripts(void);
 
 		[[nodiscard]] static Scene* Copy(Scene* other);

@@ -76,7 +76,10 @@ void CupOfTea::Update(float dt)
 		sLoaded = false;
 	}
 	if (gte::internal::GetContext()->AssetWatcher.IsBuilding() && gte::internal::GetContext()->Playing)
+	{
 		Stop();
+		return;
+	}
 
 	if (gte::internal::GetContext()->Playing)
 		scene->Update(dt);
@@ -774,6 +777,7 @@ void CupOfTea::Stop(void)
 	gte::uuid id;
 	if (gte::Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity())
 		id = selectedEntity.GetID();
+	
 	gte::internal::GetContext()->ActiveScene->OnStop();
 	delete gte::internal::GetContext()->ActiveScene;
 	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);

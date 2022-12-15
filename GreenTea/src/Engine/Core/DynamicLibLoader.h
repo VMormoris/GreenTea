@@ -27,6 +27,12 @@ namespace gte::internal {
 		bool Load(const char* filepath);
 
 		/**
+		* @brief Sets the shared library that will be loaded at a later time
+		* @param filepath Path to file that corresponds to the Library
+		*/
+		void SetLibFile(const char* filepath);
+
+		/**
 		* @brief Tries to Hot-Reload the last loaded library if there is one
 		* @returns True if the libary loading was sucessfull, false otherwise
 		* @warning In case there is no library already loaded this function will always return false

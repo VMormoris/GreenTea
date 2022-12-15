@@ -97,6 +97,7 @@ namespace gte::internal {
 			is.close();
 			if (notification.compare("BuildStarted") == 0)
 			{
+				GetContext()->ActiveScene->DestroyRuntime();
 				GetContext()->DynamicLoader.Unload();
 				mBuilding = true;
 			}
@@ -132,7 +133,11 @@ namespace gte::internal {
 		auto dstDLL = ".gt/" + prjname + ".dll";
 		if (std::filesystem::exists(srcDLL))
 			std::filesystem::copy(srcDLL, dstDLL, std::filesystem::copy_options::overwrite_existing);
-		if (!std::filesystem::exists(dstDLL)) { GTE_WARN_LOG(prjname, ".dll wasn't found. Please build your project..."); }
+		if (!std::filesystem::exists(dstDLL))
+		{
+			GTE_WARN_LOG(prjname, ".dll wasn't found. Please build your project...");
+			GetContext()->DynamicLoader.SetLibFile(dstDLL.c_str());
+		}
 		else
 			GetContext()->DynamicLoader.Load(dstDLL.c_str());
 		

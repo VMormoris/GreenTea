@@ -1246,7 +1246,12 @@ namespace gte {
 	{
 		std::unique_lock lock(mRegMutex);
 		OnPhysicsStop();
+		DestroyRuntime();
+		internal::GetContext()->GlobalTime = 0.0f;
+	}
 
+	void Scene::DestroyRuntime()
+	{
 		auto scripts = mReg.view<NativeScriptComponent>();
 		for (auto&& [entityID, nc] : scripts.each())
 		{
@@ -1254,8 +1259,8 @@ namespace gte {
 				continue;
 			nc.Instance->Destroy();
 			delete nc.Instance;
+			nc.Instance = nullptr;
 		}
-		internal::GetContext()->GlobalTime = 0.0f;
 	}
 
 	void Scene::FixedUpdate(void)
