@@ -1,4 +1,5 @@
-
+Includes = { }
+LibFiles = { }
 workspace (ProjectName)
     architecture "x64"
 
@@ -9,6 +10,8 @@ workspace (ProjectName)
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
 
+require (GreenTeaDir .. "/resources/gt")
+
 IncludeDirs =
 {
 	(ProjectName .. '/src'),
@@ -16,15 +19,8 @@ IncludeDirs =
 	(GreenTeaDir .. "/3rdParty/entt/single_include/entt"),
 	(GreenTeaDir .. "/3rdParty/glm/glm"),
 	(GreenTeaDir .. "/3rdParty/yaml-cpp/include"),
-	(GreenTeaDir .. "/3rdParty/IconFontCppHeaders"),
+	table.unpack(Includes),
 }
-
-LibFiles =
-{
-	(GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib"),
-}
-
-require (GreenTeaDir .. "/resources/gt")
 
 project (ProjectName)
 	location (ProjectName)
@@ -51,17 +47,6 @@ project (ProjectName)
 	{
 		"GAME_DLL"
 	}
-
-	prebuildcommands
-	{
-		"{ECHO} BuildStarted> %{wks.location}.gt/Notifications",
-		gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
-	}
-	postbuildcommands
-	{
-		gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
-		"{ECHO} BuildEnded> %{wks.location}.gt/Notifications"
-	}
 	
 	filter "system:windows"
 		systemversion "latest"
@@ -69,8 +54,22 @@ project (ProjectName)
 		defines
 		{
 			"PLATFORM_WINDOWS",
-		}		
+		}
 
 	filter "configurations:Release"
 		runtime "Release"
 		optimize "on"
+
+		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib") }
+
+		prebuildcommands
+		{
+			"{ECHO} BuildStarted> %{wks.location}.gt/Notifications",
+			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
+		}
+		
+		postbuildcommands
+		{
+			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
+			"{ECHO} BuildEnded> %{wks.location}.gt/Notifications"
+		}

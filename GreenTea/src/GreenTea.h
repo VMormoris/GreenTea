@@ -13,8 +13,10 @@
 #include <Engine/GPU/FrameBuffer.h>
 #include <Engine/GPU/Texture.h>//Maybe remove?
 
-#include <Engine/ImGui/ImGuiLayer.h>
-#include <Engine/ImGui/ImGuiWidgets.h>
+#ifndef GAME_DLL
+	#include <Engine/ImGui/ImGuiLayer.h>
+	#include <Engine/ImGui/ImGuiWidgets.h>
+#endif
 
 #include <Engine/NativeScripting/ScriptableEntity.h>
 #include <Engine/NativeScripting/System.h>

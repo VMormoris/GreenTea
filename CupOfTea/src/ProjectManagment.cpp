@@ -311,18 +311,41 @@ void OpenProject(const std::string& path) noexcept
 	//Change premake5 file
 	const auto premake5 = prjdir.string() + "/premake5.lua";
 	std::vector<std::string> lines;
-	std::ifstream is(premake5, std::ios::binary);
+	{//Read Includes & Link files
+		std::ifstream is(premake5, std::ios::binary);
+		std::string line;
+		while (std::getline(is, line))
+		{
+			if (line.find("Includes") != std::string::npos)
+			{
+				lines.emplace_back(line);
+				break;
+			}
+		}
+		while (std::getline(is, line))
+		{
+			if (line.find("workspace") != std::string::npos)
+				break;
+			lines.emplace_back(line);
+		}
+		is.close();
+	}
+
+	//Rewrite premake5.lua
+	std::ofstream os(premake5, std::ios::binary);
+	os << "ProjectName = " << prjdir.stem() << "\n";
+	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
+	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n\n";
+	for (const auto& line : lines)
+		os << line << '\n';
+	std::ifstream is("../resources/template.premake5.lua", std::ios::binary);
 	std::string line;
 	while (std::getline(is, line))
-		lines.emplace_back(line);
-	is.close();
-
-	std::ofstream os(premake5, std::ios::binary);
-	os << lines[0];
-	os << "GreenTeaDir = \"" << GreenTeaDir << "\"\n";
-	os << "gtrDir = \"" << GreenTeaDir + "/3rdParty/gtreflect" << "\"\n";
-	for (size_t i = 3; i < lines.size(); i++)
-		os << lines[i] << '\n';
+	{
+		if (line.compare("Includes = { }") == 0 || line.compare("LibFiles = { }") == 0)
+			continue;
+		os << line << '\n';
+	}
 	os.close();
 
 	//Run premake5
