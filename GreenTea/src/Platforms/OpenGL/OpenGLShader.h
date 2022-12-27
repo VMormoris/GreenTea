@@ -61,17 +61,17 @@ namespace gte::GPU::OpenGL {
 		/**
 		* ID used to distinguish each Shader Program in OpenGL
 		*/
-		uint32 mProgramID;
+		uint32 mProgramID = 0;
 
 		/**
 		* ID specific to the Vertex Shader in OpenGL
 		*/
-		uint32 mVsID;
+		uint32 mVsID = 0;
 
 		/**
 		* ID specific to the Fragment Shader in OpenGL
 		*/
-		uint32 mFsID;
+		uint32 mFsID = 0;
 
 	public:
 

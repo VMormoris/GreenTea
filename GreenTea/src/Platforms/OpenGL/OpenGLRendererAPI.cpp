@@ -11,13 +11,15 @@ void OpenGLMessageCallback(
 	const char* message,
 	const void* userParam)
 {
+	if (id == 131218)
+		return;
 	switch (severity)
 	{
-	case GL_DEBUG_SEVERITY_HIGH:         GTE_FATAL_LOG(message); return;
-	case GL_DEBUG_SEVERITY_MEDIUM:       GTE_ERROR_LOG(message); return;
-	case GL_DEBUG_SEVERITY_LOW:          GTE_WARN_LOG(message); return;
-	case GL_DEBUG_SEVERITY_NOTIFICATION: GTE_INFO_LOG(message); return;
-	}
+	case GL_DEBUG_SEVERITY_HIGH:         GTE_FATAL_LOG('[', id, "]: ", message); return;
+	case GL_DEBUG_SEVERITY_MEDIUM:       GTE_ERROR_LOG('[', id, "]: ", message); return;
+	case GL_DEBUG_SEVERITY_LOW:          GTE_WARN_LOG('[', id, "]: ", message); return;
+	case GL_DEBUG_SEVERITY_NOTIFICATION: GTE_INFO_LOG('[', id, "]: ", message); return;
+	} 
 
 	ENGINE_ASSERT(false, "Unknown severity level!");
 }
@@ -26,24 +28,28 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLRendererAPI::Init(void) noexcept
 	{
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+	
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
-
-		glDebugMessageCallback(OpenGLMessageCallback, NULL);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(const VertexArray* va, uint32 indices) noexcept
 	{
 		va->Bind();
 		glDrawElements(GL_TRIANGLES, indices, GL_UNSIGNED_INT, NULL);
+		//va->Unbind();
 	}
 
 	void OpenGLRendererAPI::DrawLines(const VertexArray* va, uint32 lines) noexcept
 	{
 		va->Bind();
 		glDrawArrays(GL_LINES, 0, lines);
+		//va->Unbind();
 	}
 
 	void OpenGLRendererAPI::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) noexcept { glViewport(x, y, width, height); }

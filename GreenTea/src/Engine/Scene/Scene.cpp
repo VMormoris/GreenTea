@@ -186,7 +186,7 @@ namespace gte {
 			if (text.Font->Type != AssetType::TEXTURE || !text.Visible)
 				continue;
 			Ref<Asset> font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID, true);
-			Renderer2D::DrawString(text.Text, tc, text.Size, (GPU::Texture*)text.Font->Data, (internal::Font*)font->Data, (uint32)entityID, text.Color);
+			Renderer2D::DrawString(text.Text, tc, text.Size, (GPU::Texture*)text.Font->Data, (internal::Font*)font->Data, text.Color);
 		}
 		
 		Renderer2D::EndScene();

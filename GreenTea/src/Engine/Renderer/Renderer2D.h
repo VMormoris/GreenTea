@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Engine/Assets/Font.h>
-#include <Engine/GPU/Texture.h>
+#include <Engine/GPU/FrameBuffer.h>
 
 #include <glm.hpp>
 
@@ -23,6 +23,7 @@ namespace gte {
 		*/
 		static void Shutdown(void);
 
+		static void BeginFrame(const GPU::FrameBuffer* fbo);
 		/**
 		* @brief Starts a new Batch
 		* @param eyematrix Eye matrix of the camera used for rendering
@@ -69,7 +70,7 @@ namespace gte {
 
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color);
 
-		static void DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, uint32 ID, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, const glm::vec4& color = glm::vec4(1.0f));
 
 		static float GetLineThickness();
 		static void SetLineThickness(float width);

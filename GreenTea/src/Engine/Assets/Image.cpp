@@ -96,6 +96,7 @@ namespace gte {
 		stbi_image_free(tbuffer);
 	}
 
+	static uint32 sIndex = 0;
 	void Image::Load(const byte* buffer)
 	{
 		if (mBuffer) ::operator delete(mBuffer, Size());

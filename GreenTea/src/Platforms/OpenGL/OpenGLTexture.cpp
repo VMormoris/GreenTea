@@ -1,5 +1,6 @@
 #include "OpenGLTexture.h"
-
+#include <thread>
+#include <sstream>
 namespace gte::GPU::OpenGL {
 
 	[[nodiscard]] std::pair<GLenum, GLenum> GetNativeTextureFormat(TextureFormat format) noexcept
@@ -72,10 +73,11 @@ namespace gte::GPU::OpenGL {
 	OpenGLTexture2D::OpenGLTexture2D(uint32 width, uint32 height) noexcept
 	{
 		mWidth = width; mHeight = height;
-		mInternalFormat = GL_RGBA8; mDataFormat = GL_RGBA;
+		mInternalFormat = GL_RGBA8;
+		mDataFormat = GL_RGBA;
 
-		glGenTextures(1, &mID);
-		glTextureStorage2D(mID, 1, mInternalFormat, mWidth, mHeight);
+		glCreateTextures(GL_TEXTURE_2D, 1, &mID);
+		//glTextureStorage2D(mID, 1, mInternalFormat, mWidth, mHeight);
 
 		glTextureParameteri(mID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

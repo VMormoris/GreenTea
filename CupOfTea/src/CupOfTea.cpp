@@ -57,7 +57,7 @@ void CupOfTea::Update(float dt)
     Application::Update(dt);
     gte::Window* window = gte::internal::GetContext()->GlobalWindow;
 	glm::vec2& viewportSize = gte::internal::GetContext()->ViewportSize;
-
+	gte::Renderer2D::BeginFrame(viewportFBO);
 	if (gte::GPU::FrameBufferSpecification spec = viewportFBO->GetSpecification();
 		(viewportSize.x > 0.0f) && (viewportSize.y > 0.0f) &&
 		((spec.Width != viewportSize.x || spec.Height != viewportSize.y)))
@@ -84,12 +84,9 @@ void CupOfTea::Update(float dt)
 	if (gte::internal::GetContext()->Playing)
 		scene->Update(dt);
 
-	viewportFBO->Bind();
 	const auto spec = viewportFBO->GetSpecification();
 	gte::RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
     gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
-    gte::RenderCommand::Clear();
-	viewportFBO->Clear(1, &EnttNull);
 	if (gte::internal::GetContext()->Playing)
 	{
 		if (gte::Entity camera = scene->GetPrimaryCameraEntity())
@@ -98,8 +95,6 @@ void CupOfTea::Update(float dt)
 	else
 		scene->Render(EditorCamera.GetComponent<gte::CameraComponent>());
 	OnOverlayRenderer();
-	viewportFBO->Unbind();
-	gte::internal::GetContext()->PixelBufferObject->ReadPixels(1);
 
 	gte::Entity entity = mSceneHierarchyPanel.GetSelectedEntity();
 	const bool playing = gte::internal::GetContext()->Playing;
@@ -118,12 +113,9 @@ void CupOfTea::Update(float dt)
 		}
 
 		sCamFBO->Resize(static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
-		sCamFBO->Bind();
 		gte::RenderCommand::SetViewport(0, 0, static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
 		gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
-		gte::RenderCommand::Clear();
-		scene->Render(cam.EyeMatrix);
-		sCamFBO->Unbind();
+		scene->Render(cam.EyeMatrix, sCamFBO);
 	}
 
 	mAnimationPanel.Update(dt);
@@ -604,12 +596,10 @@ CupOfTea::CupOfTea(const std::string& filepath)
 	gte::internal::GetContext()->ScriptEngine = new gte::internal::ScriptingEngine();
 
 	gte::GPU::FrameBufferSpecification spec;
-	spec.Attachments = { gte::GPU::TextureFormat::RGB8, gte::GPU::TextureFormat::UInt32 };
+	spec.Attachments = { gte::GPU::TextureFormat::RGB8 };
 	spec.Width = window->GetWidth();
 	spec.Height = window->GetHeight();
 	gte::internal::GetContext()->ViewportFBO = gte::GPU::FrameBuffer::Create(spec);
-	gte::internal::GetContext()->PixelBufferObject = gte::GPU::PixelBuffer::Create(spec.Width, spec.Height, gte::GPU::TextureFormat::UInt32);
-	gte::internal::GetContext()->PixelBufferObject->SetFramebuffer(gte::internal::GetContext()->ViewportFBO);
 
 	spec.Attachments = { gte::GPU::TextureFormat::RGB8 };
 	sCamFBO = gte::GPU::FrameBuffer::Create(spec);

@@ -195,11 +195,9 @@ void AnimationPanel::Update(float dt)
 	mAnimation.Update(dt);
 
 	const auto& spec = mFBO->GetSpecification();
-	mFBO->Bind();
 	gte::RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
 	gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
-	gte::RenderCommand::Clear();
-
+	gte::Renderer2D::BeginFrame(mFBO);
 	gte::Renderer2D::BeginScene(glm::mat4{1.0f});
 	gte::uuid textID = mAnimation.GetAtlas();
 	glm::mat4 model = glm::translate(glm::mat4{ 1.0f }, { 0.0f, 0.0f, 0.0f });
@@ -215,7 +213,6 @@ void AnimationPanel::Update(float dt)
 			gte::Renderer2D::DrawQuad(model, (uint32)-1, { 1.0f, 1.0f, 1.0f, 1.0f });
 	}
 	gte::Renderer2D::EndScene();
-	mFBO->Unbind();
 }
 
 void AnimationPanel::SetAnimation(const gte::uuid& id)

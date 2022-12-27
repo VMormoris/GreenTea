@@ -44,13 +44,12 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLPixelBuffer::ReadPixels(uint32 attachment) noexcept
 	{
-		mGPUIndex = (mGPUIndex + 1) % static_cast<uint32>(mIDs.size());
+		mGPUIndex = (mGPUIndex + mIDs.size() - 1) % static_cast<uint32>(mIDs.size());
 		const auto Format = GetNativeTextureFormat(mFormat);
 		mFrameBuffer->Bind();
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mIDs[mGPUIndex]);
-		glReadPixels(0, 0, mWidth, mHeight, Format.second, GetTextureInternalType(mFormat), 0);
-		glFlush();
+		glReadPixels(0, 0, mWidth, mHeight, GL_RED_INTEGER, GL_INT, 0);
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		mFrameBuffer->Unbind();
 	}

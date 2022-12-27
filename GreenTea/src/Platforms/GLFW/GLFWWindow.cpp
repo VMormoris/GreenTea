@@ -33,6 +33,7 @@ namespace gte::GLFW {
 		if (spec.Maximized)
 			glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 		mWindow = glfwCreateWindow(mProps.Width, mProps.Height, spec.Title.c_str(), nullptr, nullptr);
 		internal::GetContext()->WindowCount++;
 		//if (spec.Maximized)

@@ -19,7 +19,7 @@ namespace gte::GPU::OpenGL {
 
 	private:
 		
-		std::array<uint32, 2> mIDs;
+		std::array<uint32, 3> mIDs;
 		const FrameBuffer* mFrameBuffer = nullptr;
 		uint32 mWidth, mHeight;
 		uint32 mGPUIndex = 0;

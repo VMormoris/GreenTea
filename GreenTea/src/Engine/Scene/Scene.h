@@ -3,6 +3,7 @@
 
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/uuid.h>
+#include <Engine/GPU/FrameBuffer.h>
 
 #include <entt.hpp>
 #include <glm.hpp>

@@ -28,7 +28,11 @@ namespace gte::GPU {
 		[[nodiscard]] virtual uint64 GetColorAttachmentID(uint32 attachment) const noexcept = 0;
 
 		virtual void Clear(uint32 attachment, const void* data) const noexcept = 0;
-
+		//virtual void Clear(uint32 attachment, const glm::vec4& data) const noexcept = 0;
+		//virtual void Clear(uint32 attachment, const glm::vec3& data) const noexcept = 0;
+		//virtual void Clear(uint32 attachment, int32 data) const noexcept = 0;
+		//virtual void Clear(uint32 attachment, uint32 data) const noexcept = 0;
+		
 		virtual void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept = 0;
 
 		[[nodiscard]] static FrameBuffer* Create(const FrameBufferSpecification& specification) noexcept;

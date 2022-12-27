@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "RenderCommand.h"
 
+#include <Engine/Core/Context.h>
 #include <Engine/GPU/VertexArray.h>
 #include <Engine/GPU/Shader.h>
 
@@ -47,10 +48,8 @@ namespace gte {
 		glm::vec4 Color;
 		glm::vec2 TextCoord;
 		float TextID;
-		uint32 ObjectID;
 		float ScreenPxRange;
 	};
-
 
 	struct Render2DData {
 		const size_t MaxQuads = 20000;
@@ -63,6 +62,7 @@ namespace gte {
 		GPU::VertexBuffer* QuadVB = nullptr;
 		GPU::IndexBuffer* QuadIB = nullptr;
 		GPU::Shader* Shader2D = nullptr;
+		GPU::Shader* PickingShader = nullptr;
 		GPU::Texture* WhiteTexture = nullptr;
 
 		uint32 QuadIndexCount = 0;
@@ -94,6 +94,8 @@ namespace gte {
 		std::array<const GPU::Texture*, MaxTextureSlots> FontTextureSlots;
 		uint32 TextureSlotIndex = 1;
 		uint32 FontTextureSlotIndex = 1;
+		const GPU::FrameBuffer* ViewportFBO = nullptr;
+		GPU::FrameBuffer* PickingFBO = nullptr;
 	};
 
 	static Render2DData sData;
@@ -117,7 +119,7 @@ namespace gte {
 		sData.QuadVA->AddVertexBuffer(sData.QuadVB);
 
 		sData.CharVA = GPU::VertexArray::Create();
-		sData.CharVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(BufferData));
+		sData.CharVB = GPU::VertexBuffer::Create(NULL, sData.MaxVertices * sizeof(CharData));
 		sData.CharVB->SetLayout
 		(
 			{
@@ -125,7 +127,6 @@ namespace gte {
 				{ GPU::ShaderDataType::Vec4, "_color" },
 				{ GPU::ShaderDataType::Vec2, "_textCoords" },
 				{ GPU::ShaderDataType::Float, "_textID" },
-				{ GPU::ShaderDataType::Int, "_objectID" },
 				{ GPU::ShaderDataType::Float, "_screenPxRange" },
 			}
 		);
@@ -177,6 +178,12 @@ namespace gte {
 		sData.Shader2D->AddUniform("u_Textures");
 		sData.Shader2D->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
 
+		sData.PickingShader = GPU::Shader::Create("../Assets/Shaders/PickingShader.glsl");
+		sData.PickingShader->Bind();
+		sData.PickingShader->AddUniform("u_eyeMatrix");
+		sData.PickingShader->AddUniform("u_Textures");
+		sData.PickingShader->SetUniform("u_Textures", samplers, sData.MaxTextureSlots);
+
 		sData.TextShader = GPU::Shader::Create("../Assets/Shaders/TextShader.glsl");
 		sData.TextShader->Bind();
 		sData.TextShader->AddUniform("u_eyeMatrix");
@@ -198,15 +205,47 @@ namespace gte {
 		sData.QuadVertexBufferBase = new BufferData[sData.MaxVertices];
 		sData.LineVertexBufferBase = new LineData[sData.MaxVertices];
 		sData.CharVertexBufferBase = new CharData[sData.MaxVertices];
+
+		
+		GPU::FrameBufferSpecification spec;
+		spec.Width = 1; spec.Height = 1;
+		spec.Attachments = { GPU::TextureFormat::UInt32 };
+		sData.PickingFBO = GPU::FrameBuffer::Create(spec);
+		internal::GetContext()->PixelBufferObject = GPU::PixelBuffer::Create(spec.Width, spec.Height, gte::GPU::TextureFormat::UInt32);
+		internal::GetContext()->PixelBufferObject->SetFramebuffer(sData.PickingFBO);
+		//Unbind everything
+		sData.LineShader->Unbind();
+		sData.LineVA->Unbind();
+	}
+
+	void Renderer2D::BeginFrame(const GPU::FrameBuffer* fbo)
+	{
+		static constexpr uint32 nullentt = (uint32)(int32)-1;//Used as clear value for picking
+		//Handle fbo(s)
+		sData.ViewportFBO = fbo;
+		const auto targetSpec = sData.ViewportFBO->GetSpecification();
+		if (const auto& spec = sData.PickingFBO->GetSpecification(); spec.Width != targetSpec.Width || spec.Height != targetSpec.Height)
+		{
+			sData.PickingFBO->Resize(targetSpec.Width, targetSpec.Height);
+			internal::GetContext()->PixelBufferObject->Resize(targetSpec.Width, targetSpec.Height);
+		}
+		fbo->Bind();
+		RenderCommand::Clear();
+		sData.PickingFBO->Bind();
+		//sData.PickingFBO->Clear(0, &nullentt);
+		sData.PickingFBO->Unbind();
 	}
 
 	void Renderer2D::BeginScene(const glm::mat4& eyematrix)
 	{
+		//Pass uniforms to shaders
 		sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
 		sData.TextureSlotIndex = 1;
 		sData.QuadIndexCount = 0;
 		sData.Shader2D->Bind();
 		sData.Shader2D->SetUniform("u_eyeMatrix", eyematrix);
+		sData.PickingShader->Bind();
+		sData.PickingShader->SetUniform("u_eyeMatrix", eyematrix);
 
 		sData.CharVertexBufferPtr = sData.CharVertexBufferBase;
 		sData.FontTextureSlotIndex = 0;
@@ -218,6 +257,7 @@ namespace gte {
 		sData.LineVertexCount = 0;
 		sData.LineShader->Bind();
 		sData.LineShader->SetUniform("u_eyeMatrix", eyematrix);
+		sData.LineShader->Unbind();
 	}
 
 	void Renderer2D::Flush(void)
@@ -230,8 +270,15 @@ namespace gte {
 			for (uint32 i = 0; i < sData.TextureSlotIndex; i++)// Bind textures to the apropiate slot
 				sData.TextureSlots[i]->Bind(i);
 
+			sData.ViewportFBO->Bind();
 			sData.Shader2D->Bind();
 			RenderCommand::DrawIndexed(sData.QuadVA, sData.QuadIndexCount);//Draw VertexArray
+
+			sData.PickingShader->Bind();
+			sData.PickingFBO->Bind();
+			RenderCommand::DrawIndexed(sData.QuadVA, sData.QuadIndexCount);//Draw again on different fbo for object picking
+			sData.PickingShader->Unbind();
+			sData.PickingFBO->Unbind();
 
 			//Prepare for a new Batch
 			sData.QuadIndexCount = 0;
@@ -247,8 +294,11 @@ namespace gte {
 			for (uint32 i = 0; i < sData.FontTextureSlotIndex; i++)
 				sData.FontTextureSlots[i]->Bind(i);
 
+			sData.ViewportFBO->Bind();
 			sData.TextShader->Bind();
 			RenderCommand::DrawIndexed(sData.CharVA, sData.CharIndexCount);
+			sData.TextShader->Unbind();
+			sData.ViewportFBO->Unbind();
 
 			sData.CharIndexCount = 0;
 			sData.CharVertexBufferPtr = sData.CharVertexBufferBase;
@@ -259,9 +309,13 @@ namespace gte {
 		{
 			size_t dataSize = (byte*)sData.LineVertexBufferPtr - (byte*)sData.LineVertexBufferBase;
 			sData.LineVB->FillBuffer(sData.LineVertexBufferBase, dataSize);
+			
+			sData.ViewportFBO->Bind();
 			sData.LineShader->Bind();
 			RenderCommand::SetLineThickness(sData.LineThickness);
 			RenderCommand::DrawLines(sData.LineVA, sData.LineVertexCount);
+			sData.LineShader->Unbind();
+			sData.ViewportFBO->Unbind();
 
 			sData.LineVertexCount = 0;
 			sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
@@ -425,7 +479,7 @@ namespace gte {
 		DrawLine(lineVertices[3], lineVertices[0], color);
 	}
 
-	void Renderer2D::DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, uint32 ID, const glm::vec4& color)
+	void Renderer2D::DrawString(const std::string& text, const glm::mat4 transformation, uint32 size, const GPU::Texture* atlas, const internal::Font* font, const glm::vec4& color)
 	{
 		const float screenPxRange = size / 32.0f * 2.0f;
 		if (sData.CharIndexCount >= sData.MaxIndices)
@@ -489,7 +543,6 @@ namespace gte {
 					sData.CharVertexBufferPtr->Color = color;
 					sData.CharVertexBufferPtr->TextCoord = coords[i];
 					sData.CharVertexBufferPtr->TextID = textureIndex;
-					sData.CharVertexBufferPtr->ObjectID = ID;
 					sData.CharVertexBufferPtr->ScreenPxRange = screenPxRange;
 					sData.CharVertexBufferPtr++;
 				}
@@ -517,6 +570,8 @@ namespace gte {
 		delete sData.CharVA;
 
 		delete[] sData.QuadVertexBufferBase;
+		delete sData.PickingFBO;
+		delete sData.PickingShader;
 		delete sData.Shader2D;
 		delete sData.WhiteTexture;
 		delete sData.QuadIB;
@@ -524,7 +579,11 @@ namespace gte {
 		delete sData.QuadVA;
 	}
 
-	void Renderer2D::EndScene(void) { Flush(); }
+	void Renderer2D::EndScene(void)
+	{
+		Flush();
+		internal::GetContext()->PixelBufferObject->ReadPixels(0);
+	}
 
 	float Renderer2D::GetLineThickness(void) { return sData.LineThickness; }
 	void Renderer2D::SetLineThickness(float thickness) { sData.LineThickness = thickness; }

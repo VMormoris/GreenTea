@@ -15,7 +15,6 @@ out vec4 v_Color;
 out vec2 v_textCoordsOrLocalPosition;
 out float v_textIDOrThickness;
 out float v_TilingFactorOrFade;
-flat out uint v_ObjectID;
 flat out float v_isCircle;
 
 void main(void)
@@ -24,7 +23,6 @@ void main(void)
 	v_textCoordsOrLocalPosition = _textCoordsOrLocalPosition;
 	v_textIDOrThickness = _textIDOrThickness;
 	v_TilingFactorOrFade = _TilingFactorOrFade;
-	v_ObjectID = _objectID;
 	v_isCircle = _isCircle;
 	gl_Position = u_eyeMatrix * vec4(_position, 1.0);
 }
@@ -34,13 +32,11 @@ void main(void)
 #version 450 core
 
 layout(location = 0) out vec4 o_color;
-layout(location = 1) out uint o_ObjectID;
 
 in vec4 v_Color;
 in vec2 v_textCoordsOrLocalPosition;
 in float v_textIDOrThickness;
 in float v_TilingFactorOrFade;
-flat in uint v_ObjectID;
 flat in float v_isCircle;
 
 uniform sampler2D u_Textures[32];
@@ -58,7 +54,6 @@ void main()
 		
 		o_color = v_Color;
 		o_color.a *= circle;
-		o_ObjectID = v_ObjectID;
 	}
 	else
 	{
@@ -104,9 +99,5 @@ void main()
 			discard;
 
 		o_color = texColor;
-		o_ObjectID = v_ObjectID;
 	}
-	//o_color = vec4(float(o_ObjectID) / 7.0, 0.0, 0.0, 1.0);
-	//_color = texture(u_Textures[index], v_textCoords) * v_Color;
-	//color = vec4(0.0, 0.0, 0.0, 0.0);
 }
