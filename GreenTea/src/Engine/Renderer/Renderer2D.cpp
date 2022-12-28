@@ -96,6 +96,7 @@ namespace gte {
 		uint32 FontTextureSlotIndex = 1;
 		const GPU::FrameBuffer* ViewportFBO = nullptr;
 		GPU::FrameBuffer* PickingFBO = nullptr;
+		bool PickingDraw = true;
 	};
 
 	static Render2DData sData;
@@ -218,9 +219,10 @@ namespace gte {
 		sData.LineVA->Unbind();
 	}
 
-	void Renderer2D::BeginFrame(const GPU::FrameBuffer* fbo)
+	void Renderer2D::BeginFrame(const GPU::FrameBuffer* fbo, bool picking)
 	{
 		static constexpr uint32 nullentt = (uint32)(int32)-1;//Used as clear value for picking
+		sData.PickingDraw = picking;
 		//Handle fbo(s)
 		sData.ViewportFBO = fbo;
 		const auto targetSpec = sData.ViewportFBO->GetSpecification();
@@ -231,9 +233,12 @@ namespace gte {
 		}
 		fbo->Bind();
 		RenderCommand::Clear();
-		sData.PickingFBO->Bind();
-		//sData.PickingFBO->Clear(0, &nullentt);
-		sData.PickingFBO->Unbind();
+		if (picking)
+		{
+			sData.PickingFBO->Bind();
+			sData.PickingFBO->Clear(0, &nullentt);
+			sData.PickingFBO->Unbind();
+		}
 	}
 
 	void Renderer2D::BeginScene(const glm::mat4& eyematrix)
@@ -244,8 +249,11 @@ namespace gte {
 		sData.QuadIndexCount = 0;
 		sData.Shader2D->Bind();
 		sData.Shader2D->SetUniform("u_eyeMatrix", eyematrix);
-		sData.PickingShader->Bind();
-		sData.PickingShader->SetUniform("u_eyeMatrix", eyematrix);
+		if (sData.PickingDraw)
+		{
+			sData.PickingShader->Bind();
+			sData.PickingShader->SetUniform("u_eyeMatrix", eyematrix);
+		}
 
 		sData.CharVertexBufferPtr = sData.CharVertexBufferBase;
 		sData.FontTextureSlotIndex = 0;
@@ -273,12 +281,17 @@ namespace gte {
 			sData.ViewportFBO->Bind();
 			sData.Shader2D->Bind();
 			RenderCommand::DrawIndexed(sData.QuadVA, sData.QuadIndexCount);//Draw VertexArray
+			sData.Shader2D->Unbind();
+			sData.ViewportFBO->Unbind();
 
-			sData.PickingShader->Bind();
-			sData.PickingFBO->Bind();
-			RenderCommand::DrawIndexed(sData.QuadVA, sData.QuadIndexCount);//Draw again on different fbo for object picking
-			sData.PickingShader->Unbind();
-			sData.PickingFBO->Unbind();
+			if (sData.PickingDraw)
+			{
+				sData.PickingFBO->Bind();
+				sData.PickingShader->Bind();
+				RenderCommand::DrawIndexed(sData.QuadVA, sData.QuadIndexCount);//Draw again on different fbo for object picking
+				sData.PickingShader->Unbind();
+				sData.PickingFBO->Unbind();
+			}
 
 			//Prepare for a new Batch
 			sData.QuadIndexCount = 0;

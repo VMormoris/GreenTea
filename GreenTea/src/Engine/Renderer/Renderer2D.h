@@ -23,7 +23,7 @@ namespace gte {
 		*/
 		static void Shutdown(void);
 
-		static void BeginFrame(const GPU::FrameBuffer* fbo);
+		static void BeginFrame(const GPU::FrameBuffer* fbo, bool picking = true);
 		/**
 		* @brief Starts a new Batch
 		* @param eyematrix Eye matrix of the camera used for rendering

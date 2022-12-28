@@ -57,7 +57,6 @@ void CupOfTea::Update(float dt)
     Application::Update(dt);
     gte::Window* window = gte::internal::GetContext()->GlobalWindow;
 	glm::vec2& viewportSize = gte::internal::GetContext()->ViewportSize;
-	gte::Renderer2D::BeginFrame(viewportFBO);
 	if (gte::GPU::FrameBufferSpecification spec = viewportFBO->GetSpecification();
 		(viewportSize.x > 0.0f) && (viewportSize.y > 0.0f) &&
 		((spec.Width != viewportSize.x || spec.Height != viewportSize.y)))
@@ -87,6 +86,7 @@ void CupOfTea::Update(float dt)
 	const auto spec = viewportFBO->GetSpecification();
 	gte::RenderCommand::SetViewport(0, 0, spec.Width, spec.Height);
     gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
+	gte::Renderer2D::BeginFrame(viewportFBO);
 	if (gte::internal::GetContext()->Playing)
 	{
 		if (gte::Entity camera = scene->GetPrimaryCameraEntity())
@@ -115,6 +115,7 @@ void CupOfTea::Update(float dt)
 		sCamFBO->Resize(static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
 		gte::RenderCommand::SetViewport(0, 0, static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
 		gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
+		gte::Renderer2D::BeginFrame(sCamFBO);
 		scene->Render(cam.EyeMatrix, sCamFBO);
 	}
 
