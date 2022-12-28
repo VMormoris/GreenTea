@@ -42,14 +42,18 @@ namespace gte::GPU::OpenGL {
 	{
 		va->Bind();
 		glDrawElements(GL_TRIANGLES, indices, GL_UNSIGNED_INT, NULL);
-		//va->Unbind();
+	}
+
+	void OpenGLRendererAPI::DrawArrays(const VertexArray* va, uint32 vertices) noexcept
+	{
+		va->Bind();
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices);
 	}
 
 	void OpenGLRendererAPI::DrawLines(const VertexArray* va, uint32 lines) noexcept
 	{
 		va->Bind();
 		glDrawArrays(GL_LINES, 0, lines);
-		//va->Unbind();
 	}
 
 	void OpenGLRendererAPI::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) noexcept { glViewport(x, y, width, height); }

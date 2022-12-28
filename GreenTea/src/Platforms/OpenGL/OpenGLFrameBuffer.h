@@ -11,6 +11,7 @@ namespace gte::GPU::OpenGL {
 		~OpenGLFrameBuffer(void) noexcept;
 
 		void Bind(void) const noexcept override;
+		void BindAttachment(uint32 attachment, uint32 unit = 0) const noexcept override;
 		void Unbind(void) const noexcept override;
 
 		void Resize(uint32 width, uint32 height) noexcept override;

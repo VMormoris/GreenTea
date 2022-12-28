@@ -64,6 +64,7 @@ namespace gte::GPU::OpenGL {
 	}
 
 	void OpenGLFrameBuffer::Bind(void) const noexcept { glBindFramebuffer(GL_FRAMEBUFFER, mID); }
+	void OpenGLFrameBuffer::BindAttachment(uint32 attachment, uint32 unit) const noexcept { glBindTextureUnit(unit, mColorAttachmentID[attachment]); }
 	void OpenGLFrameBuffer::Unbind(void) const noexcept { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 	void OpenGLFrameBuffer::Resize(uint32 width, uint32 height) noexcept

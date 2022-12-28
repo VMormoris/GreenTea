@@ -48,6 +48,8 @@ namespace gte::GPU {
 		*/
 		virtual void DrawIndexed(const VertexArray* va, uint32 indices) noexcept = 0;
 
+		virtual void DrawArrays(const VertexArray* va, uint32 vertices) noexcept = 0;
+
 		virtual void DrawLines(const VertexArray* va, uint32 lines) noexcept = 0;
 
 		virtual void SetLineThickness(float thickness) noexcept = 0;

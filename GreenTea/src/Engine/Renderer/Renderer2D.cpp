@@ -85,6 +85,10 @@ namespace gte {
 		GPU::IndexBuffer* CharIB = nullptr;
 		GPU::Shader* TextShader = nullptr;
 
+		GPU::VertexArray* ScreenVA = nullptr;
+		GPU::VertexBuffer* ScreenVB = nullptr;
+		GPU::Shader* ScreenShader = nullptr;
+
 		uint32 CharIndexCount = 0;
 		CharData* CharVertexBufferBase = nullptr;
 		CharData* CharVertexBufferPtr = nullptr;
@@ -94,6 +98,7 @@ namespace gte {
 		std::array<const GPU::Texture*, MaxTextureSlots> FontTextureSlots;
 		uint32 TextureSlotIndex = 1;
 		uint32 FontTextureSlotIndex = 1;
+
 		const GPU::FrameBuffer* ViewportFBO = nullptr;
 		GPU::FrameBuffer* PickingFBO = nullptr;
 		bool PickingDraw = true;
@@ -165,6 +170,18 @@ namespace gte {
 		);
 		sData.LineVA->AddVertexBuffer(sData.LineVB);
 
+		sData.ScreenVA = GPU::VertexArray::Create();
+		constexpr glm::vec2 vertices[] =
+		{
+			{ -1.0f, -1.0f },
+			{  1.0f, -1.0f },
+			{ -1.0f,  1.0f },
+			{  1.0f,  1.0f },
+		};
+		sData.ScreenVB = GPU::VertexBuffer::Create(vertices, sizeof(glm::vec2) * 4);
+		sData.ScreenVB->SetLayout({ {GPU::ShaderDataType::Vec2, "_position"} });
+		sData.ScreenVA->AddVertexBuffer(sData.ScreenVB);
+
 		sData.WhiteTexture = GPU::Texture2D::Create(1, 1);
 		uint32 WhiteColor = 0xFFFFFFFF;
 		sData.WhiteTexture->SetData(&WhiteColor, sizeof(uint32));
@@ -195,6 +212,11 @@ namespace gte {
 		sData.LineShader->Bind();
 		sData.LineShader->AddUniform("u_eyeMatrix");
 
+		sData.ScreenShader = GPU::Shader::Create("../Assets/Shaders/ScreenShader.glsl");
+		sData.ScreenShader->Bind();
+		sData.ScreenShader->AddUniform("u_Texture");
+		sData.ScreenShader->SetUniform("u_Texture", 0);
+
 		//First Texture always the white one
 		sData.TextureSlots[0] = sData.WhiteTexture;
 
@@ -206,7 +228,6 @@ namespace gte {
 		sData.QuadVertexBufferBase = new BufferData[sData.MaxVertices];
 		sData.LineVertexBufferBase = new LineData[sData.MaxVertices];
 		sData.CharVertexBufferBase = new CharData[sData.MaxVertices];
-
 		
 		GPU::FrameBufferSpecification spec;
 		spec.Width = 1; spec.Height = 1;
@@ -215,8 +236,8 @@ namespace gte {
 		internal::GetContext()->PixelBufferObject = GPU::PixelBuffer::Create(spec.Width, spec.Height, gte::GPU::TextureFormat::UInt32);
 		internal::GetContext()->PixelBufferObject->SetFramebuffer(sData.PickingFBO);
 		//Unbind everything
-		sData.LineShader->Unbind();
-		sData.LineVA->Unbind();
+		sData.ScreenShader->Unbind();
+		sData.ScreenVA->Unbind();
 	}
 
 	void Renderer2D::BeginFrame(const GPU::FrameBuffer* fbo, bool picking)
@@ -333,6 +354,17 @@ namespace gte {
 			sData.LineVertexCount = 0;
 			sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
 		}
+	}
+
+	void Renderer2D::DrawOnScreen(const GPU::FrameBuffer* fbo)
+	{
+		fbo->Unbind();
+		const glm::vec2& viewportSize = internal::GetContext()->ViewportSize;
+		RenderCommand::Clear();
+		sData.ScreenShader->Bind();
+		fbo->BindAttachment(0);
+		RenderCommand::DrawArrays(sData.ScreenVA, 4);
+		sData.ScreenShader->Unbind();
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transformation, uint32 ID, const glm::vec4& color, float tilingFactor)

@@ -11,6 +11,7 @@ namespace gte::GPU::OpenGL {
 		void SetClearColor(const glm::vec4& color) noexcept override;
 		void Clear(void) noexcept override;
 		void DrawIndexed(const VertexArray* va, uint32 indices) noexcept override; 
+		void DrawArrays(const VertexArray* va, uint32 vertices) noexcept override;
 		void DrawLines(const VertexArray* va, uint32 lines) noexcept override;
 		void SetLineThickness(float thickness) noexcept override;
 	};

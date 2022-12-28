@@ -19,6 +19,7 @@ namespace gte::GPU {
 		virtual ~FrameBuffer(void) = default;
 
 		virtual void Bind(void) const noexcept = 0;
+		virtual void BindAttachment(uint32 attachment, uint32 unit = 0) const noexcept = 0;
 		virtual void Unbind(void) const noexcept = 0;
 
 		virtual void Resize(uint32 width, uint32 height) noexcept = 0;
@@ -28,10 +29,6 @@ namespace gte::GPU {
 		[[nodiscard]] virtual uint64 GetColorAttachmentID(uint32 attachment) const noexcept = 0;
 
 		virtual void Clear(uint32 attachment, const void* data) const noexcept = 0;
-		//virtual void Clear(uint32 attachment, const glm::vec4& data) const noexcept = 0;
-		//virtual void Clear(uint32 attachment, const glm::vec3& data) const noexcept = 0;
-		//virtual void Clear(uint32 attachment, int32 data) const noexcept = 0;
-		//virtual void Clear(uint32 attachment, uint32 data) const noexcept = 0;
 		
 		virtual void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept = 0;
 
