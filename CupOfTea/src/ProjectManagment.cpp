@@ -164,6 +164,7 @@ void ProjectManagment::RenderGUI(void)
 	ImGui::BeginChild("Projects Header", childSize);
 	ImGui::Columns(3);
 	ImGui::Separator();
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 32.0f);
 	ImGui::Text("Name"); col1 = ImGui::GetColumnWidth(); ImGui::NextColumn();
 	ImGui::Text("Location"); col2 = ImGui::GetColumnWidth(); ImGui::NextColumn();
 	ImGui::Text("Last Modified"); col3 = ImGui::GetColumnWidth(); ImGui::NextColumn();
@@ -172,17 +173,60 @@ void ProjectManagment::RenderGUI(void)
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f });
 	ImGui::BeginChild("Projects Content");
 	ImGui::Separator();
-	ImGui::Columns(3);
-	ImGui::SetColumnWidth(0, col1);
-	ImGui::SetColumnWidth(1, col2);
-	ImGui::SetColumnWidth(2, col3);
+	ImGui::Columns(5);
+	ImGui::SetColumnWidth(0, 32.0f);
+	ImGui::SetColumnWidth(1, col1 - 32.0f);
+	ImGui::SetColumnWidth(2, col2);
+	ImGui::SetColumnWidth(3, col3 - 32.0f);
+	ImGui::SetColumnWidth(4, 32.0f);
 
-	static int selected = -1;
-	for (size_t i = 0; i < sProjects.size(); i++)
+	static int32 selected = -1;
+	static int32 delIndex = -1;
+	for (int32 i = 0; i < sProjects.size(); i++)
 	{
 		using namespace std::chrono_literals;
 		const auto prjdir = std::filesystem::path(sProjects[i]);
 		const auto name = prjdir.filename().string();
+		
+		ImGui::PushFont(IconsFont);
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 6);
+		if (ImGui::Button(ICON_FK_TRASH, { 28.0f, 24.0f }))
+		{
+			delIndex = i;
+			ImGui::OpenPopup("Delete Project##Modal");
+		}
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		ImGui::NextColumn();
+
+		if (!std::filesystem::exists(prjdir) || !std::filesystem::exists(prjdir / (name + ".gt")))
+		{
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f); ImGui::Text(name.c_str()); ImGui::NextColumn();
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f); ImGui::Text(prjdir.string().c_str()); ImGui::NextColumn();
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f); ImGui::Text(""); ImGui::NextColumn();
+			
+			ImGui::PushFont(IconsFont);
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 3.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+			ImGui::PushStyleColor(ImGuiCol_Text, { 0.88f, 0.023f, 0.0f, 1.0f });
+			ImGui::Text(ICON_FK_EXCLAMATION_CIRCLE);
+			ImGui::PopStyleColor();
+			ImGui::PopFont();
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::Text(std::filesystem::exists(prjdir) ? "This directory doesn't seem like a GreeTea project." : "Directory doesn't exists.");
+				ImGui::EndTooltip();
+			}
+			ImGui::NextColumn();
+			
+			ImGui::Separator();
+			continue;
+		}
+
 		if (!filter.empty())
 		{
 			std::string temp = "";
@@ -194,9 +238,9 @@ void ProjectManagment::RenderGUI(void)
 
 		std::stringstream timestream;
 		timestream << std::put_time(std::localtime(&time), "%F %T");
-
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
 		if (ImGui::Selectable(name.c_str(), selected == i, ImGuiSelectableFlags_SpanAllColumns))
-			selected = static_cast<int32>(i);
+			selected = i;
 		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
 			const auto gtfile = prjdir / (name + ".gt");
@@ -204,12 +248,49 @@ void ProjectManagment::RenderGUI(void)
 			Close();
 		}
 		ImGui::NextColumn();
-		ImGui::Text(prjdir.string().c_str()); ImGui::NextColumn();
-		ImGui::Text(timestream.str().c_str()); ImGui::NextColumn();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f); ImGui::Text(prjdir.string().c_str()); ImGui::NextColumn();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f); ImGui::Text(timestream.str().c_str()); ImGui::NextColumn();
+		ImGui::Text(""); ImGui::NextColumn();
 		ImGui::Separator();
 	}
 
 	ImGui::Columns(1);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+	if (ImGui::BeginPopupModal("Delete Project##Modal", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+		ImGui::TextWrapped("Remove will only delete the reference from the engine. The files will still remain on disk.\nIf you would like to also delete the files on disk please press 'Delete'.\nDeleting projects is inreversable");
+		ImGui::Dummy({ 0.0f, 0.0f });
+		ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - 190.0f);
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.15f, 0.1505f, 0.151f, 1.0f });
+		if (ImGui::Button("Cancel"))
+		{
+			delIndex = -1;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete"))
+		{
+			const auto it = sProjects.begin() + delIndex;
+			std::filesystem::remove_all(*it);
+			sProjects.erase(it);
+			CacheProjects();
+			delIndex = -1;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::PopStyleColor();
+		ImGui::SameLine();
+		if (ImGui::Button("Remove"))
+		{
+			sProjects.erase(sProjects.begin() + delIndex);
+			CacheProjects();
+			delIndex = -1;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::PopStyleVar();
+		ImGui::EndPopup();
+	}
+	ImGui::PopStyleVar();
 	ImGui::EndChild();
 	ImGui::PopStyleColor();
 	ImGui::EndChild();
