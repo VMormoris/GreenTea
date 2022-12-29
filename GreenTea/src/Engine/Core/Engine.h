@@ -1,22 +1,21 @@
 #pragma once
-//TODO(Vasilis): Better change check for __clang__ to MACRO that will be define only in reflection
 
-//declspecs for Engine
-#ifdef __clang__
-	#define ENGINE_API
-#else
+//declspecs for Engine & Games' logic
+#ifdef PLATFORM_WINDOWS
 	#ifdef ENGINE_DLL
 		#define ENGINE_API __declspec(dllexport)
 	#else
 		#define ENGINE_API __declspec(dllimport)
 	#endif
-#endif
 
-//declspecs for game's logic
-#ifdef GAME_DLL
-	#define GAME_API __declspec(dllexport)
+	#ifdef GAME_DLL
+		#define GAME_API __declspec(dllexport)
+	#else
+		#define GAME_API __declspec(dllimport)
+	#endif
 #else
-	#define GAME_API __declspec(dllimport)
+	#define ENGINE_API
+	#define GAME_API
 #endif
 
 #ifdef PLATFORM_WINDOWS
@@ -27,11 +26,7 @@
 #endif
 
 #ifdef DEBUG_BUILD
-	#ifdef PLATFORM_WINDOWS
-		#define DEBUG_BREAK __debugbreak()
-	#elif PLATFORM_UNIX
-		#define DEBUG_BREAK raise(SIGTRAP)
-	#endif
+	#define DEBUG_BREAK BREAK
 	#define ENABLE_ASSERTS
 #else
 	#define DEBUG_BREAK
@@ -62,13 +57,13 @@ typedef double float64;
 typedef unsigned char byte;
 
 //Reflection macros
-#ifdef __clang__
+#ifdef REFLECTION
 	#define ENUM(...) enum class __attribute__((annotate("enum:" #__VA_ARGS__)))
 	#define COMPONENT(...) struct __attribute__((annotate("component:" #__VA_ARGS__)))
 	#define SYSTEM(...) class __attribute__((annotate("system:" #__VA_ARGS__)))
 	#define CLASS(...) class __attribute__((annotate("class:" #__VA_ARGS__)))
 	#define PROPERTY(...) __attribute__((annotate("property:" #__VA_ARGS__)))
-#elif defined(_WIN32)//TODO(Vasilis): #else when and if we change __clang__ to a MACRO
+#else
 	#define ENUM(...) enum class GAME_API
 	#define COMPONENT(...) struct GAME_API
 	#define SYSTEM(...) class GAME_API

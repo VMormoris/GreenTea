@@ -7,7 +7,6 @@
 
 namespace gte {
 
-
 	Image::Image(uint32 width, uint32 height, int32 bpp) noexcept
 		: mWidth(width), mHeight(height), mbpp(bpp)
 	{

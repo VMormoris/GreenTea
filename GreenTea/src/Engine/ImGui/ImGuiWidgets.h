@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef GT_DIST
 #include <Engine/Assets/NativeScript.h>
 #include <Engine/GPU/Texture.h>
 #include <Engine/NativeScripting/ScriptingEngine.h>
@@ -145,3 +145,5 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawFieldControl(const internal::FieldSpecification& spec, void* buffer);
 }
+
+#endif

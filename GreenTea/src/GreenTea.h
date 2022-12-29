@@ -11,9 +11,8 @@
 #include <Engine/Events/Input.h>
 
 #include <Engine/GPU/FrameBuffer.h>
-#include <Engine/GPU/Texture.h>//Maybe remove?
 
-#ifndef GAME_DLL
+#if !defined(GAME_DLL) && !defined(REFLECTION) && !defined(GT_DIST)
 	#include <Engine/ImGui/ImGuiLayer.h>
 	#include <Engine/ImGui/ImGuiWidgets.h>
 #endif

@@ -11,9 +11,10 @@ namespace gte {
 		bool Center;
 		bool Decorate;
 		bool Maximized;
+		bool Fullscreen;
 
-		WindowSpecification(const std::string& title = "GreenTea Application", int32 x = 0, int32 y = 0, uint32 width = 1080, uint32 height = 720, bool center = false, bool decorate = true, bool maximized = false)
-			: Title(title), X(x), Y(y), Width(width), Height(height), Center(center), Decorate(decorate), Maximized(maximized) {}
+		WindowSpecification(const std::string& title = "GreenTea Application", int32 x = 0, int32 y = 0, uint32 width = 1080, uint32 height = 720, bool center = false, bool decorate = true, bool maximized = false, bool fullscreen = false)
+			: Title(title), X(x), Y(y), Width(width), Height(height), Center(center), Decorate(decorate), Maximized(maximized), Fullscreen(fullscreen){}
 	};
 
 	/**

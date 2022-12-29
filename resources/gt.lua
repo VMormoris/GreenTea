@@ -47,7 +47,7 @@ newaction {
         file = io.open(prjDir .. "/.gt/compile_commands.json", "w")
         io.output(file)
         io.write("[\n\t{\n\t\t\"directory\": \"" .. gtrDir .. "\",\n\t\t\"arguments\":\n\t\t[\n\t\t\t\"clang++\",\n")
-        io.write("\t\t\t-DGAME_DLL")
+        io.write("\t\t\t-DGAME_DLL -DREFLECTION")
         for key, val in pairs(IncludeDirs) do
             io.write("\t\t\t\"-I" .. val .."\",\n")
         end

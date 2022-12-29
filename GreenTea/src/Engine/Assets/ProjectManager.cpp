@@ -9,6 +9,7 @@
 
 namespace gte::internal {
 
+#ifndef GT_DIST
 	bool ProjectManager::Reload(void)
 	{
 		mChanged.clear();
@@ -112,9 +113,12 @@ namespace gte::internal {
 		}
 		return changed;
 	}
+#endif
 
 	void ProjectManager::LoadProject(const std::filesystem::path& projectdir)
 	{
+		mProjectDir = projectdir;
+#ifndef GT_DIST
 		if (!mOverlapped)
 			mOverlapped = new OVERLAPPED;
 
@@ -124,9 +128,9 @@ namespace gte::internal {
 			CloseHandle(mFileHandle);
 			mFileHandle = INVALID_HANDLE_VALUE;
 		}
-
+#endif
 		FindFiles();
-
+#ifndef GT_DIST
 		mLastNotificationWrite = std::filesystem::last_write_time(".gt/Notifications");
 		auto prjname = std::filesystem::current_path().stem().string();
 		auto srcDLL ="bin/Release-windows/" + prjname + "/" + prjname + ".dll";
@@ -170,6 +174,19 @@ namespace gte::internal {
 
 		if (!status)
 			exit(GetLastError());
+#else
+		std::string dstDLL = "";
+		for (auto entry : std::filesystem::directory_iterator(mProjectDir / ".gt"))
+		{
+			if (entry.path().extension() == ".dll")
+			{
+				dstDLL = entry.path().string();
+				break;
+			}
+		}
+		ASSERT(!dstDLL.empty(), "Couldn't find DLL");
+		GetContext()->DynamicLoader.Load(dstDLL.c_str());
+#endif
 	}
 
 	uuid ProjectManager::ReloadFile(const std::filesystem::path& filepath)
@@ -195,6 +212,7 @@ namespace gte::internal {
 		return id;
 	}
 
+#ifndef GT_DIST
 	uuid ProjectManager::Remove(const std::string& filepath) noexcept
 	{
 		uuid id = {};
@@ -209,6 +227,7 @@ namespace gte::internal {
 		}
 		return {};
 	}
+#endif
 
 	[[nodiscard]] std::string ProjectManager::GetFilepath(const uuid& id) const noexcept
 	{
@@ -241,6 +260,7 @@ namespace gte::internal {
 	
 	ProjectManager::~ProjectManager(void)
 	{
+#ifndef GT_DIST
 		if (mFileHandle != INVALID_HANDLE_VALUE)
 		{
 			CloseHandle(mOverlapped->hEvent);
@@ -250,10 +270,14 @@ namespace gte::internal {
 
 		if (mOverlapped)
 			delete mOverlapped;
+#endif
 	}
 
 	[[nodiscard]] bool ProjectManager::Exists(const uuid& id) const noexcept { return mFilePaths.find(id) != mFilePaths.end(); }
+
+#ifndef GT_DIST
 	[[nodiscard]] const std::vector<uuid>& ProjectManager::GetChanges(void) const noexcept { return mChanged; }
+#endif
 
 	void ProjectManager::FindFiles(void)
 	{
@@ -283,6 +307,7 @@ namespace gte::internal {
 		return ids;
 	}
 
+#ifndef GT_DIST
 	[[nodiscard]] bool ProjectManager::IsBuilding(void) const noexcept { return mBuilding; }
-
+#endif
 }

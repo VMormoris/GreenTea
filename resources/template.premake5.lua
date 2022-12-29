@@ -5,7 +5,8 @@ workspace (ProjectName)
 
     configurations
     {
-        "Release"
+        "Release",
+		"StandAlone",
     }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}"
@@ -60,7 +61,7 @@ project (ProjectName)
 		runtime "Release"
 		optimize "on"
 
-		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea.lib") }
+		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea") }
 
 		prebuildcommands
 		{
@@ -72,4 +73,22 @@ project (ProjectName)
 		{
 			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
 			"{ECHO} BuildEnded> %{wks.location}.gt/Notifications"
+		}
+
+	filter "configurations:StandAlone"
+		defines { "GT_DIST" }
+		runtime "Release"
+		optimize "on"
+		symbols "off"
+
+		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea") }
+		
+		prebuildcommands
+		{
+			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
+		}
+		
+		postbuildcommands
+		{
+			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
 		}

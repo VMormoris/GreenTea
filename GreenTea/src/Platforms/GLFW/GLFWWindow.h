@@ -36,6 +36,7 @@ namespace gte::GLFW {
 	private:
 
 		void Center(void) noexcept;
+		void Fullscreen(void) noexcept;
 
 	private:
 
