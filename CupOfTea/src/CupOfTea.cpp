@@ -4,6 +4,7 @@
 #include <imgui_internal.h>
 #include <IconsForkAwesome.h>
 #include <ImGuizmo.h>
+#include "imspinner.h"
 #include <gtc/matrix_transform.hpp>
 
 #include <fstream>
@@ -15,8 +16,13 @@ static ImGuizmo::OPERATION sGuizmoOP = ImGuizmo::OPERATION::BOUNDS;
 static gte::GPU::FrameBuffer* sCamFBO = nullptr;
 static glm::vec2 sCamViewport;
 static constexpr entt::entity EnttNull = entt::null;
-static bool VisualizeOperation(void);
 static bool sGameEvents = true;
+static std::atomic<int> sExportIndex = -1;
+
+static bool VisualizeOperation(void);
+static void DrawExportPopup(void);
+static void DrawExportProgress(void);
+static void ExportGame(const std::filesystem::path& location, const std::filesystem::path& icon, const std::filesystem::path& logo);
 
 void CupOfTea::Update(float dt)
 {
@@ -236,6 +242,7 @@ void CupOfTea::RenderGUI(void)
 		Node->SharedFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
 	}
 
+	bool exportgame = false;
 	if (ImGui::BeginMainMenuBar())
 	{
 		//ImGui::Image(sIcon->GetID(), { 64.0f, 51.0f }, { 0, 1 }, { 1, 0 });
@@ -255,6 +262,9 @@ void CupOfTea::RenderGUI(void)
 				SaveScene();
 			if (gte::gui::DrawMenuItem(ICON_FK_FILE, "Save Scene As...", "Ctrl+Shift+S", biggest))
 				SaveSceneAs(gte::internal::CreateFileDialog(gte::internal::FileDialogType::Save, "Green Tea Scene (*.gtscene)\0*.gtscene\0"));
+			ImGui::Separator();
+			if (gte::gui::DrawMenuItem(ICON_FK_GAMEPAD, "Export Game", nullptr, biggest))
+				exportgame = true;
 			ImGui::Separator();
 			if (gte::gui::DrawMenuItem(ICON_FK_POWER_OFF, "Exit", "Alt+F4", biggest))
 				Close();
@@ -277,6 +287,10 @@ void CupOfTea::RenderGUI(void)
 
 		ImGui::EndMainMenuBar();
 	}
+	if (exportgame)
+		ImGui::OpenPopup("Export Game##Popup");
+	DrawExportPopup();
+	DrawExportProgress();
 	ImGui::End();//End Dockspace
 	
 	if (mPanels[0] && !mPanels[7])
@@ -559,7 +573,7 @@ CupOfTea::CupOfTea(const std::string& filepath)
     gui = gte::gui::ImGuiLayer::Create();
     gui->Init(window->GetPlatformWindow(), window->GetContext());
 
-	gte::Image img("../Assets/Icons/GreenTea.png");
+	gte::Image img("../Assets/Icons/Logo.png");
 	sIcon = gte::GPU::Texture2D::Create(img);
 
 	std::filesystem::path prjdir = filepath;
@@ -925,4 +939,242 @@ bool VisualizeOperation(void)
 		return true;
 	else
 		return false;
+}
+
+void DrawExportPopup(void)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	auto IconsFont = io.Fonts->Fonts[3];
+
+	static std::string error = "";
+	bool exportprogress = false;
+	if (ImGui::BeginPopupModal("Export Game##Popup", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+		static std::string location = "";
+		static std::string icon = "";
+		static std::string logo = "";
+
+		//Location input
+		ImGui::Text("Location:");
+		ImGui::SameLine();
+		char* buffer = new char[location.size() + 12];
+		memcpy(buffer, location.c_str(), location.size() + 1);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		if (ImGui::InputText("##location", buffer, location.size() + 12))
+			location = std::string(buffer);
+		ImGui::SameLine();
+		ImGui::PopStyleVar();
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 5.0f);
+		ImGui::PushFont(IconsFont);
+		if (ImGui::Button(ICON_FK_FOLDER, { 24.0f, 24.0f }))
+		{
+			std::string temp = gte::internal::PeekDirectory();
+			if (!temp.empty())
+			{
+				location = temp;
+				std::replace(location.begin(), location.end(), '\\', '/');
+			}
+
+		}
+		ImGui::PopFont();
+		ImGui::SameLine();
+		const float y = ImGui::GetCursorPosY();
+		ImGui::SetCursorPos({ ImGui::GetCursorPosX() - 6.0f, y - 6.0f });
+		ImGui::Text("*");
+		ImGui::SameLine();
+		ImGui::SetCursorPosY(y);
+		ImGui::Dummy({ 0.0f, 0.0f });
+		delete[] buffer;
+
+
+		//Icon input
+		ImGui::PushID("icon");
+		ImGui::Text("Icon:");
+		ImGui::SameLine(0.0f, 38.0f);
+		buffer = new char[icon.size() + 12];
+		memcpy(buffer, icon.c_str(), icon.size() + 1);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		if (ImGui::InputText("##icon", buffer, icon.size() + 12))
+			icon = std::string(buffer);
+		ImGui::SameLine();
+		ImGui::PopStyleVar();
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 5.0f);
+		ImGui::PushFont(IconsFont);
+		if (ImGui::Button(ICON_FK_FILE_IMAGE_O, { 24.0f, 24.0f }))
+		{
+			std::string temp = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "Icons (*.ico)\0*.ico\0");
+			if (!temp.empty())
+			{
+				icon = temp;
+				std::replace(icon.begin(), icon.end(), '\\', '/');
+			}
+		}
+		ImGui::PopFont();
+		ImGui::PopID();
+
+		//Logo
+		ImGui::PushID("logo");
+		ImGui::Text("Logo:");
+		ImGui::SameLine(0.0f, 33.0f);
+		buffer = new char[logo.size() + 12];
+		memcpy(buffer, logo.c_str(), logo.size() + 1);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		if (ImGui::InputText("##logo", buffer, logo.size() + 12))
+			logo = std::string(buffer);
+		ImGui::SameLine();
+		ImGui::PopStyleVar();
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 5.0f);
+		ImGui::PushFont(IconsFont);
+		if (ImGui::Button(ICON_FK_FILE_IMAGE_O, { 24.0f, 24.0f }))
+		{
+			std::string temp = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "All Images(*.png, *jpg, *.jpeg)\0*.png;*.jpg;*.jpeg\0PNG file (*.png)\0*.png\0JPG file(*.jpg, *.jpeg)\0*.jpg; *.jpeg\0");
+			if (!temp.empty())
+			{
+				logo = temp;
+				std::replace(logo.begin(), logo.end(), '\\', '/');
+			}
+		}
+		ImGui::PopFont();
+		ImGui::PopID();
+
+		//Buttons
+		ImGui::Dummy({ 0.0f, 0.0f });
+		ImGui::SameLine(0.0f, 193.0f);
+		if (ImGui::Button("Export"))
+		{
+
+			if (location.empty())
+			{
+				error = "Location field must be filled.";
+				ImVec2 size = ImGui::CalcTextSize(error.c_str());
+				ImGui::SetNextWindowSize({ size.x + 16.0f, 0.0f });
+				ImGui::OpenPopup("Error##popup");
+			}
+			else if (!std::filesystem::is_directory(location))
+			{
+				error = "Location must describe a valid path to a directory.";
+				ImVec2 size = ImGui::CalcTextSize(error.c_str());
+				ImGui::SetNextWindowSize({ size.x + 16.0f, 0.0f });
+				ImGui::OpenPopup("Error##popup");
+			}
+			else
+			{
+				ExportGame(location, icon, logo);
+				location = icon = logo = "";
+				ImGui::CloseCurrentPopup();
+				exportprogress = true;
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel"))
+			ImGui::CloseCurrentPopup();
+
+		if (ImGui::BeginPopupModal("Error##popup", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		{
+			ImGui::Text(error.c_str());
+			ImGui::Dummy({ 0.0f, 0.0f });
+			ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - 80.0f);
+			if (ImGui::Button("Ok", { 80.0f, 0.0f }))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+		ImGui::PopStyleVar();
+		ImGui::EndPopup();
+	}
+	if (exportprogress)
+		ImGui::OpenPopup("Export Progress##Popup");
+}
+
+void DrawExportProgress(void)
+{
+	static float accumulator = 0.0f;
+	if (sExportIndex < 0)
+	{
+		accumulator = 0.0f;
+		return;
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+	accumulator += io.DeltaTime;
+
+	static constexpr char* strings[] = {
+		"Building Stand Alone App",
+		"Building project",
+		"Combining everything into a folder"
+	};
+	
+	if (ImGui::BeginPopupModal("Export Progress##Popup", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 0.0f });
+		const float strWidth = ImGui::CalcTextSize(strings[sExportIndex]).x;
+		ImGui::Text(strings[sExportIndex]);
+		ImGui::SameLine();
+		int index = (int)accumulator % 4;
+		switch (index)
+		{
+		case 0: ImGui::Text("   "); break;
+		case 1: ImGui::Text(".  "); break;
+		case 2: ImGui::Text(".. "); break;
+		case 3: ImGui::Text("..."); break;
+		}
+		ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - strWidth - 32.0f);
+		ImSpinner::SpinnerAngTriple("MySpinner", 3.0f, 6.0f, 9.0f, 2.0f, 0xffffffff, 0xff0000ff, 0xffffffff);
+		ImGui::PopStyleVar();
+		ImGui::EndPopup();
+	}
+}
+
+void ExportGame(const std::filesystem::path& location, const std::filesystem::path& icon, const std::filesystem::path& logo)
+{
+	sExportIndex = 0;
+	std::thread handle = std::thread([=]() {
+		auto GreenTeaDir = gte::internal::GetContext()->GreenTeaDir;
+		auto prjname = std::filesystem::current_path().filename().string();
+
+		//Create StandAlone solution in case it doesn't exist
+		std::string command = "premake5 --file=" + GreenTeaDir + "/StandAlone/premake5.lua vs2019";
+		std::system(command.c_str());
+
+		//Build StandAlone app in case it hasn't been build yet
+		std::ofstream os(GreenTeaDir + "/StandAlone/StandAlone.rc");
+		if (!icon.empty())
+			os << "logo ICON \"" + icon.string() + "\"";
+		else
+			os << "logo ICON \"../Assets/Icons/GreenTea.ico\"";
+		os.close();
+		std::filesystem::remove(GreenTeaDir + "/StandAlone/StandAlone.aps");
+		std::filesystem::remove(GreenTeaDir + "/StandAlone/bin-int/Dist-windows/StandAlone/StandAlone.res");
+		command = "devenv " + GreenTeaDir + "/StandAlone/StandAlone.sln -Build Dist";
+		std::system(command.c_str());
+
+		//Build project for StandAlone
+		sExportIndex++;
+		std::system("premake5 vs2019");
+		command = "devenv " + prjname + ".sln -Build StandAlone";
+		std::system(command.c_str());
+
+		//Create folder that we hold the standalone version
+		sExportIndex++;
+		auto binaries = location / (prjname + "/bin");
+		std::filesystem::create_directories(binaries);
+		std::filesystem::copy(GreenTeaDir + "/StandAlone/bin/Dist-windows/GreenTea/GreenTea.dll", binaries, std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy(GreenTeaDir + "/StandAlone/bin/Dist-windows/StandAlone/StandAlone.exe", binaries, std::filesystem::copy_options::overwrite_existing);
+
+		auto gameData = location / (prjname + "/GameData");
+		std::filesystem::create_directories(gameData / ".gt");
+		std::filesystem::copy(std::filesystem::current_path() / ("bin/StandAlone-windows/" + prjname + "/" + prjname + ".dll"), gameData / ".gt", std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy(std::filesystem::current_path() / "Assets", gameData / "Assets", std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy(std::filesystem::current_path() / (prjname + ".gt"), gameData, std::filesystem::copy_options::overwrite_existing);
+
+		std::filesystem::create_directories(location / (prjname + "/Assets/Icons"));
+		std::filesystem::copy(GreenTeaDir + "/Assets/Icons/GreenTeaLogo.png", location / (prjname + "/Assets/Icons/GreenTeaLogo.png"), std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy(GreenTeaDir + "/Assets/Shaders", location / (prjname + "/Assets/Shaders"), std::filesystem::copy_options::overwrite_existing);
+		if (logo.empty())
+			std::filesystem::copy(GreenTeaDir + "/Assets/Icons/Logo.png", location / (prjname + "/Assets/Icons/Logo.png"), std::filesystem::copy_options::overwrite_existing);
+		else
+			std::filesystem::copy(logo, location / (prjname + "/Assets/Icons/Logo.png"), std::filesystem::copy_options::overwrite_existing);
+		sExportIndex = -1;
+	});
+	handle.detach();
 }

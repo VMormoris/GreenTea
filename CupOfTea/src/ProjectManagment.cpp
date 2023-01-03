@@ -346,8 +346,7 @@ void CreateProject(const std::string& location, const std::string& name) noexcep
 	std::filesystem::create_directories(prjdir / name / "src");
 
 	//Copy files
-	auto GreenTeaDir = std::filesystem::absolute(std::filesystem::current_path() / "../../..").string();
-	std::replace(GreenTeaDir.begin(), GreenTeaDir.end(), '\\', '/');
+	auto GreenTeaDir = gte::internal::GetContext()->GreenTeaDir;
 
 	std::filesystem::copy("../resources/template.gitignore", prjdir / ".gitignore");
 	std::filesystem::copy("../resources/imgui.ini", prjdir / "imgui.ini");
@@ -382,8 +381,7 @@ void CreateProject(const std::string& location, const std::string& name) noexcep
 
 void OpenProject(const std::string& path) noexcept
 {
-	auto GreenTeaDir = std::filesystem::absolute(std::filesystem::current_path() / "../../..").string();
-	std::replace(GreenTeaDir.begin(), GreenTeaDir.end(), '\\', '/');
+	auto GreenTeaDir = gte::internal::GetContext()->GreenTeaDir;
 
 	auto prjdir = std::filesystem::path(path).parent_path();
 	const std::string name = prjdir.filename().string();

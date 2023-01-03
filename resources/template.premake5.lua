@@ -81,14 +81,14 @@ project (ProjectName)
 		optimize "on"
 		symbols "off"
 
-		links { (GreenTeaDir .. "/bin/" .. outputdir .. "/GreenTea/GreenTea") }
+		links { (GreenTeaDir .. "/StandAlone/bin/Dist-windows/GreenTea/GreenTea") }
 		
 		prebuildcommands
 		{
-			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
+			gtrDir .. "/bin/Release-windows/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
 		}
 		
 		postbuildcommands
 		{
-			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
+			gtrDir .. "/bin/Release-windows/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
 		}

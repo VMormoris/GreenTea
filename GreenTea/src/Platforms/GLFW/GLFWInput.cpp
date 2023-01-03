@@ -26,7 +26,7 @@ namespace gte {
 		double rawX, rawY;
 		glfwGetCursorPos((GLFWwindow*)window->GetPlatformWindow(), &rawX, &rawY);
 		x = static_cast<uint32>(rawX), y = static_cast<uint32>(rawY);
-#ifndef STAND_ALONE
+#ifndef GT_DIST
 		int32 wx, wy;
 		glfwGetWindowPos((GLFWwindow*)window->GetPlatformWindow(), &wx, &wy);
 		x += wx, y += wy;

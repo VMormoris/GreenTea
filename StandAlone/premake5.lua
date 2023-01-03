@@ -95,7 +95,7 @@ group "Core"
             defines "GT_DIST"
             runtime "Release"
             optimize "on"
-            --symbols "off"
+            symbols "off"
 
     project "StandAlone"
         kind "ConsoleApp"
@@ -110,6 +110,7 @@ group "Core"
             "src/**.h",
             "src/**.hpp",
             "src/**.cpp",
+            "StandAlone.rc",
         }
 
         includedirs
@@ -154,5 +155,5 @@ group "Core"
             defines "GT_DIST"
             runtime "Release"
             optimize "on"
-            --symbols "off"
+            symbols "off"
 group ""

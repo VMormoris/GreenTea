@@ -118,6 +118,6 @@ StandAlone::~StandAlone(void) { internal::GetContext()->ActiveScene->OnStop(); }
 void StandAlone::RenderLogo(void)
 {
 	Renderer2D::BeginScene(glm::mat4{ 1.0f });
-	Renderer2D::DrawQuad(glm::scale(glm::mat4(1.0f), { 0.33f, 0.33f, 1.0f }), engineLogo, (uint32)EnttNull);
+	Renderer2D::DrawQuad(glm::scale(glm::mat4(1.0f), { 0.30f, 0.30f, 1.0f }), engineLogo, (uint32)EnttNull);
 	Renderer2D::EndScene();
 }
