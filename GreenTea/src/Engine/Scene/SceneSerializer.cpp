@@ -125,7 +125,7 @@ namespace gte::internal {
 				const auto& transform = entityNode["Transform2DComponent"];
 				if (transform)
 				{
-					auto& tc = entity.AddComponent<Transform2DComponent>();
+					auto& tc = entity.GetComponent<Transform2DComponent>();
 					if (!entity.HasComponent<TransformationComponent>())//For some weird reason on_construct doesn't always work
 						entity.AddComponent<TransformationComponent>();
 					tc.Position = transform["Position"].as<glm::vec3>();
