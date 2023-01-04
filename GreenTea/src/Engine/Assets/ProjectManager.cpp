@@ -282,7 +282,8 @@ namespace gte::internal {
 	void ProjectManager::FindFiles(void)
 	{
 		mFilePaths.clear();
-		for (const auto entry : std::filesystem::recursive_directory_iterator(mProjectDir / "Assets"))
+		const bool same = mProjectDir == "." || mProjectDir.empty();
+		for (const auto entry : std::filesystem::recursive_directory_iterator(same ? "Assets" : mProjectDir / "Assets"))
 		{
 			if (!entry.is_directory())
 			{
