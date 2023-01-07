@@ -2,7 +2,7 @@
 
 #include <Engine/Core/Context.h>
 
-#include <GLFW/glfw3.h>
+#include "GLFWWindow.h"
 
 namespace gte {
 	
@@ -31,6 +31,14 @@ namespace gte {
 		glfwGetWindowPos((GLFWwindow*)window->GetPlatformWindow(), &wx, &wy);
 		x += wx, y += wy;
 #endif
+	}
+
+	void Input::GetMouseOffset(uint32& dx, uint32& dy)
+	{
+		GLFW::GLFWWindow* window = (GLFW::GLFWWindow*)internal::GetContext()->GlobalWindow;
+		glm::vec2 offset = window->GetMouseOffset();
+		dx = static_cast<uint32>(offset.x);
+		dy = static_cast<uint32>(offset.y);
 	}
 
 }

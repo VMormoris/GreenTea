@@ -37,6 +37,13 @@ namespace gte {
 		static void GetMousePos(uint32& x, uint32& y);
 
 		/**
+		* @brief Get mouse position offset since last frame
+		* @param[out] dx Mouse coordinate on the X axis
+		* @param[out] dy Mouse coordinate on the Y axis
+		*/
+		static void GetMouseOffset(uint32& dx, uint32& dy);
+
+		/**
 		* @brief Gets the entity that is currently hovered
 		* @return An entity (might be invalid if no entity is hovered)
 		*/

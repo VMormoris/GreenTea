@@ -122,7 +122,12 @@ namespace gte::GLFW {
 
 		glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos)
 		{
+			WindowProps* prop = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
 			static Entity hovered = {};
+			static double oldx = 0.0, oldy = 0.0;
+			prop->MouseOffset = { xpos - oldx, ypos - oldy };
+			oldx = xpos; oldy = ypos;
+
 			Entity entity = Input::GetHoveredEntity();
 			if (entity != hovered)
 			{
