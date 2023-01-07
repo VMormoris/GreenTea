@@ -52,12 +52,25 @@ void CupOfTea::Update(float dt)
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::S))
 			offset -= fraction;
 		//Right & Left
-		dir = glm::normalize(glm::cross(dir, presp.UpVector));
-		fraction = dir * settings.CameraVelocity * dt;
+		const glm::vec3 right = glm::normalize(glm::cross(dir, presp.UpVector));
+		fraction = right * settings.CameraVelocity * dt;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::D))
 			offset += fraction;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::A))
 			offset -= fraction;
+
+		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Wheel))
+		{
+			constexpr float speed = glm::pi<float>() * 0.002;
+
+			uint32 dx, dy;
+			gte::Input::GetMouseOffset(dx, dy);
+			glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), dy * speed, right);
+			rotation *= glm::rotate(glm::mat4(1.0f), dx * speed, presp.UpVector);
+
+			dir = rotation * glm::vec4(dir, 0.0f);
+			presp.Target = tc.Position + dir * glm::distance(tc.Position, presp.Target);
+		}
 
 		tc.Position += offset;
 		presp.Target += offset;
