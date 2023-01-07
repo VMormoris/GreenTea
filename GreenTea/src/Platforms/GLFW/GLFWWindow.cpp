@@ -124,9 +124,6 @@ namespace gte::GLFW {
 		{
 			WindowProps* prop = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
 			static Entity hovered = {};
-			static double oldx = 0.0, oldy = 0.0;
-			prop->MouseOffset = { xpos - oldx, ypos - oldy };
-			oldx = xpos; oldy = ypos;
 
 			Entity entity = Input::GetHoveredEntity();
 			if (entity != hovered)
@@ -138,6 +135,8 @@ namespace gte::GLFW {
 			}
 			hovered = entity;
 			internal::GetContext()->Dispatcher.Dispatch<EventType::MouseMove>((int32)xpos, (int32)ypos);
+
+			prop->MousePos = { xpos, ypos };
 		});
 
 	}
@@ -193,6 +192,14 @@ namespace gte::GLFW {
 
 		mProps.VSync = enableFlag;
 	}
+
+	[[nodiscard]] glm::vec2 GLFWWindow::GetMouseOffset(void) const noexcept
+	{
+		double x, y;
+		glfwGetCursorPos(mWindow, &x, &y);
+		return mProps.MousePos - glm::vec2{ x, y };
+	}
+
 
 	[[nodiscard]] bool GLFWWindow::IsVSync(void) const noexcept { return mProps.VSync; }
 

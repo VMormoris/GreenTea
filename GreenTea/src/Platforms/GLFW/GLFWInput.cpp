@@ -33,12 +33,12 @@ namespace gte {
 #endif
 	}
 
-	void Input::GetMouseOffset(uint32& dx, uint32& dy)
+	void Input::GetMouseOffset(int32& dx, int32& dy)
 	{
 		GLFW::GLFWWindow* window = (GLFW::GLFWWindow*)internal::GetContext()->GlobalWindow;
 		glm::vec2 offset = window->GetMouseOffset();
-		dx = static_cast<uint32>(offset.x);
-		dy = static_cast<uint32>(offset.y);
+		dx = static_cast<int32>(offset.x);
+		dy = static_cast<int32>(offset.y);
 	}
 
 }

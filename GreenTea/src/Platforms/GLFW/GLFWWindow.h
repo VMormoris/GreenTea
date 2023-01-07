@@ -25,8 +25,7 @@ namespace gte::GLFW {
 
 		void Update(void) noexcept override;
 
-		[[nodiscard]] glm::vec2& GetMouseOffset(void) noexcept { return mProps.MouseOffset; }
-		[[nodiscard]] const glm::vec2& GetMouseOffset(void) const noexcept { return mProps.MouseOffset; }
+		[[nodiscard]] glm::vec2 GetMouseOffset(void) const noexcept;
 
 		[[nodiscard]] void* GetNativeWindow(void) noexcept override;
 		[[nodiscard]] const void* GetNativeWindow(void) const noexcept override;
@@ -49,7 +48,7 @@ namespace gte::GLFW {
 			int32 y = 0;
 			bool VSync = true;
 
-			glm::vec2 MouseOffset = { 0.0f, 0.0f };
+			glm::vec2 MousePos = { 0.0f, 0.0f };//Actually last's frames because event callbacks are called last
 		};
 
 		WindowProps mProps;
