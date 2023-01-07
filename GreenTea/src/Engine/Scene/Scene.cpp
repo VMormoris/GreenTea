@@ -35,7 +35,6 @@ static void DestroyRigidbody2D(entt::registry& reg, entt::entity entityID);
 static void DestroyCollider(entt::registry& reg, entt::entity entityID);
 
 static b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, float angle);
-static bool HasParentTransform(const gte::RelationshipComponent& relc, const entt::registry& reg, glm::mat4& pTransform);
 static void SetListener(entt::registry& reg, entt::entity entity);
 
 namespace gte {
@@ -163,20 +162,9 @@ namespace gte {
 
 		if (internal::GetContext()->Playing)
 		{
-			auto particles = mReg.view<ParticleSystemComponent>();
-			for (auto&& [entityID, psc] : particles.each())
-			{
-				glm::mat4 world(1.0f);
-				if (mReg.all_of<TransformationComponent>(entityID))
-					world = mReg.get<TransformationComponent>(entityID);
-				else
-				{
-					const auto& relc = mReg.get<RelationshipComponent>(entityID);
-					HasParentTransform(relc, mReg, world);
-				}
-
-				psc.System->Render(world);
-			}
+			auto particles = mReg.view<ParticleSystemComponent, TransformationComponent>();
+			for (auto&& [entityID, psc, tc] : particles.each())
+				psc.System->Render(tc);
 		}
 
 		auto texts = mReg.view<TransformationComponent, TextRendererComponent>();
@@ -205,6 +193,7 @@ namespace gte {
 		mReg.emplace<IDComponent>(entityID, id);
 		mReg.emplace<TagComponent>(entityID, tag);
 		mReg.emplace<RelationshipComponent>(entityID);
+		mReg.emplace<Transform2DComponent>(entityID);
 		if (useLock)
 			mRegMutex.unlock();
 		return { entityID, this };
@@ -225,30 +214,6 @@ namespace gte {
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = entity;
 		return entity;
-		/*mReg.emplace<IDComponent>(entityID, uuid::Create());
-		auto& tagc = mReg.emplace<TagComponent>(entityID, "Unnamed Entity");
-		auto& relc = mReg.emplace<RelationshipComponent>(entityID);
-		if (proto)
-			relc = proto.GetComponent<RelationshipComponent>();
-		relc.Parent = (entt::entity)parent;
-		relc.Next = nextID;
-
-		if(nextID != entt::null)
-			mReg.get<RelationshipComponent>(nextID).Previous = entityID;
-
-		auto child = relc.FirstChild;
-		for (size_t i = 0; i < relc.Childrens; i++)
-		{
-			auto& childRel = mReg.get<RelationshipComponent>(child);
-			childRel.Parent = entityID;
-			child = childRel.Next;
-		}
-
-		if (proto)//Copy Components
-			CopyComponents(proto, { entityID, this });
-		
-		return { entityID, this };
-		*/
 	}
 
 	Entity Scene::CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent, bool useLock)
@@ -269,7 +234,7 @@ namespace gte {
 			const auto& transform = entityNode["Transform2DComponent"];
 			if (transform)
 			{
-				auto& tc = entity.AddComponent<Transform2DComponent>();
+				auto& tc = entity.GetComponent<Transform2DComponent>();
 				tc.Position = transform["Position"].as<glm::vec3>();
 				tc.Scale = transform["Scale"].as<glm::vec2>();
 				tc.Rotation = transform["Rotation"].as<float>();
@@ -781,8 +746,7 @@ namespace gte {
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = toMove;
 
-		if(toMove.HasComponent<Transform2DComponent>())
-			UpdateTransform(toMove, false);
+		UpdateTransform(toMove, false);
 	}
 
 	Entity Scene::Clone(Entity toClone, bool recursive)
@@ -942,15 +906,16 @@ namespace gte {
 		if (entity.HasComponent<RelationshipComponent>())
 		{
 			const auto& rel = entity.GetComponent<RelationshipComponent>();
-			glm::mat4 pTransform;
-			if (HasParentTransform(rel, mReg, pTransform))
+			if (rel.Parent != entt::null)
+			{
+				const glm::mat4& pTransform = mReg.get<TransformationComponent>(rel.Parent);
 				transform.Transform = pTransform * transform.Transform;
-			
+			}
+
 			Entity child = { rel.FirstChild, this };
 			for (size_t i = 0; i < rel.Childrens; i++)
 			{
-				if(child.HasComponent<Transform2DComponent>())
-					UpdateTransform(child, false);
+				UpdateTransform(child, false);
 				auto next = child.GetComponent<RelationshipComponent>().Next;
 				child = { next, this };
 			}
@@ -1013,22 +978,21 @@ namespace gte {
 	{
 		if (useLock)
 			mRegMutex.lock();
+		
 		//TODO(Vasilis): Could use a thread pool to make this run in pararel
-		auto view = mReg.view<RelationshipComponent, Transform2DComponent>();
-		for (auto entityID: view)
+		auto view = mReg.view<RelationshipComponent>();
+		for (auto&& [entityID, rel] : view.each())
 		{
-			const auto& rel = view.get<RelationshipComponent>(entityID);
-			if (HasParentTransform(rel, mReg, glm::mat4()))
+			if (rel.Parent != entt::null)
 				continue;
 			UpdateTransform({ entityID, this }, false);
 		}
 
 		Entity me = FindEntityWithUUID({}, false);//Special Entity for scene stuff
 		UpdateTransform(me, false);
-		if (useLock) {
-			//GTE_TRACE_LOG(mRegMutex.try_lock());
+
+		if (useLock)
 			mRegMutex.unlock();
-		}
 	}
 
 	void Scene::CopyComponents(Entity source, Entity destination)
@@ -1038,8 +1002,9 @@ namespace gte {
 
 		if (source.HasComponent<Transform2DComponent>())
 		{
-			const auto& tc = source.GetComponent<Transform2DComponent>();
-			destination.AddComponent<Transform2DComponent>(tc);
+			const auto& srcTC = source.GetComponent<Transform2DComponent>();
+			auto& dstTC = destination.GetComponent<Transform2DComponent>();
+			dstTC = srcTC;
 
 			UpdateTransform(destination, false);
 		}
@@ -1362,11 +1327,11 @@ namespace gte {
 			}
 			
 			//Update local positions
-			glm::mat4 pTransform;
-			if (HasParentTransform(mReg.get<RelationshipComponent>(entityID), mReg, pTransform))
+			if (auto* rc = mReg.try_get<RelationshipComponent>(entityID); rc->Parent != entt::null)
 			{
-				glm::mat4 world = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f });
-				glm::mat4 local = glm::inverse(pTransform) * world;
+				const glm::mat4& pTransform = mReg.get<TransformationComponent>(rc->Parent);
+				const glm::mat4& world = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f });
+				const glm::mat4& local = glm::inverse(pTransform) * world;
 				glm::vec3 lpos, lscale, lrotation;
 				math::DecomposeTransform(local, lpos, lscale, lrotation);
 				tc.Position = { lpos.x, lpos.y, tc.Position.z };
@@ -1386,26 +1351,12 @@ namespace gte {
 
 	void Scene::InformAudioEngine(void)
 	{
-		auto view = mReg.view<SpeakerComponent>();
-		for (auto&& [entityID, speaker] : view.each())
+		auto view = mReg.view<SpeakerComponent, TransformationComponent>();
+		for (auto&& [entityID, speaker, tc] : view.each())
 		{
 			speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(speaker.AudioClip->ID);
 			speaker.Source.SetProperties(&speaker);
-
-			if (mReg.all_of<TransformationComponent>(entityID))
-			{
-				const auto& tc = mReg.get<TransformationComponent>(entityID);
-				speaker.Source.SetPosition(glm::vec3(tc.Transform[3]));
-			}
-			else
-			{
-				glm::mat4 transform;
-				if (HasParentTransform(mReg.get<RelationshipComponent>(entityID), mReg, transform))
-					speaker.Source.SetPosition(glm::vec3(transform[3]));
-				else
-					speaker.Source.SetPosition({ 0.0f, 0.0f, 0.0f });
-			}
-				
+			speaker.Source.SetPosition(glm::vec3(tc.Transform[3]));
 
 			if (mReg.all_of<Rigidbody2DComponent>(entityID))
 			{
@@ -1421,12 +1372,14 @@ namespace gte {
 	{
 		auto& prevTC = mPhysicsReg.get<Transform2DComponent>(entityID);
 		const auto& relc = mReg.get<RelationshipComponent>(entityID);
-		glm::mat4 pTransform;
-		bool World = HasParentTransform(relc, mReg, pTransform);
+		
 		b2Body* body = (b2Body*)rb.Body;
 		prevTC.Rotation = body->GetAngle();
+
+		bool World = relc.Parent != entt::null;
 		if (World)
 		{
+			const glm::mat4& pTransform = mReg.get<TransformationComponent>(relc.Parent);
 			glm::mat4 world = glm::translate(glm::mat4(1.0f), { body->GetPosition().x, body->GetPosition().y, tc.Transform[3].z }) *
 				glm::rotate(glm::mat4(1.0f), body->GetAngle(), { 0.0f, 0.0f, 1.0f });
 			world = glm::inverse(pTransform) * world;
@@ -1446,7 +1399,6 @@ namespace gte {
 		}
 		rb.Velocity = { body->GetLinearVelocity().x , body->GetLinearVelocity().y };
 		rb.AngularVelocity = glm::degrees(body->GetAngularVelocity());
-
 	}
 
 	void Scene::InformPhysicsWorld(Rigidbody2DComponent& rb, Collider* collider, const glm::vec3& pos, float angle)
@@ -1621,10 +1573,12 @@ void CreateTransform2D(entt::registry& reg, entt::entity entityID)
 
 	glm::mat4 transformation = glm::translate(glm::mat4(1.0f), tc.Position) * glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
 
-	glm::mat4 pTransform;
-	if (reg.all_of<gte::RelationshipComponent>(entityID) && HasParentTransform(reg.get<gte::RelationshipComponent>(entityID), reg, pTransform))
-		transformation = pTransform * transformation;
-	transform.Transform = transform;
+	if (auto* rc = reg.try_get<gte::RelationshipComponent>(entityID); rc && rc->Parent != entt::null)
+	{
+		if(auto* pTransform = reg.try_get<gte::TransformationComponent>(rc->Parent))
+			transformation = pTransform->Transform * transformation;
+	}
+	transform.Transform = transformation;
 }
 
 void DestroyTransform2D(entt::registry& reg, entt::entity entityID)
@@ -1710,31 +1664,6 @@ b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, 
 		break;
 	}
 	return bodyDef;
-}
-
-bool HasParentTransform(const gte::RelationshipComponent& relc, const entt::registry& reg, glm::mat4& pTransform)
-{
-	bool hasParent = false;
-	if (relc.Parent != entt::null)
-	{
-		if (reg.all_of<gte::TransformationComponent>(relc.Parent))
-		{
-			pTransform = reg.get<gte::TransformationComponent>(relc.Parent);
-			hasParent = true;
-		}
-		else
-		{
-			auto parent = reg.get<gte::RelationshipComponent>(relc.Parent).Parent;
-			while (parent != entt::null && reg.all_of<gte::TransformationComponent>(parent))
-				parent = reg.get<gte::RelationshipComponent>(parent).Parent;
-			if (parent != entt::null && reg.all_of<gte::TransformationComponent>(parent))
-			{
-				pTransform = reg.get<gte::TransformationComponent>(parent);
-				hasParent = true;
-			}
-		}
-	}
-	return hasParent;
 }
 
 void SetListener(entt::registry& reg, entt::entity entity)
