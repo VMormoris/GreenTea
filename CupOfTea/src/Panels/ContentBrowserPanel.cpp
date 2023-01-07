@@ -887,18 +887,35 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<CameraComponent>())
 	{
-		const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 		const auto& cam = entity.GetComponent<CameraComponent>();
 		out << YAML::Key << "CameraComponent";
 		out << YAML::BeginMap;
-		out << YAML::Key << "ZoomLevel" << YAML::Value << ortho.ZoomLevel;
-		out << YAML::Key << "VerticalBoundary" << YAML::Value << ortho.VerticalBoundary;
-		if (cam.FixedAspectRatio)
-			out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
 		out << YAML::Key << "Primary" << YAML::Value << cam.Primary;
 		out << YAML::Key << "FixedAspectRatio" << YAML::Value << cam.FixedAspectRatio;
 		out << YAML::Key << "MasterVolume" << YAML::Value << cam.MasterVolume;
 		out << YAML::Key << "DistanceModel" << YAML::Value << (uint16)cam.Model;
+		if (cam.FixedAspectRatio)
+			out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
+		if (entity.HasComponent<OrthographicCameraComponent>())
+		{
+			const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
+			out << YAML::Key << "OrthographicCameraComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "ZoomLevel" << YAML::Value << ortho.ZoomLevel;
+			out << YAML::Key << "VerticalBoundary" << YAML::Value << ortho.VerticalBoundary;
+			out << YAML::EndMap;
+		}
+		else if (entity.HasComponent<PerspectiveCameraComponent>())
+		{
+			const auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+			out << YAML::Key << "PerspectiveCameraComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Target" << YAML::Value << persp.Target;
+			out << YAML::Key << "FoV" << YAML::Value << persp.FoV;
+			out << YAML::Key << "Near" << YAML::Value << persp.Near;
+			out << YAML::Key << "Far" << YAML::Value << persp.Far;
+			out << YAML::EndMap;
+		}
 		out << YAML::EndMap;
 	}
 

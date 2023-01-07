@@ -6,6 +6,8 @@
 #include <ImGuizmo.h>
 #include "imspinner.h"
 
+#include <gtc/type_ptr.hpp>
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <gtx/quaternion.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -37,30 +39,29 @@ void CupOfTea::Update(float dt)
 	if (sGameEvents && !gte::internal::GetContext()->Playing)
 	{
 		auto& tc = EditorCamera.GetComponent<gte::TransformComponent>();
+		auto& presp = EditorCamera.GetComponent<gte::PerspectiveCameraComponent>();
 		const auto& settings = EditorCamera.GetComponent<gte::Settings>();
-		bool changed = false;
+		
+		glm::vec3 dir = glm::normalize(presp.Target - tc.Position);
+		glm::vec3 fraction = dir * settings.CameraVelocity * dt;
+
+		glm::vec3 offset = { 0.0f, 0.0f, 0.0f };
+		//Front & back
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::W))
-		{
-			tc.Position.y += settings.CameraVelocity.y * dt;
-			changed = true;
-		}
+			offset = fraction;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::S))
-		{
-			tc.Position.y -= settings.CameraVelocity.y * dt;
-			changed = true;
-		}
+			offset -= fraction;
+		//Right & Left
+		dir = glm::normalize(glm::cross(dir, presp.UpVector));
+		fraction = dir * settings.CameraVelocity * dt;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::D))
-		{
-			tc.Position.x += settings.CameraVelocity.x * dt;
-			changed = true;
-		}
+			offset += fraction;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::A))
-		{
-			tc.Position.x -= settings.CameraVelocity.x * dt;
-			changed = true;
-		}
-		if (changed)
-			scene->UpdateTransform(EditorCamera);
+			offset -= fraction;
+
+		tc.Position += offset;
+		presp.Target += offset;
+		scene->UpdateTransform(EditorCamera);
 	}
 
     Application::Update(dt);
@@ -473,10 +474,8 @@ void CupOfTea::RenderGUI(void)
 			gte::gui::DrawComponent<gte::CameraComponent>(ICON_FK_CAMERA_RETRO, "Editor's Camers", SceneEntity, [&](auto& cam) {
 				gte::gui::UISettings settings;
 				auto& tc = SceneEntity.GetComponent<gte::TransformComponent>();
-				glm::vec2 pos = { tc.Position.x, tc.Position.y };
-				if (gte::gui::DrawVec2Control("Position", pos, settings))
+				if (gte::gui::DrawVec3Control("Position", tc.Position, settings))
 				{
-					tc.Position = { pos.x, pos.y, 0.0f };
 					auto& transorm = glm::translate(glm::mat4(1.0f), tc.Position);
 					cam.ViewMatrix = glm::inverse(transorm);
 					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
@@ -485,19 +484,49 @@ void CupOfTea::RenderGUI(void)
 				auto& Velocity = SceneEntity.GetComponent<gte::Settings>().CameraVelocity;
 				settings.MinFloat = 0.25f;
 				settings.MaxFloat = FLT_MAX;
-				gte::gui::DrawVec2Control("Velocity", Velocity, settings);
+				gte::gui::DrawFloatControl("Velocity", Velocity, settings);
 
-				auto& ortho = SceneEntity.GetComponent<gte::OrthographicCameraComponent>();
-				settings.MinFloat = 0.1f;
-				const bool zoom = gte::gui::DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings);
-				settings.MinFloat = 0.5f;
-				const bool boundary = gte::gui::DrawFloatControl("Vertical Boundary", ortho.VerticalBoundary, settings);
-				if (zoom || boundary)
+				if (SceneEntity.HasComponent<gte::OrthographicCameraComponent>())//PerspectiveCameraComponent
 				{
-					glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-					box *= glm::vec2(cam.AspectRatio, 1.0f);
-					cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
-					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+					auto& ortho = SceneEntity.GetComponent<gte::OrthographicCameraComponent>();
+					settings.MinFloat = 0.1f;
+					const bool zoom = gte::gui::DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings);
+					settings.MinFloat = 0.5f;
+					const bool boundary = gte::gui::DrawFloatControl("Vertical Boundary", ortho.VerticalBoundary, settings);
+					if (zoom || boundary)
+					{
+						glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
+						box *= glm::vec2(cam.AspectRatio, 1.0f);
+						cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+						cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+					}
+				}
+				if (SceneEntity.HasComponent<gte::PerspectiveCameraComponent>())
+				{
+					auto& persp = SceneEntity.GetComponent<gte::PerspectiveCameraComponent>();
+					bool changed = gte::gui::DrawVec3Control("Target", persp.Target, settings, "Position in the world that the camera is looking at");
+					settings.MaxFloat = 180.0f;
+					settings.MinFloat = 30.0f;
+					settings.Speed = 0.25f;
+					if (gte::gui::DrawFloatControl("Field of View", persp.FoV, settings, "Camera's field of view"))
+						changed = true;
+					settings.MinFloat = 0.1f;
+					settings.MaxFloat = FLT_MAX;
+					settings.Speed = 0.1f;
+					if (gte::gui::DrawFloatControl("Near", persp.Near, settings, "Camera's near plane"))
+						changed = true;
+					settings.MinFloat = persp.Near + 0.1f;
+					settings.MaxFloat = FLT_MAX;
+					settings.Speed = 0.1f;
+					if (gte::gui::DrawFloatControl("Far", persp.Far, settings, "Camera's far plane"))
+						changed = true;
+
+					if (changed)
+					{
+						cam.ViewMatrix = glm::lookAt(tc.Position, persp.Target, persp.UpVector);
+						cam.ProjectionMatrix = glm::perspective(persp.FoV, cam.AspectRatio, persp.Near, persp.Far);
+						cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+					}
 				}
 			});
 			
@@ -818,18 +847,16 @@ bool CupOfTea::DrawGuizmo(void)
 
 	Scene* ActiveScene = internal::GetContext()->ActiveScene;
 	Entity EditorCamera = ActiveScene->FindEntityWithUUID({});
-	const auto& ortho = EditorCamera.GetComponent<OrthographicCameraComponent>();
+	const auto& persp = EditorCamera.GetComponent<PerspectiveCameraComponent>();
 	const auto& cam = EditorCamera.GetComponent<CameraComponent>();
 	const auto& camTC = EditorCamera.GetComponent<TransformComponent>();
 
-	ImGuizmo::SetOrthographic(true);
+	ImGuizmo::SetOrthographic(false);
 	ImGuizmo::SetDrawlist();
 	ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 
-	glm::mat4 ViewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), { camTC.Position.x, camTC.Position.y, 1.0f }));
-	glm::vec2 box = glm::vec2(ortho.VerticalBoundary * cam.AspectRatio, ortho.VerticalBoundary);
-	box *= ortho.ZoomLevel;
-	glm::mat4 ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, 0.0f, 2.0f);
+	glm::mat4 ViewMatrix = glm::lookAt(camTC.Position, persp.Target, persp.UpVector);
+	glm::mat4 ProjectionMatrix = glm::perspective(persp.FoV, cam.AspectRatio, persp.Near, persp.Far);
 
 	auto& tc = SelectedEntity.GetComponent<TransformComponent>();
 	glm::mat4 rotation = glm::toMat4(glm::quat(glm::radians(tc.Rotation)));

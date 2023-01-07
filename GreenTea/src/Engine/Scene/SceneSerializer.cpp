@@ -98,15 +98,20 @@ namespace gte::internal {
 					tc.Rotation = transform["Rotation"].as<glm::vec3>();
 
 					const auto& camera = entityNode["CameraComponent"];
-					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
-					ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
-					ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
 					auto& cam = entity.GetComponent<CameraComponent>();
 					cam.Primary = camera["Primary"].as<bool>();
 					cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
 					cam.MasterVolume = camera["MasterVolume"].as<float>();
 					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 
+					if (const auto& perspect = camera["PerspectiveCameraComponent"])
+					{
+						auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+						persp.Target = perspect["Target"].as<glm::vec3>();
+						persp.FoV = perspect["FoV"].as<float>();
+						persp.Near = perspect["Near"].as<float>();
+						persp.Far = perspect["Far"].as<float>();
+					}
 
 					const auto& settings = entityNode["Settings"];
 					auto& sett = entity.GetComponent<Settings>();
@@ -114,7 +119,7 @@ namespace gte::internal {
 					sett.Rate = settings["Rate"].as<int32>();
 					sett.VelocityIterations = settings["VelocityIterations"].as<int32>();
 					sett.PositionIterations = settings["PositionIterations"].as<int32>();
-					sett.CameraVelocity = settings["CameraVelocity"].as<glm::vec2>();
+					sett.CameraVelocity = settings["CameraVelocity"].as<float>();
 					continue;
 				}
 
@@ -122,7 +127,7 @@ namespace gte::internal {
 				Entity entity = mScene->CreateEntityWithUUID(entityUUID, name);
 
 				//Check for other components expect Relationship
-				const auto& transform = entityNode["Transform2DComponent"];
+				const auto& transform = entityNode["TransformComponent"];
 				if (transform)
 				{
 					auto& tc = entity.GetComponent<TransformComponent>();
@@ -177,16 +182,28 @@ namespace gte::internal {
 				if (camera)
 				{
 					auto& cam = entity.AddComponent<CameraComponent>();
+					cam.MasterVolume = camera["MasterVolume"].as<float>();
+					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 					cam.Primary = camera["Primary"].as<bool>();
 					cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
 					if (cam.FixedAspectRatio)
 						cam.AspectRatio = camera["AspectRatio"].as<float>();
-					cam.MasterVolume = camera["MasterVolume"].as<float>();
-					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 
-					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
-					ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
-					ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
+					if (const auto& orthographic = camera["OrthographicCameraComponent"])
+					{
+						entity.RemoveComponent<PerspectiveCameraComponent>();
+						auto& ortho = entity.AddComponent<OrthographicCameraComponent>();
+						ortho.ZoomLevel = orthographic["ZoomLevel"].as<float>();
+						ortho.VerticalBoundary = orthographic["VerticalBoundary"].as<float>();
+					}
+					if (const auto& perspect = camera["PerspectiveCameraComponent"])
+					{
+						auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+						persp.Target = perspect["Target"].as<glm::vec3>();
+						persp.FoV = perspect["FoV"].as<float>();
+						persp.Near = perspect["Near"].as<float>();
+						persp.Far = perspect["Far"].as<float>();
+					}
 				}
 
 				const auto& rigidbody = entityNode["Rigidbody2DComponent"];
@@ -535,7 +552,7 @@ namespace gte::internal {
 
 		if (entity.HasComponent<TransformComponent>())
 		{
-			out << YAML::Key << "Transform2DComponent";
+			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
 
 			const auto& tc = entity.GetComponent<TransformComponent>();
@@ -595,18 +612,35 @@ namespace gte::internal {
 
 		if (entity.HasComponent<CameraComponent>())
 		{
-			const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 			const auto& cam = entity.GetComponent<CameraComponent>();
 			out << YAML::Key << "CameraComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "ZoomLevel" << YAML::Value << ortho.ZoomLevel;
-			out << YAML::Key << "VerticalBoundary" << YAML::Value << ortho.VerticalBoundary;
-			if(cam.FixedAspectRatio)
-				out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
 			out << YAML::Key << "Primary" << YAML::Value << cam.Primary;
 			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cam.FixedAspectRatio;
 			out << YAML::Key << "MasterVolume" << YAML::Value << cam.MasterVolume;
 			out << YAML::Key << "DistanceModel" << YAML::Value << (uint16)cam.Model;
+			if(cam.FixedAspectRatio)
+				out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
+			if (entity.HasComponent<OrthographicCameraComponent>())
+			{
+				const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
+				out << YAML::Key << "OrthographicCameraComponent";
+				out << YAML::BeginMap;
+				out << YAML::Key << "ZoomLevel" << YAML::Value << ortho.ZoomLevel;
+				out << YAML::Key << "VerticalBoundary" << YAML::Value << ortho.VerticalBoundary;
+				out << YAML::EndMap;
+			}
+			else if (entity.HasComponent<PerspectiveCameraComponent>())
+			{
+				const auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+				out << YAML::Key << "PerspectiveCameraComponent";
+				out << YAML::BeginMap;
+				out << YAML::Key << "Target" << YAML::Value << persp.Target;
+				out << YAML::Key << "FoV" << YAML::Value << persp.FoV;
+				out << YAML::Key << "Near" << YAML::Value << persp.Near;
+				out << YAML::Key << "Far" << YAML::Value << persp.Far;
+				out << YAML::EndMap;
+			}
 			out << YAML::EndMap;
 		}
 

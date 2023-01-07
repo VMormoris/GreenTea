@@ -149,6 +149,25 @@ namespace gte {
 
 	};
 
+	struct ENGINE_API PerspectiveCameraComponent {
+		glm::vec3 Target{ 0.0f, 0.0f, 0.0f };
+		glm::vec3 UpVector{ 0.0f, 1.0f, 0.0f };
+		float FoV = 60.0f;
+		float Near = 0.1f;
+		float Far = 1500.0f;
+
+		PerspectiveCameraComponent(void) = default;
+		PerspectiveCameraComponent(const PerspectiveCameraComponent&) = default;
+		PerspectiveCameraComponent(const glm::vec3& target, float fov)
+			: Target(target), FoV(fov) {}
+
+		PerspectiveCameraComponent(const glm::vec3& target, glm::vec3 upVector, float fov)
+			: Target(target), UpVector(upVector), FoV(fov) {}
+
+		PerspectiveCameraComponent(const glm::vec3& target, const glm::vec3& upVector, float fov, float near, float far)
+			: Target(target), UpVector(upVector), FoV(fov), Near(near), Far(far) {}
+
+	};
 
 	enum class ENGINE_API DistanceModel : byte {
 		None = 0,
@@ -257,7 +276,7 @@ namespace gte {
 		int32 VelocityIterations = 6;
 		int32 PositionIterations = 2;
 
-		glm::vec2 CameraVelocity = {9.0f, 9.0f};
+		float CameraVelocity  = 10.0f;
 		
 		Settings(void) = default;
 		Settings(const Settings&) = default;

@@ -233,7 +233,7 @@ namespace gte {
 			Entity entity = CreateEntity(name, false);
 			map.insert({ id, entity });
 
-			const auto& transform = entityNode["Transform2DComponent"];
+			const auto& transform = entityNode["TransformComponent"];
 			if (transform)
 			{
 				auto& tc = entity.GetComponent<TransformComponent>();
@@ -286,16 +286,28 @@ namespace gte {
 			if (camera)
 			{
 				auto& cam = entity.AddComponent<CameraComponent>();
+				cam.MasterVolume = camera["MasterVolume"].as<float>();
+				cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 				cam.Primary = camera["Primary"].as<bool>();
 				cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
 				if (cam.FixedAspectRatio)
 					cam.AspectRatio = camera["AspectRatio"].as<float>();
-				cam.MasterVolume = camera["MasterVolume"].as<float>();
-				cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 
-				auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
-				ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
-				ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
+				if (const auto& orthographic = camera["OrthographicCameraComponent"])
+				{
+					entity.RemoveComponent<PerspectiveCameraComponent>();
+					auto& ortho = entity.AddComponent<OrthographicCameraComponent>();
+					ortho.ZoomLevel = orthographic["ZoomLevel"].as<float>();
+					ortho.VerticalBoundary = orthographic["VerticalBoundary"].as<float>();
+				}
+				if (const auto& perspect = camera["PerspectiveCameraComponent"])
+				{
+					auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+					persp.Target = perspect["Target"].as<glm::vec3>();
+					persp.FoV = perspect["FoV"].as<float>();
+					persp.Near = perspect["Near"].as<float>();
+					persp.Far = perspect["Far"].as<float>();
+				}
 			}
 
 			const auto& rigidbody = entityNode["Rigidbody2DComponent"];
@@ -927,9 +939,15 @@ namespace gte {
 
 		if (entity.HasComponent<CameraComponent>())
 		{
-			const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 			auto& cam = entity.GetComponent<CameraComponent>();
-			cam.ViewMatrix = glm::inverse(transform.Transform);
+			if(entity.HasComponent<OrthographicCameraComponent>())
+				cam.ViewMatrix = glm::inverse(transform.Transform);
+			else if (entity.HasComponent<PerspectiveCameraComponent>())
+			{
+				auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+				const auto& tc = entity.GetComponent<TransformationComponent>();
+				cam.ViewMatrix = glm::lookAt(glm::vec3(tc.Transform[3]), persp.Target, persp.UpVector);
+			}
 			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 		}
 
@@ -969,11 +987,20 @@ namespace gte {
 			if (!cam.FixedAspectRatio)
 			{
 				cam.AspectRatio = aspectRatio;
-				auto& ortho = mReg.get<OrthographicCameraComponent>(entityID);
-				glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-				box *= glm::vec2(cam.AspectRatio, 1.0f);
-				cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
-				cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+				if (mReg.any_of<OrthographicCameraComponent>(entityID))
+				{
+					auto& ortho = mReg.get<OrthographicCameraComponent>(entityID);
+					glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
+					box *= glm::vec2(cam.AspectRatio, 1.0f);
+					cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+				}
+				else if (mReg.any_of<PerspectiveCameraComponent>(entityID))
+				{
+					auto& persp = mReg.get<PerspectiveCameraComponent>(entityID);
+					cam.ProjectionMatrix = glm::perspective(persp.FoV, cam.AspectRatio, persp.Near, persp.Far);
+					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+				}
 			}
 		}
 	}
@@ -1592,12 +1619,14 @@ void DestroyTransform(entt::registry& reg, entt::entity entityID)
 		reg.remove<gte::TransformationComponent>(entityID);
 }
 
-void CreateCamera(entt::registry& reg, entt::entity entityID) { reg.emplace<gte::OrthographicCameraComponent>(entityID); }
+void CreateCamera(entt::registry& reg, entt::entity entityID) { reg.emplace<gte::PerspectiveCameraComponent>(entityID); }
 
 void DestroyCamera(entt::registry& reg, entt::entity entityID)
 {
 	if (reg.all_of<gte::OrthographicCameraComponent>(entityID))
 		reg.remove<gte::OrthographicCameraComponent>(entityID);
+	if (reg.all_of<gte::PerspectiveCameraComponent>(entityID))
+		reg.remove<gte::PerspectiveCameraComponent>(entityID);
 }
 
 void CreateParticleSystem(entt::registry& reg, entt::entity entityID)
