@@ -5,6 +5,9 @@
 #include <IconsForkAwesome.h>
 #include <ImGuizmo.h>
 #include "imspinner.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 #include <gtc/matrix_transform.hpp>
 
 #include <fstream>
@@ -33,7 +36,7 @@ void CupOfTea::Update(float dt)
 	gte::Entity EditorCamera = scene->FindEntityWithUUID({});
 	if (sGameEvents && !gte::internal::GetContext()->Playing)
 	{
-		auto& tc = EditorCamera.GetComponent<gte::Transform2DComponent>();
+		auto& tc = EditorCamera.GetComponent<gte::TransformComponent>();
 		const auto& settings = EditorCamera.GetComponent<gte::Settings>();
 		bool changed = false;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::W))
@@ -469,7 +472,7 @@ void CupOfTea::RenderGUI(void)
 			
 			gte::gui::DrawComponent<gte::CameraComponent>(ICON_FK_CAMERA_RETRO, "Editor's Camers", SceneEntity, [&](auto& cam) {
 				gte::gui::UISettings settings;
-				auto& tc = SceneEntity.GetComponent<gte::Transform2DComponent>();
+				auto& tc = SceneEntity.GetComponent<gte::TransformComponent>();
 				glm::vec2 pos = { tc.Position.x, tc.Position.y };
 				if (gte::gui::DrawVec2Control("Position", pos, settings))
 				{
@@ -810,14 +813,14 @@ bool CupOfTea::DrawGuizmo(void)
 	Entity SelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
 	if (!SelectedEntity)
 		return false;
-	if (!SelectedEntity.HasComponent<Transform2DComponent>())
+	if (!SelectedEntity.HasComponent<TransformComponent>())
 		return false;
 
 	Scene* ActiveScene = internal::GetContext()->ActiveScene;
 	Entity EditorCamera = ActiveScene->FindEntityWithUUID({});
 	const auto& ortho = EditorCamera.GetComponent<OrthographicCameraComponent>();
 	const auto& cam = EditorCamera.GetComponent<CameraComponent>();
-	const auto& camTC = EditorCamera.GetComponent<Transform2DComponent>();
+	const auto& camTC = EditorCamera.GetComponent<TransformComponent>();
 
 	ImGuizmo::SetOrthographic(true);
 	ImGuizmo::SetDrawlist();
@@ -828,10 +831,11 @@ bool CupOfTea::DrawGuizmo(void)
 	box *= ortho.ZoomLevel;
 	glm::mat4 ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, 0.0f, 2.0f);
 
-	auto& tc = SelectedEntity.GetComponent<Transform2DComponent>();
+	auto& tc = SelectedEntity.GetComponent<TransformComponent>();
+	glm::mat4 rotation = glm::toMat4(glm::quat(glm::radians(tc.Rotation)));
 	glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Position) *
-		glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), glm::vec3(0.0f, 0.0f, 1.0f)) *
-		glm::scale(glm::mat4(1.0f), glm::vec3(tc.Scale.x, tc.Scale.y, 1.0f));
+		rotation *
+		glm::scale(glm::mat4(1.0f), tc.Scale);
 
 	//Check ansector's for transform and Manipulate accordigly
 	const auto& rel = SelectedEntity.GetComponent<RelationshipComponent>();
@@ -877,8 +881,8 @@ bool CupOfTea::DrawGuizmo(void)
 		glm::vec3 Position, Rotation, Scale;
 		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(Position), glm::value_ptr(Rotation), glm::value_ptr(Scale));
 		tc.Position = Position;
-		tc.Scale = glm::vec2(Scale.x, Scale.y);
-		const float delta = Rotation.z - tc.Rotation;
+		tc.Scale = Scale;
+		const glm::vec3 delta = Rotation - tc.Rotation;
 		tc.Rotation += delta;
 		ActiveScene->UpdateTransform(SelectedEntity);
 		return true;

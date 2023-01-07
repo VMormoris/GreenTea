@@ -91,11 +91,11 @@ namespace gte::internal {
 				if (!entityUUID.IsValid())//Special Entity for scene stuff
 				{
 					Entity entity = mScene->FindEntityWithUUID(entityUUID);
-					const auto& transform = entityNode["Transform2DComponent"];
-					auto& tc = entity.GetComponent<Transform2DComponent>();
+					const auto& transform = entityNode["TransformComponent"];
+					auto& tc = entity.GetComponent<TransformComponent>();
 					tc.Position = transform["Position"].as<glm::vec3>();
-					tc.Scale = transform["Scale"].as<glm::vec2>();
-					tc.Rotation = transform["Rotation"].as<float>();
+					tc.Scale = transform["Scale"].as<glm::vec3>();
+					tc.Rotation = transform["Rotation"].as<glm::vec3>();
 
 					const auto& camera = entityNode["CameraComponent"];
 					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
@@ -125,12 +125,12 @@ namespace gte::internal {
 				const auto& transform = entityNode["Transform2DComponent"];
 				if (transform)
 				{
-					auto& tc = entity.GetComponent<Transform2DComponent>();
+					auto& tc = entity.GetComponent<TransformComponent>();
 					if (!entity.HasComponent<TransformationComponent>())//For some weird reason on_construct doesn't always work
 						entity.AddComponent<TransformationComponent>();
 					tc.Position = transform["Position"].as<glm::vec3>();
-					tc.Scale = transform["Scale"].as<glm::vec2>();
-					tc.Rotation = transform["Rotation"].as<float>();
+					tc.Scale = transform["Scale"].as<glm::vec3>();
+					tc.Rotation = transform["Rotation"].as<glm::vec3>();
 				}
 
 				const auto& renderable = entityNode["SpriteRendererComponent"];
@@ -533,12 +533,12 @@ namespace gte::internal {
 			out << YAML::EndMap;
 		}
 
-		if (entity.HasComponent<Transform2DComponent>())
+		if (entity.HasComponent<TransformComponent>())
 		{
 			out << YAML::Key << "Transform2DComponent";
 			out << YAML::BeginMap;
 
-			const auto& tc = entity.GetComponent<Transform2DComponent>();
+			const auto& tc = entity.GetComponent<TransformComponent>();
 			out << YAML::Key << "Position" << YAML::Value << tc.Position;
 			out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
 			out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;

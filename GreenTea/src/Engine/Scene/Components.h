@@ -73,14 +73,14 @@ namespace gte {
 	* @brief Position, Scale and Orientation for an object in 2D space
 	* @details Always in local space
 	*/
-	struct ENGINE_API Transform2DComponent {
+	struct ENGINE_API TransformComponent {
 		glm::vec3 Position{ 0.0f, 0.0f, 0.0f };
-		glm::vec2 Scale{ 1.0f, 1.0f };
-		float Rotation = 0.0f;
+		glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
+		glm::vec3 Rotation{ 0.0f, 0.0f, 0.0f };
 
-		Transform2DComponent(void) = default;
-		Transform2DComponent(const Transform2DComponent&) = default;
-		Transform2DComponent(const glm::vec3& position, const glm::vec2& scale, float rotation)
+		TransformComponent(void) = default;
+		TransformComponent(const TransformComponent&) = default;
+		TransformComponent(const glm::vec3& position, const glm::vec3& scale, const glm::vec3& rotation)
 			: Position(position), Scale(scale), Rotation(rotation) {}
 	};
 
@@ -298,5 +298,5 @@ namespace gte {
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent, AnimationComponent>;
+	using AllComponents = ComponentGroup<TransformComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent, AnimationComponent>;
 }

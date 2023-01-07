@@ -12,7 +12,9 @@
 //glm
 #include <gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 #include <gtx/compatibility.hpp>
+
 // Box2D
 #include <box2d/b2_world.h>
 #include <box2d/b2_body.h>
@@ -22,8 +24,8 @@
 //openal-soft
 #include <AL/al.h>
 
-static void CreateTransform2D(entt::registry& reg, entt::entity entityID);
-static void DestroyTransform2D(entt::registry& reg, entt::entity entityID);
+static void CreateTransform(entt::registry& reg, entt::entity entityID);
+static void DestroyTransform(entt::registry& reg, entt::entity entityID);
 
 static void CreateCamera(entt::registry& reg, entt::entity entityID);
 static void DestroyCamera(entt::registry& reg, entt::entity entityID);
@@ -193,7 +195,7 @@ namespace gte {
 		mReg.emplace<IDComponent>(entityID, id);
 		mReg.emplace<TagComponent>(entityID, tag);
 		mReg.emplace<RelationshipComponent>(entityID);
-		mReg.emplace<Transform2DComponent>(entityID);
+		mReg.emplace<TransformComponent>(entityID);
 		if (useLock)
 			mRegMutex.unlock();
 		return { entityID, this };
@@ -234,10 +236,10 @@ namespace gte {
 			const auto& transform = entityNode["Transform2DComponent"];
 			if (transform)
 			{
-				auto& tc = entity.GetComponent<Transform2DComponent>();
+				auto& tc = entity.GetComponent<TransformComponent>();
 				tc.Position = transform["Position"].as<glm::vec3>();
-				tc.Scale = transform["Scale"].as<glm::vec2>();
-				tc.Rotation = transform["Rotation"].as<float>();
+				tc.Scale = transform["Scale"].as<glm::vec3>();
+				tc.Rotation = transform["Rotation"].as<glm::vec3>();
 			}
 
 			const auto& renderable = entityNode["SpriteRendererComponent"];
@@ -655,9 +657,9 @@ namespace gte {
 				gte::math::DecomposeTransform(tc, pos, scale, rotation);
 				{//Save previous Physics Tick on a different Registry
 					auto entt = mPhysicsReg.create(entity);
-					auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+					auto& prevTC = mPhysicsReg.emplace<TransformComponent>(entt);
 					prevTC.Position = pos;
-					prevTC.Rotation = rotation.z;
+					prevTC.Rotation = rotation;
 				}
 				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
@@ -687,9 +689,9 @@ namespace gte {
 				gte::math::DecomposeTransform(tc, pos, scale, rotation);
 				{//Save previous Physics Tick on a different Registry
 					auto entt = mPhysicsReg.create(entity);
-					auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+					auto& prevTC = mPhysicsReg.emplace<TransformComponent>(entt);
 					prevTC.Position = pos;
-					prevTC.Rotation = rotation.z;
+					prevTC.Rotation = { 0.0f, 0.0f, rotation.z };
 				}
 				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
@@ -899,9 +901,11 @@ namespace gte {
 	{
 		if (useLock)
 			mRegMutex.lock();
-		const auto& tc = entity.GetComponent<Transform2DComponent>();
+		const auto& tc = entity.GetComponent<TransformComponent>();
 		auto& transform = entity.GetComponent<TransformationComponent>();
-		transform.Transform = glm::translate(glm::mat4(1.0f), tc.Position) * glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
+
+		glm::mat4 rotarion = glm::toMat4(glm::quat(glm::radians(tc.Rotation)));
+		transform.Transform = glm::translate(glm::mat4(1.0f), tc.Position) * rotarion * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
 
 		if (entity.HasComponent<RelationshipComponent>())
 		{
@@ -935,8 +939,8 @@ namespace gte {
 
 	Scene::Scene(void)
 	{
-		mReg.on_construct<Transform2DComponent>().connect<&CreateTransform2D>();
-		mReg.on_destroy<Transform2DComponent>().connect<&DestroyTransform2D>();
+		mReg.on_construct<TransformComponent>().connect<&CreateTransform>();
+		mReg.on_destroy<TransformComponent>().connect<&DestroyTransform>();
 		mReg.on_construct<CameraComponent>().connect<&CreateCamera>();
 		mReg.on_destroy<CameraComponent>().connect<&DestroyCamera>();
 
@@ -949,7 +953,7 @@ namespace gte {
 
 		auto me = mReg.create();
 		mReg.emplace<IDComponent>(me);
-		mReg.emplace<Transform2DComponent>(me);
+		mReg.emplace<TransformComponent>(me);
 		mReg.emplace<CameraComponent>(me);
 		mReg.emplace<Settings>(me);
 	}
@@ -1000,10 +1004,10 @@ namespace gte {
 		const auto& tag = source.GetComponent<TagComponent>().Tag;
 		destination.GetComponent<TagComponent>().Tag = tag;
 
-		if (source.HasComponent<Transform2DComponent>())
+		if (source.HasComponent<TransformComponent>())
 		{
-			const auto& srcTC = source.GetComponent<Transform2DComponent>();
-			auto& dstTC = destination.GetComponent<Transform2DComponent>();
+			const auto& srcTC = source.GetComponent<TransformComponent>();
+			auto& dstTC = destination.GetComponent<TransformComponent>();
 			dstTC = srcTC;
 
 			UpdateTransform(destination, false);
@@ -1101,7 +1105,7 @@ namespace gte {
 		{//Special entity for scene stuff
 			auto dstEntityID = (entt::entity)newScene->FindEntityWithUUID({}, false);
 			auto srcEntityID = (entt::entity)other->FindEntityWithUUID({}, false);
-			dstReg.emplace_or_replace<Transform2DComponent>(dstEntityID, srcReg.get<Transform2DComponent>(srcEntityID));
+			dstReg.emplace_or_replace<TransformComponent>(dstEntityID, srcReg.get<TransformComponent>(srcEntityID));
 			dstReg.emplace_or_replace<CameraComponent>(dstEntityID, srcReg.get<CameraComponent>(srcEntityID));
 			dstReg.emplace_or_replace<OrthographicCameraComponent>(dstEntityID, srcReg.get<OrthographicCameraComponent>(srcEntityID));
 			dstReg.emplace_or_replace<Settings>(dstEntityID, srcReg.get<Settings>(srcEntityID));
@@ -1295,7 +1299,7 @@ namespace gte {
 		const float tickRate = 1.0f / settings.Rate;
 		const float deltaTime = mAccumulator / tickRate;
 
-		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>);
+		auto group = mReg.group<Rigidbody2DComponent>(entt::get<TransformComponent, TransformationComponent>);
 		for (auto&& [entityID, rb, tc, transform] : group.each())
 		{
 			if (rb.Type == BodyType::Static)
@@ -1311,9 +1315,9 @@ namespace gte {
 				
 				const glm::vec3 targetPos = { body->GetPosition().x, body->GetPosition().y, pos.z };
 				const float targetAngle = body->GetAngle();
-				const auto& prevTC = mPhysicsReg.get<Transform2DComponent>(entityID);
+				const auto& prevTC = mPhysicsReg.get<TransformComponent>(entityID);
 				pos = glm::lerp(prevTC.Position, targetPos, deltaTime);
-				rotation.z = glm::lerp(prevTC.Rotation, targetAngle, deltaTime);
+				rotation.z = glm::lerp(prevTC.Rotation.z, targetAngle, deltaTime);
 			}
 			else
 			{
@@ -1335,12 +1339,12 @@ namespace gte {
 				glm::vec3 lpos, lscale, lrotation;
 				math::DecomposeTransform(local, lpos, lscale, lrotation);
 				tc.Position = { lpos.x, lpos.y, tc.Position.z };
-				tc.Rotation = glm::degrees(lrotation.z);
+				tc.Rotation = { tc.Rotation.x, tc.Rotation.y, glm::degrees(lrotation.z) };
 			}
 			else
 			{
 				tc.Position = { pos.x, pos.y, tc.Position.z };
-				tc.Rotation = glm::degrees(rotation.z);
+				tc.Rotation = { tc.Rotation.x, tc.Rotation.y, glm::degrees(rotation.z) };
 			}
 		}
 
@@ -1370,11 +1374,11 @@ namespace gte {
 
 	void Scene::InformEngine(entt::entity entityID, Rigidbody2DComponent& rb, TransformationComponent& tc)
 	{
-		auto& prevTC = mPhysicsReg.get<Transform2DComponent>(entityID);
+		auto& prevTC = mPhysicsReg.get<TransformComponent>(entityID);
 		const auto& relc = mReg.get<RelationshipComponent>(entityID);
 		
 		b2Body* body = (b2Body*)rb.Body;
-		prevTC.Rotation = body->GetAngle();
+		prevTC.Rotation = { prevTC.Rotation.x, prevTC.Rotation.y, glm::degrees(body->GetAngle()) };
 
 		bool World = relc.Parent != entt::null;
 		if (World)
@@ -1385,16 +1389,16 @@ namespace gte {
 			world = glm::inverse(pTransform) * world;
 			glm::vec3 pos, scale, rotation;
 			math::DecomposeTransform(world, pos, scale, rotation);
-			auto& transform = mReg.get<Transform2DComponent>(entityID);
+			auto& transform = mReg.get<TransformComponent>(entityID);
 			transform.Position = { pos.x , pos.y, transform.Position.z };
-			transform.Rotation = glm::degrees(rotation.z);
+			transform.Rotation = { transform.Rotation.x, transform.Rotation.y, glm::degrees(rotation.z) };
 			prevTC.Position = { body->GetPosition().x, body->GetPosition().y, transform.Position.z };
 		}
 		else
 		{
-			auto& transform = mReg.get<Transform2DComponent>(entityID);
+			auto& transform = mReg.get<TransformComponent>(entityID);
 			transform.Position = { body->GetPosition().x, body->GetPosition().y, transform.Position.z };
-			transform.Rotation = glm::degrees(body->GetAngle());
+			transform.Rotation = { transform.Rotation.x, transform.Rotation.y, glm::degrees(body->GetAngle()) };
 			prevTC.Position = { body->GetPosition().x, body->GetPosition().y, transform.Position.z };
 		}
 		rb.Velocity = { body->GetLinearVelocity().x , body->GetLinearVelocity().y };
@@ -1432,9 +1436,9 @@ namespace gte {
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
 			{//Save previous Physics Tick on a different Registry
 				auto entt = mPhysicsReg.create(entityID);
-				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+				auto& prevTC = mPhysicsReg.emplace<TransformComponent>(entt);
 				prevTC.Position = pos;
-				prevTC.Rotation = rotation.z;
+				prevTC.Rotation = rotation;
 			}
 			b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 			b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
@@ -1460,9 +1464,9 @@ namespace gte {
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
 			{//Save previous Physics Tick on a different Registry
 				auto entt = mPhysicsReg.create(entityID);
-				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
+				auto& prevTC = mPhysicsReg.emplace<TransformComponent>(entt);
 				prevTC.Position = pos;
-				prevTC.Rotation = rotation.z;
+				prevTC.Rotation = rotation;
 			}
 			b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
 			b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
@@ -1488,7 +1492,7 @@ namespace gte {
 	{
 		delete mPhysicsWorld;
 		mPhysicsWorld = nullptr;
-		mPhysicsReg.clear<Transform2DComponent>();
+		mPhysicsReg.clear<TransformComponent>();
 	}
 
 	void Scene::PatchScripts(void)
@@ -1566,12 +1570,13 @@ namespace gte {
 
 }
 
-void CreateTransform2D(entt::registry& reg, entt::entity entityID)
+void CreateTransform(entt::registry& reg, entt::entity entityID)
 {
-	const auto& tc = reg.get<gte::Transform2DComponent>(entityID);
+	const auto& tc = reg.get<gte::TransformComponent>(entityID);
 	auto& transform = reg.emplace<gte::TransformationComponent>(entityID);
 
-	glm::mat4 transformation = glm::translate(glm::mat4(1.0f), tc.Position) * glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
+	glm::mat4 rotarion = glm::toMat4(glm::quat(glm::radians(tc.Rotation)));
+	glm::mat4 transformation = glm::translate(glm::mat4(1.0f), tc.Position) * rotarion * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
 
 	if (auto* rc = reg.try_get<gte::RelationshipComponent>(entityID); rc && rc->Parent != entt::null)
 	{
@@ -1581,7 +1586,7 @@ void CreateTransform2D(entt::registry& reg, entt::entity entityID)
 	transform.Transform = transformation;
 }
 
-void DestroyTransform2D(entt::registry& reg, entt::entity entityID)
+void DestroyTransform(entt::registry& reg, entt::entity entityID)
 {
 	if (reg.all_of<gte::TransformationComponent>(entityID))
 		reg.remove<gte::TransformationComponent>(entityID);
