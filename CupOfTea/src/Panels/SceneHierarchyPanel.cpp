@@ -343,14 +343,14 @@ namespace gte {
 		{
 			gui::DrawComponent<Transform2DComponent>(ICON_FK_CUBE, "Transform 2D Component", entity, [&](auto& tc) {
 				static int32 world = 0;
-				//ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				//ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
-				//ImGui::Button("##dummy", {0.0f, 0.0f});
-				//ImGui::PopStyleColor();
-				//ImGui::PopItemFlag();
-				//ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - 156.0f);
-				//ImGui::Text("Local"); ImGui::SameLine(); ImGui::RadioButton("##local", &world, 0); ImGui::SameLine();
-				//ImGui::Text("World"); ImGui::SameLine(); ImGui::RadioButton("##world", &world, 1);
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
+				ImGui::Button("##dummy", {0.0f, 0.0f});
+				ImGui::PopStyleColor();
+				ImGui::PopItemFlag();
+				ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - 156.0f);
+				ImGui::Text("Local"); ImGui::SameLine(); ImGui::RadioButton("##local", &world, 0); ImGui::SameLine();
+				ImGui::Text("World"); ImGui::SameLine(); ImGui::RadioButton("##world", &world, 1);
 
 				if (!world)
 				{
@@ -404,42 +404,23 @@ namespace gte {
 					{
 						transformation = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), scale);
 						const auto& rel = entity.GetComponent<RelationshipComponent>();
-						bool found = false;
-						glm::mat4 pTransformation;
-						if (rel.Parent != entt::null)
+						if (rel.Parent == entt::null)
 						{
-							Scene* scene = gte::internal::GetContext()->ActiveScene;
-							Entity parent = { rel.Parent, scene };
-							
-							if (parent.HasComponent<TransformationComponent>())
-							{
-								found = true;
-								pTransformation = parent.GetComponent<TransformationComponent>();
-							}
-							else
-							{
-								auto pID = parent.GetComponent<RelationshipComponent>().Parent;
-								parent = { pID, scene };
-								while (pID != entt::null || !parent.HasComponent<TransformationComponent>())
-								{
-									pID = parent.GetComponent<RelationshipComponent>().Parent;
-									parent = { pID, scene };
-								}
-								if (pID != entt::null)
-								{
-									found = true;
-									pTransformation = parent.GetComponent<TransformationComponent>();
-								}
-							}
+							tc.Position = pos;
+							tc.Scale = { scale.x, scale.y };
+							tc.Rotation = rotation.z;
 						}
-
-						if (found)
-							transformation = glm::inverse(pTransformation) * transformation.Transform;
-						
-						math::DecomposeTransform(transformation, pos, scale, rotation);
-						tc.Position = pos;
-						tc.Scale = { scale.x, scale.y };
-						tc.Rotation = glm::degrees(rotation.z);
+						else
+						{
+							Entity parent = { rel.Parent, internal::GetContext()->ActiveScene };
+							const glm::mat4& ptransform = parent.GetComponent<TransformationComponent>();
+							const glm::mat4 local = glm::inverse(ptransform) * transformation.Transform;
+							math::DecomposeTransform(local, pos, scale, rotation);
+							tc.Position = pos;
+							tc.Scale = { scale.x, scale.y };
+							tc.Rotation = glm::degrees(rotation.z);
+						}
+						internal::GetContext()->ActiveScene->UpdateTransform(entity);
 					}
 				}
 			});

@@ -1,8 +1,10 @@
 #pragma once
 
+#include <Engine/Core/Window.h>
+
 #include <GLFW/glfw3.h>
 
-#include <Engine/Core/Window.h>
+#include <glm.hpp>
 
 namespace gte::GLFW {
 
