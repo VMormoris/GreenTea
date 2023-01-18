@@ -2,6 +2,8 @@
 
   Green Tea engine is a 2D Game Engine that is heavily inspired by [Cherno's](https://thecherno.com/) [Game Engine Series](https://youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT). The Engine currently being developed only by me, on my free time, with the only purpose of helping me understand better how game engines as well as game development works. I will **not** recommend using this Engine for final products. Instead I will advice you to use [Hazel](https://github.com/TheCherno/Hazel) that is being be used and checked by a lot more people, or one of the well established game engines.
 
+_Instalation and other instructions please visit the [wiki](https://github.com/VMormoris/GreenTea/wiki) page._
+
 # Third Party Libraries
 
   * _[box2d](https://box2d.org/) As a physics engine._
@@ -12,6 +14,7 @@
   * _[glm](https://github.com/g-truc/glm) Is used as a math library._
   * _[IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) For using Icon fonts._
   * _[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) Is used for Guizmo controls._
+  * _[imspinner](https://github.com/dalerank/imspinner) For loading animations._
   * _[libsndfile](https://github.com/libsndfile/libsndfile) For reading audio files._
   * _[msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) For generating atlases for font._
   * _[openal-soft](https://github.com/kcat/openal-soft) For playing back audio._

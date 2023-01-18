@@ -421,6 +421,7 @@ void CupOfTea::RenderGUI(void)
 			ImGui::BulletText("glm");
 			ImGui::BulletText("IconFontCppHeaders");
 			ImGui::BulletText("ImGuizmo");
+			ImGui::BulletText("imspinner");
 			ImGui::BulletText("libsndfile");
 			ImGui::BulletText("msdf-atlas-gen");
 			ImGui::BulletText("openal-soft");
