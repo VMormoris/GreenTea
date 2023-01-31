@@ -205,11 +205,13 @@ namespace gte {
 		ImGui::SameLine();
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
 		gui::DrawEditText(tag, 64, sTagEdit);
-		const float offset = ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Add").x + 4;
+		const float offset = ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Add").x - 16.0f;
 		ImGui::SameLine(offset);
-		if (ImGui::Button("Add"))
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+		if (gui::DrawButton(ICON_FK_PUZZLE_PIECE, " Add"))
 			ImGui::OpenPopup("AddComponent");
-		
+		ImGui::PopStyleVar();
+
 		if (ImGui::BeginPopup("AddComponent"))
 		{
 			constexpr char biggest[] = "Circle Collider Component";

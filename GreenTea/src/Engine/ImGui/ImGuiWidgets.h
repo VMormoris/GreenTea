@@ -72,6 +72,8 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawMenuItem(const char* icon, const char* item, const char* shortcut, const char* biggest = "");
 
+	ENGINE_API bool DrawButton(const char* icon, const char* text);
+
 	struct ENGINE_API UISettings {
 		float ColumnWidth = 136.0f;
 		float ResetValue = 0.0f;

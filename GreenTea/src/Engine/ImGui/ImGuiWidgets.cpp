@@ -193,6 +193,48 @@ namespace gte::gui {
 		return pressed;
 	}
 
+	bool DrawButton(const char* icon, const char* text)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		auto IconsFont = io.Fonts->Fonts[3];
+
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		ImGuiContext& g = *GImGui;
+		ImGuiStyle& style = g.Style;
+
+		ImVec2 text_size = ImGui::CalcTextSize(text, NULL, true);
+		ImGui::PushFont(IconsFont);
+		ImVec2 icon_text_size = ImGui::CalcTextSize(icon, NULL, true);
+		ImGui::PopFont();
+
+		ImVec2 size = ImVec2(text_size.x + icon_text_size.x, text_size.y);
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImRect bb(pos, ImVec2(pos.x + size.x + 8.0f, pos.y + size.y + 6.0f));
+		ImGui::ItemSize(bb, style.FramePadding.y);
+
+		if (!ImGui::ItemAdd(bb, 0))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ImGui::ButtonBehavior(bb, window->GetID("##button"), &hovered, &held);
+
+		ImU32 col = ImGui::GetColorU32(hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+		ImGui::GetWindowDrawList()->AddRectFilled(bb.Min, bb.Max, col, style.FrameRounding);
+
+		ImGui::PushFont(IconsFont);
+		ImGui::RenderText(ImVec2(bb.Min.x + style.FramePadding.x, bb.Min.y + style.FramePadding.y), icon);
+		ImGui::PopFont();
+		ImGui::RenderText(ImVec2(bb.Min.x + icon_text_size.x + style.FramePadding.x, bb.Min.y + style.FramePadding.y), text);
+
+		if (pressed)
+			ImGui::MarkItemEdited(window->DC.LastItemId);
+
+		return pressed;
+	}
+
 	bool DrawBoolControl(const char* label, bool& value, const UISettings& settings, const std::string& help)
 	{
 		DrawPrefix(label, settings.ColumnWidth, help);
