@@ -49,7 +49,6 @@ namespace gte {
 			if (ImGui::MenuItem("Camera Entity"))
 			{
 				Entity entity = scene->CreateEntity("Camera");
-				entity.AddComponent<Transform2DComponent>();
 				entity.AddComponent<CameraComponent>();
 				mSelectionContext = entity;
 			}
