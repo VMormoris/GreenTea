@@ -52,6 +52,8 @@ project (ProjectName)
 	filter "system:windows"
 		systemversion "latest"
 		
+		exceptionhandling "SEH"
+
 		defines
 		{
 			"PLATFORM_WINDOWS",

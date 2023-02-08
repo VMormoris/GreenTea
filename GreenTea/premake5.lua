@@ -66,10 +66,14 @@ project "GreenTea"
 			"PLATFORM_WINDOWS",
 		}
 
+		exceptionhandling "SEH"
+
 		links
 		{
 			"Winmm",
 			"opengl32",
+			"dbghelp",
+			"imagehlp",
 		}
 
     filter "configurations:Debug"

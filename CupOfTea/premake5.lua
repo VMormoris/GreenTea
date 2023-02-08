@@ -70,6 +70,8 @@ project "CupOfTea"
 			"PLATFORM_WINDOWS",
 		}
 
+		exceptionhandling "SEH"
+
         links { "opengl32" }
 
     filter "configurations:Debug"

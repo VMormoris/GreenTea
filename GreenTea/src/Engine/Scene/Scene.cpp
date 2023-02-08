@@ -5,6 +5,7 @@
 
 #include <Engine/Assets/Prefab.h>
 #include <Engine/Core/Context.h>
+#include <Engine/Core/Exceptions.h>
 #include <Engine/Core/Math.h>
 #include <Engine/NativeScripting/ScriptableEntity.h>
 #include <Engine/Renderer/Renderer2D.h>
@@ -58,27 +59,44 @@ namespace gte {
 
 		//Handle Scripting logic
 		std::vector<entt::entity> bin;
-		auto scripts = mReg.view<NativeScriptComponent>();
-		for (auto&& [entityID, nc] : scripts.each())
 		{
-			if (nc.State == ScriptState::MustBeInitialized)
+			internal::ScopedSETranslator translator(internal::TranslateFunction);
+			auto scripts = mReg.view<NativeScriptComponent>();
+			for (auto&& [entityID, nc] : scripts.each())
 			{
-				auto name = nc.Description.GetName();
-				std::replace(name.begin(), name.end(), ' ', '_');
-				nc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
-				internal::GetContext()->ScriptEngine->Instantiate(nc.Instance, nc.Description);
-				nc.Instance->mEntity = { entityID, this };
-				nc.Instance->Start();
-				nc.State = ScriptState::Active;
-			}
-			else if (nc.State == ScriptState::Active)
-				nc.Instance->Update(dt);
-			else if (nc.State == ScriptState::MustBeDestroyed)
-			{
-				nc.Instance->Destroy();
-				delete nc.Instance;
-				nc.State = ScriptState::Inactive;
-				bin.push_back(entityID);
+				if (nc.State == ScriptState::MustBeInitialized)
+				{
+					auto name = nc.Description.GetName();
+					std::replace(name.begin(), name.end(), ' ', '_');
+					try
+					{
+						nc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
+						internal::GetContext()->ScriptEngine->Instantiate(nc.Instance, nc.Description);
+						nc.Instance->mEntity = { entityID, this };
+						nc.Instance->Start();
+						nc.State = ScriptState::Active;
+					}
+					catch (RuntimeException e)
+					{
+						nc.State = ScriptState::Inactive;
+						if (nc.Instance)
+							delete nc.Instance;
+						bin.push_back(entityID);
+					}
+				}
+				else if (nc.State == ScriptState::Active)
+				{
+					try { nc.Instance->Update(dt); }
+					catch (RuntimeException e) { nc.State = ScriptState::MustBeDestroyed; }
+				}
+				else if (nc.State == ScriptState::MustBeDestroyed)
+				{
+					try { nc.Instance->Destroy(); }
+					catch (RuntimeException e) { }
+					delete nc.Instance;
+					nc.State = ScriptState::Inactive;
+					bin.push_back(entityID);
+				}
 			}
 		}
 		for (auto entityID : bin)
@@ -620,6 +638,8 @@ namespace gte {
 
 		if (internal::GetContext()->Playing)
 		{
+			std::vector<Entity> bin;
+			internal::ScopedSETranslator translator(internal::TranslateFunction);
 			auto scripts = mReg.view<NativeScriptComponent>();
 			for (auto [id, entity] : map)
 			{
@@ -631,13 +651,25 @@ namespace gte {
 				{
 					auto name = nsc.Description.GetName();
 					std::replace(name.begin(), name.end(), ' ', '_');
-					nsc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
-					internal::GetContext()->ScriptEngine->Instantiate(nsc.Instance, nsc.Description);
-					nsc.Instance->mEntity = entity;
-					nsc.Instance->Start();
-					nsc.State = ScriptState::Active;
+					try
+					{
+						nsc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
+						internal::GetContext()->ScriptEngine->Instantiate(nsc.Instance, nsc.Description);
+						nsc.Instance->mEntity = entity;
+						nsc.Instance->Start();
+						nsc.State = ScriptState::Active;
+					}
+					catch (RuntimeException e)
+					{
+						nsc.State = ScriptState::Inactive;
+						if (nsc.Instance)
+							delete nsc.Instance;
+						bin.emplace_back(entity);
+					}
 				}
 			}
+			for (auto entity : bin)
+				DestroyEntity(entity, false);
 		}
 
 		UpdateTransform(toReturn, false);
@@ -1159,25 +1191,38 @@ namespace gte {
 		std::unique_lock lock(mRegMutex);
 		InformAudioEngine();
 		std::vector<entt::entity> bin;
-		auto scripts = mReg.view<NativeScriptComponent>();
-		for (auto&& [entityID, nc] : scripts.each())
 		{
-			if (nc.State == ScriptState::MustBeInitialized)
+			internal::ScopedSETranslator translator(internal::TranslateFunction);
+			auto scripts = mReg.view<NativeScriptComponent>();
+			for (auto&& [entityID, nc] : scripts.each())
 			{
-				auto name = nc.Description.GetName();
-				std::replace(name.begin(), name.end(), ' ', '_');
-				nc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
-				if (nc.Instance)
+				if (nc.State == ScriptState::MustBeInitialized)
 				{
-					internal::GetContext()->ScriptEngine->Instantiate(nc.Instance, nc.Description);
-					nc.Instance->mEntity = { entityID, this };
-					nc.Instance->Start();
-					nc.State = ScriptState::Active;
-				}
-				else
-				{
-					GTE_ERROR_LOG("Couldn't create instance of object: ", name);
-					bin.push_back(entityID);
+					auto name = nc.Description.GetName();
+					std::replace(name.begin(), name.end(), ' ', '_');
+					try
+					{
+						nc.Instance = internal::GetContext()->DynamicLoader.CreateInstance<ScriptableEntity>(name);
+						if (nc.Instance)
+						{
+							internal::GetContext()->ScriptEngine->Instantiate(nc.Instance, nc.Description);
+							nc.Instance->mEntity = { entityID, this };
+							nc.Instance->Start();
+							nc.State = ScriptState::Active;
+						}
+						else
+						{
+							GTE_ERROR_LOG("Couldn't create instance of object: ", name);
+							bin.push_back(entityID);
+						}
+					}
+					catch(RuntimeException e)
+					{
+						nc.State = ScriptState::Inactive;
+						if (nc.Instance)
+							delete nc.Instance;
+						bin.push_back(entityID);
+					}
 				}
 			}
 		}
@@ -1222,7 +1267,8 @@ namespace gte {
 		{
 			if (!nc.Instance)
 				continue;
-			nc.Instance->Destroy();
+			try { nc.Instance->Destroy(); }
+			catch (RuntimeException e) {}
 			delete nc.Instance;
 			nc.Instance = nullptr;
 		}
