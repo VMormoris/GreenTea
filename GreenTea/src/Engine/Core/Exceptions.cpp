@@ -1,6 +1,5 @@
 #include "Exceptions.h"
 
-//#include <Windows.h>
 #include <DbgHelp.h>
 #include <sstream>
 

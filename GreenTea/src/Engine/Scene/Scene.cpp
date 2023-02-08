@@ -5,7 +5,6 @@
 
 #include <Engine/Assets/Prefab.h>
 #include <Engine/Core/Context.h>
-#include <Engine/Core/Exceptions.h>
 #include <Engine/Core/Math.h>
 #include <Engine/NativeScripting/ScriptableEntity.h>
 #include <Engine/Renderer/Renderer2D.h>
@@ -83,16 +82,25 @@ namespace gte {
 							delete nc.Instance;
 						bin.push_back(entityID);
 					}
+					catch (AssertException e)
+					{
+						nc.State = ScriptState::Inactive;
+						if (nc.Instance)
+							delete nc.Instance;
+						bin.push_back(entityID);
+					}
 				}
 				else if (nc.State == ScriptState::Active)
 				{
 					try { nc.Instance->Update(dt); }
 					catch (RuntimeException e) { nc.State = ScriptState::MustBeDestroyed; }
+					catch (AssertException e) { nc.State = ScriptState::MustBeDestroyed; }
 				}
 				else if (nc.State == ScriptState::MustBeDestroyed)
 				{
 					try { nc.Instance->Destroy(); }
 					catch (RuntimeException e) { }
+					catch (AssertException e) {}
 					delete nc.Instance;
 					nc.State = ScriptState::Inactive;
 					bin.push_back(entityID);
@@ -666,6 +674,13 @@ namespace gte {
 							delete nsc.Instance;
 						bin.emplace_back(entity);
 					}
+					catch (AssertException e)
+					{
+						nsc.State = ScriptState::Inactive;
+						if (nsc.Instance)
+							delete nsc.Instance;
+						bin.emplace_back(entity);
+					}
 				}
 			}
 			for (auto entity : bin)
@@ -1223,6 +1238,13 @@ namespace gte {
 							delete nc.Instance;
 						bin.push_back(entityID);
 					}
+					catch (AssertException e)
+					{
+						nc.State = ScriptState::Inactive;
+						if (nc.Instance)
+							delete nc.Instance;
+						bin.push_back(entityID);
+					}
 				}
 			}
 		}
@@ -1269,6 +1291,7 @@ namespace gte {
 				continue;
 			try { nc.Instance->Destroy(); }
 			catch (RuntimeException e) {}
+			catch (AssertException e) {}
 			delete nc.Instance;
 			nc.Instance = nullptr;
 		}

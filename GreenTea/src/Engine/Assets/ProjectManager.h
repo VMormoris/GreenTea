@@ -43,7 +43,7 @@ namespace gte::internal {
 		* @param id Identifier for the Asset you are looking for
 		* @return A string containing the absolute path of the Asset or an empty string
 		*/
-		[[nodiscard]] std::string GetFilepath(const uuid& id) const noexcept;
+		[[nodiscard]] std::string GetFilepath(const uuid& id) const;
 
 		[[nodiscard]] uuid GetID(const std::string& filepath) const noexcept;
 

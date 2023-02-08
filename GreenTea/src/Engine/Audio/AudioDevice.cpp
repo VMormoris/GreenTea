@@ -30,11 +30,11 @@ namespace gte::audio {
 	AudioDevice::~AudioDevice(void)
 	{
 		ALCboolean result = alcMakeContextCurrent(nullptr);
-		ASSERT(result, "Failed to set context to null");
+		ENGINE_ASSERT(result, "Failed to set context to null");
 		
 		alcDestroyContext(mALCContext);
 		result = alcCloseDevice(mALCDevice);
-		ASSERT(result, "Failed to close audio device");
+		ENGINE_ASSERT(result, "Failed to close audio device");
 	}
 
 	[[nodiscard]] AudioDevice* AudioDevice::Get(void)

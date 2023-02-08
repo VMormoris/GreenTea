@@ -1,6 +1,6 @@
 #include "DynamicLibLoader.h"
 
-#include <Windows.h>
+#include "GreenTeaWin.h"
 
 namespace gte::internal {
 

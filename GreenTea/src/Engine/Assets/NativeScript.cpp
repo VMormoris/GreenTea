@@ -157,7 +157,7 @@ namespace gte::internal {
 		}
 	}
 
-	FieldSpecification::FieldSpecification(const std::string& name, FieldType type, size_t offset, size_t buffOffset) noexcept
+	FieldSpecification::FieldSpecification(const std::string& name, FieldType type, size_t offset, size_t buffOffset)
 		: Name(name), Type(type), Offset(offset), BufferOffset(buffOffset)
 	{
 		switch (type)

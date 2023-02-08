@@ -1,5 +1,7 @@
 #include "CupOfTea.h"
 
+#include <Engine/Renderer/Renderer2D.h>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <IconsForkAwesome.h>
@@ -8,7 +10,7 @@
 #include <gtc/matrix_transform.hpp>
 
 #include <fstream>
-#include <Engine/Renderer/Renderer2D.h>
+#include <shellapi.h>
 
 static gte::GPU::Texture* sIcon = nullptr;
 static bool sLoaded = false;

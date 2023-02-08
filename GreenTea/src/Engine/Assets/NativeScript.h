@@ -90,7 +90,7 @@ namespace gte::internal {
 		};
 
 		FieldSpecification(void) = default;
-		FieldSpecification(const std::string& name, FieldType type, size_t offset, size_t buffOffset) noexcept;
+		FieldSpecification(const std::string& name, FieldType type, size_t offset, size_t buffOffset);
 		FieldSpecification(const std::string& name, FieldType type, size_t size, size_t offset, size_t buffOffset) noexcept
 			: Name(name), Type(type), Size(size), Offset(offset), BufferOffset(buffOffset) {}
 	};

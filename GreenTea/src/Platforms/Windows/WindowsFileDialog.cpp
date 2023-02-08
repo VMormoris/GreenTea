@@ -1,9 +1,9 @@
 #include <Engine/Core/FileDialog.h>
 #include <Engine/Core/Context.h>
+#include <Engine/Core/GreenTeaWin.h>
 
 #include <filesystem>
 
-#include <Windows.h>
 #include <shlobj_core.h>
 
 namespace gte::internal {

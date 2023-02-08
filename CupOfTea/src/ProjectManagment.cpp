@@ -4,6 +4,7 @@
 #include <IconsForkAwesome.h>
 
 #include <fstream>
+#include <shellapi.h>
 
 static std::vector<std::string> sProjects;
 

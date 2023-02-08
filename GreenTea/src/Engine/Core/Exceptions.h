@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Engine.h"
+#include "GreenTeaWin.h"
 
-#include <Windows.h>
 #include <exception>
+#include <string>
 
 namespace gte {
 
@@ -18,6 +19,11 @@ namespace gte {
 
 	private:
 		const uint32 mErrorCode;
+	};
+
+	class ENGINE_API AssertException : public std::exception {
+	public:
+		AssertException(void) noexcept = default;
 	};
 
 	namespace internal {

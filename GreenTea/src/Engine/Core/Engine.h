@@ -38,7 +38,8 @@
 	#define ENGINE_ASSERT(x, ...)
 #endif
 
-#define ASSERT(x, ...) {if(!(x)){GTE_ERROR_LOG("Assertion failed: ", __VA_ARGS__); BREAK;}}
+
+#define ASSERT(x, ...) {if(!(x)){GTE_ERROR_LOG("Assertion failed: ", __VA_ARGS__); throw gte::AssertException();}}
 
 #include <cstdint>
 
@@ -72,3 +73,4 @@ typedef unsigned char byte;
 #endif
 
 #include "Logger.h"
+#include "Exceptions.h"

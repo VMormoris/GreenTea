@@ -42,7 +42,7 @@ project (ProjectName)
     includedirs (IncludeDirs)
 	links (LibFiles)
 
-	disablewarnings {4251}
+	disablewarnings {4251, 4275}
 
     defines
 	{

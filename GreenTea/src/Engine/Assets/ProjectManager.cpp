@@ -1,8 +1,8 @@
 #include "ProjectManager.h"
 
 #include <Engine/Core/Context.h>
+#include <Engine/Core/GreenTeaWin.h>
 
-#include <windows.h>
 #include <fstream>
 #include <chrono>
 #include <thread>
@@ -229,7 +229,7 @@ namespace gte::internal {
 	}
 #endif
 
-	[[nodiscard]] std::string ProjectManager::GetFilepath(const uuid& id) const noexcept
+	[[nodiscard]] std::string ProjectManager::GetFilepath(const uuid& id) const
 	{
 		ASSERT((Exists(id) && id.IsValid()) || !id.IsValid(), "Specified ID doesn't exists");
 		return id.IsValid() ? mFilePaths.at(id) : "";
