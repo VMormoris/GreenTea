@@ -687,6 +687,9 @@ namespace gte {
 				DestroyEntity(entity, false);
 		}
 
+		if (!toReturn)//Check if entity still valid
+			return {};
+
 		UpdateTransform(toReturn, false);
 
 		if (mPhysicsWorld)
