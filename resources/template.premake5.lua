@@ -67,14 +67,12 @@ project (ProjectName)
 
 		prebuildcommands
 		{
-			"{ECHO} BuildStarted> %{wks.location}.gt/Notifications",
 			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -pre -dir=%{wks.location}"
 		}
 		
 		postbuildcommands
 		{
 			gtrDir .. "/bin/" .. outputdir .. "/gtreflect/gtreflect.exe -post -dir=%{wks.location}",
-			"{ECHO} BuildEnded> %{wks.location}.gt/Notifications"
 		}
 
 	filter "configurations:StandAlone"

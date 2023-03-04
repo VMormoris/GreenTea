@@ -5,7 +5,6 @@
 
 #include <fstream>
 #include <chrono>
-#include <thread>
 
 namespace gte::internal {
 
@@ -85,32 +84,7 @@ namespace gte::internal {
 			if (!status)
 				exit(GetLastError());
 		}
-		
 
-		auto prjname = std::filesystem::current_path().stem().string();
-		auto srcDLL = mProjectDir / ("bin/Release-windows/" + prjname + "/" + prjname + ".dll");
-		if (std::filesystem::last_write_time(".gt/Notifications") > mLastNotificationWrite)
-		{
-			mLastNotificationWrite = std::filesystem::last_write_time(".gt/Notifications");
-			std::string notification;
-			std::ifstream is(".gt/Notifications");
-			std::getline(is, notification);
-			is.close();
-			if (notification.compare("BuildStarted") == 0)
-			{
-				GetContext()->ActiveScene->DestroyRuntime();
-				GetContext()->DynamicLoader.Unload();
-				mBuilding = true;
-			}
-			else if (notification.compare("BuildEnded") == 0)
-			{
-				auto dstDLL = ".gt/" + prjname + ".dll";
-				std::filesystem::copy(srcDLL, dstDLL, std::filesystem::copy_options::overwrite_existing);
-				GetContext()->ScriptEngine->Reload();
-				GetContext()->DynamicLoader.Load(dstDLL.c_str());
-				mBuilding = false;
-			}
-		}
 		return changed;
 	}
 #endif
@@ -131,20 +105,50 @@ namespace gte::internal {
 #endif
 		FindFiles();
 #ifndef GT_DIST
-		mLastNotificationWrite = std::filesystem::last_write_time(".gt/Notifications");
 		auto prjname = std::filesystem::current_path().stem().string();
-		auto srcDLL ="bin/Release-windows/" + prjname + "/" + prjname + ".dll";
+		auto srcDLL = "bin/Release-windows/" + prjname + "/" + prjname + ".dll";
 		auto dstDLL = ".gt/" + prjname + ".dll";
-		if (std::filesystem::exists(srcDLL))
-			std::filesystem::copy(srcDLL, dstDLL, std::filesystem::copy_options::overwrite_existing);
-		if (!std::filesystem::exists(dstDLL))
+		if (!std::filesystem::exists(srcDLL))
 		{
 			GTE_WARN_LOG(prjname, ".dll wasn't found. Please build your project...");
 			GetContext()->DynamicLoader.SetLibFile(dstDLL.c_str());
 		}
 		else
+		{
+			std::filesystem::copy_file(srcDLL, dstDLL, std::filesystem::copy_options::overwrite_existing);
 			GetContext()->DynamicLoader.Load(dstDLL.c_str());
-		
+		}
+		server.Open("\\\\.\\pipe\\GreenTeaServer");
+		server.Start([&](PipeStream stream)
+		{
+			auto prjname = std::filesystem::current_path().stem().string();
+			auto srcDLL = "bin/Release-windows/" + prjname + "/" + prjname + ".dll";
+			auto dstDLL = ".gt/" + prjname + ".dll";
+
+			char buffer[1024];
+			int32 bytes = stream.Receive(buffer, 1024);
+			buffer[bytes] = '\0';
+
+			if (strcmp(buffer, "BuildStarted") == 0)
+			{
+				GetContext()->ActiveScene->DestroyRuntime();
+				GetContext()->DynamicLoader.Unload();
+				GTE_TRACE_LOG("Library was freed.");
+				mBuilding = true;
+				bytes = stream.Send("Ok", 3);
+			}
+			else if (strcmp(buffer, "BuildEnded") == 0)
+			{
+				std::filesystem::copy_file(srcDLL, dstDLL, std::filesystem::copy_options::overwrite_existing);
+				GetContext()->ScriptEngine->Reload();
+				GetContext()->DynamicLoader.Reload();
+				GTE_TRACE_LOG("Library was reloaded.");
+				mBuilding = false;
+				stream.Send("Ok", 3);
+			}
+			else if (strcmp(buffer, "Exit") == 0)
+				stream.Send("Ok", 3);
+		});
 
 		mFileHandle = CreateFileA
 		(
@@ -270,6 +274,12 @@ namespace gte::internal {
 
 		if (mOverlapped)
 			delete mOverlapped;
+
+		server.Stop();
+		internal::ClientPipe client("\\\\.\\pipe\\GreenTeaServer");
+		client.Send("Exit", 5);
+		char buffer[3];
+		uint32 bytes = client.Receive(buffer, 3);
 #endif
 	}
 

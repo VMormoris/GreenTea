@@ -15,4 +15,5 @@ int main(int argc, char** argv)
 	app->Run();
 	delete app;
 	gte::internal::DestroyContext(context);
+	return 0;
 }

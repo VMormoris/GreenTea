@@ -39,10 +39,10 @@ newaction {
         end
         os.execute("attrib +h " .. prjDir .. "/.gt")
 
-        file = io.open(prjDir .. "/.gt/Notifications", "w")
-        io.output(file)
+        --file = io.open(prjDir .. "/.gt/Notifications", "w")
+        --io.output(file)
         --io.write("")
-        io.close(file)
+        --io.close(file)
 
         file = io.open(prjDir .. "/.gt/compile_commands.json", "w")
         io.output(file)

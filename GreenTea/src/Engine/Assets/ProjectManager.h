@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Core/uuid.h>
+#include <Engine/Core/Pipes.h>
 
 #include <filesystem>
 #include <unordered_map>
@@ -81,8 +82,8 @@ namespace gte::internal {
 		_OVERLAPPED* mOverlapped = nullptr;
 		byte mChangeBuffer[4096] = { 0 };
 		std::vector<uuid> mChanged;
-		std::filesystem::file_time_type mLastNotificationWrite;
-		bool mBuilding = false;
+		ServerPipe server;
+		std::atomic<bool> mBuilding = false;
 #endif
 	};
 
