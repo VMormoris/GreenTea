@@ -4,6 +4,7 @@
 
 static void SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent = {});
 static void SpawnFromPrefabAsync(gte::uuid id, gte::Entity parent);
+static void MarkForDestruction(gte::Entity entity);
 
 namespace gte {
 
@@ -25,17 +26,49 @@ namespace gte {
 		SpawnFromPrefab(prefab, parentEntity);
 	}
 
-	void DestroyEntity(ScriptableEntity* entity) { entity->GetComponent<NativeScriptComponent>().State = ScriptState::MustBeDestroyed; }
-	void DestroyEntity(Entity entity)
+	void DestroyEntity(ScriptableEntity* entity)
 	{
-		if (entity.HasComponent<NativeScriptComponent>())
-			entity.GetComponent<NativeScriptComponent>().State = ScriptState::MustBeDestroyed;
-		else
-			internal::GetContext()->ActiveScene->DestroyEntity(entity, false);
+		entity->GetComponent<NativeScriptComponent>().State = ScriptState::MustBeDestroyed;
+
+		Scene* const scene = internal::GetContext()->ActiveScene;
+		const auto& rel = entity->GetComponent<RelationshipComponent>();
+		Entity child = { rel.FirstChild, scene };
+		for (size_t i = 0; i < rel.Childrens; i++)
+		{
+			MarkForDestruction(child);
+			const auto& crel = child.GetComponent<RelationshipComponent>();
+			child = { crel.Next, scene };
+		}
+
+		entity->AddComponent<filters::Destructable>();
 	}
+
+	void DestroyEntity(Entity entity) { MarkForDestruction(entity); }
 
 	[[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag) { return internal::GetContext()->ActiveScene->GetEntitiesByTag(tag); }
 
+}
+
+void MarkForDestruction(gte::Entity entity)
+{
+	using namespace gte;
+	if (entity.HasComponent<NativeScriptComponent>())
+	{
+		auto& nsc = entity.GetComponent<NativeScriptComponent>();
+		nsc.State = ScriptState::MustBeDestroyed;
+	}
+
+	Scene* const scene = internal::GetContext()->ActiveScene;
+	const auto& rel = entity.GetComponent<RelationshipComponent>();
+	Entity child = { rel.FirstChild, scene };
+	for (size_t i = 0; i < rel.Childrens; i++)
+	{
+		MarkForDestruction(child);
+		const auto& crel = child.GetComponent<RelationshipComponent>();
+		child = { crel.Next, scene};
+	}
+
+	entity.AddComponent<filters::Destructable>();
 }
 
 void SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent)

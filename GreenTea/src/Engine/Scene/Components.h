@@ -299,4 +299,8 @@ namespace gte {
 	struct ComponentGroup {};
 
 	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent, AnimationComponent>;
+
+	namespace filters {
+		struct ENGINE_API Destructable {};
+	}
 }
