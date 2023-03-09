@@ -582,6 +582,7 @@ CupOfTea::CupOfTea(const std::string& filepath)
 	std::filesystem::path prjdir = filepath;
 	prjdir = prjdir.parent_path();
 	std::filesystem::current_path(prjdir);
+	gte::internal::GetContext()->logger.WriteToFile();
 
 	std::string scenename;
 	std::ifstream is(filepath);

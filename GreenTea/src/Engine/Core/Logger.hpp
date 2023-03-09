@@ -1,6 +1,8 @@
 #pragma once
 #include "Logger.h"
+
 #include <iostream>
+#include <fstream>
 
 namespace gte::internal {
 
@@ -30,11 +32,26 @@ namespace gte::internal {
 		mAccumulator.push_back(std::make_pair(logtype, mBuffer.str()));
 
 		if (logtype == Type::ERR || logtype == Type::FATAL) {
-			std::cerr << mBuffer.str();
+			if (mWrittingToFile)
+			{
+				std::ofstream logfile("record.gtlog", std::ios::app | std::ios::binary);
+				logfile << mBuffer.str();
+			}
+			else
+				std::cerr << mBuffer.str();
 			if (logtype == Type::FATAL) exit(EXIT_FAILURE);
 		}
 		else
-			std::cout << mBuffer.str();
+		{
+			if (mWrittingToFile)
+			{
+				std::ofstream logfile("record.gtlog", std::ios::app | std::ios::binary);
+				logfile << mBuffer.str();
+			}
+			else
+				std::cout << mBuffer.str();
+		}
+			
 	}
 
 	template<typename First, typename ...Rest>
