@@ -75,6 +75,8 @@ namespace gte::internal {
 		*/
 		[[nodiscard]] static Logger* Get(void) noexcept;
 
+		void WriteToFile(void);
+
 	private:
 
 		template<typename T>
@@ -89,6 +91,7 @@ namespace gte::internal {
 		char mPrefix[23] = "\0";
 		std::stringstream mBuffer;
 		std::vector<std::pair<Type, std::string>> mAccumulator;
+		bool mWrittingToFile = false;
 	};
 
 	ENGINE_API [[nodiscard]] inline Logger::Type operator|(Logger::Type lhs, Logger::Type rhs) noexcept { return static_cast<Logger::Type>(static_cast<byte>(lhs) | static_cast<byte>(rhs)); }

@@ -18,4 +18,10 @@ namespace gte::internal {
 
 	[[nodiscard]] Logger* Logger::Get(void) noexcept { return &GetContext()->logger; }
 
+	void Logger::WriteToFile(void)
+	{
+		mWrittingToFile = true;
+		std::ofstream logfile("record.gtlog");
+	}
+
 }
