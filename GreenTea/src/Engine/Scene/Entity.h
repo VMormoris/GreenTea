@@ -22,10 +22,10 @@ namespace gte {
 		}
 		
 		template<typename T>
-		[[nodiscard]] bool HasComponent(void) const { return mOwner->mReg.all_of<T>(mEntityHandle); }
+		[[nodiscard]] bool HasComponent(void) const { return mOwner->mReg.any_of<T>(mEntityHandle); }
 		
 		template<typename T, typename ...Args>
-		T& AddComponent(Args&& ...args)
+		decltype(auto) AddComponent(Args&& ...args)
 		{
 			ASSERT(!HasComponent<T>(), "Requested component already exist.");
 			return mOwner->mReg.emplace<T, Args...>(mEntityHandle, std::forward<Args>(args)...);

@@ -80,14 +80,14 @@ namespace gte {
 						nc.State = ScriptState::Inactive;
 						if (nc.Instance)
 							delete nc.Instance;
-						bin.push_back(entityID);
+						bin.emplace_back(entityID);
 					}
 					catch (AssertException e)
 					{
 						nc.State = ScriptState::Inactive;
 						if (nc.Instance)
 							delete nc.Instance;
-						bin.push_back(entityID);
+						bin.emplace_back(entityID);
 					}
 				}
 				else if (nc.State == ScriptState::Active)
@@ -96,17 +96,24 @@ namespace gte {
 					catch (RuntimeException e) { nc.State = ScriptState::MustBeDestroyed; }
 					catch (AssertException e) { nc.State = ScriptState::MustBeDestroyed; }
 				}
-				else if (nc.State == ScriptState::MustBeDestroyed)
+			}
+
+			auto destructables = mReg.view<filters::Destructable>();
+			for (auto entityID : destructables)
+			{
+				const auto& rel = mReg.get<RelationshipComponent>(entityID);
+				if (!destructables.contains(rel.Parent))
+					bin.emplace_back(entityID);
+				if (auto* nsc = mReg.try_get<NativeScriptComponent>(entityID))
 				{
-					try { nc.Instance->Destroy(); }
-					catch (RuntimeException e) { }
+					try { nsc->Instance->Destroy(); }
+					catch (RuntimeException e) {}
 					catch (AssertException e) {}
-					delete nc.Instance;
-					nc.State = ScriptState::Inactive;
-					bin.push_back(entityID);
+					delete nsc->Instance;
 				}
 			}
 		}
+
 		for (auto entityID : bin)
 			DestroyEntity({ entityID, this }, false);
 
@@ -1231,7 +1238,7 @@ namespace gte {
 						else
 						{
 							GTE_ERROR_LOG("Couldn't create instance of object: ", name);
-							bin.push_back(entityID);
+							bin.emplace_back(entityID);
 						}
 					}
 					catch(RuntimeException e)
@@ -1239,18 +1246,19 @@ namespace gte {
 						nc.State = ScriptState::Inactive;
 						if (nc.Instance)
 							delete nc.Instance;
-						bin.push_back(entityID);
+						bin.emplace_back(entityID);
 					}
 					catch (AssertException e)
 					{
 						nc.State = ScriptState::Inactive;
 						if (nc.Instance)
 							delete nc.Instance;
-						bin.push_back(entityID);
+						bin.emplace_back(entityID);
 					}
 				}
 			}
 		}
+
 		for (auto entityID : bin)
 			DestroyEntity({ entityID, this }, false);
 

@@ -26,7 +26,7 @@ namespace gte {
 		[[nodiscard]] bool HasComponent(void) const { return mEntity.HasComponent<T>(); }
 
 		template<typename T, typename ...Args>
-		T& AddComponent(Args&& ...args) { return mEntity.AddComponent<T>(std::forward<Args>(args)...); }
+		decltype(auto) AddComponent(Args&& ...args) { return mEntity.AddComponent<T>(std::forward<Args>(args)...); }
 
 		template<typename T>
 		void RemoveComponent(void) { mEntity.RemoveComponent<T>(); }
