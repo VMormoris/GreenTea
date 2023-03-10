@@ -246,6 +246,8 @@ namespace gte {
 		relc.Next = nextID;
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = entity;
+
+		UpdateTransform(entity, false);
 		return entity;
 	}
 

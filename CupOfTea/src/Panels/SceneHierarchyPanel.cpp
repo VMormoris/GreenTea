@@ -345,7 +345,7 @@ namespace gte {
 				static int32 world = 0;
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
-				ImGui::Button("##dummy", {0.0f, 0.0f});
+				ImGui::Button("##dummy", { 0.0f, 0.0f });
 				ImGui::PopStyleColor();
 				ImGui::PopItemFlag();
 				ImGui::SameLine(0.0f, ImGui::GetContentRegionAvail().x - 156.0f);
@@ -386,29 +386,27 @@ namespace gte {
 					glm::vec3 pos, scale, rotation;
 					auto& transformation = entity.GetComponent<TransformationComponent>();
 					math::DecomposeTransform(transformation, pos, scale, rotation);
-					bool changed = gui::DrawVec3Control("Position", pos, settings, "Position of the Transform in X, Y, and Z coordinates.");
+					const bool posChanged = gui::DrawVec3Control("Position", pos, settings, "Position of the Transform in X, Y, and Z coordinates.");
 					settings.MaxFloat = FLT_MAX;
 					settings.Enabled[2] = false;
 					settings.ResetValue = 1.0f;
-					if (gui::DrawVec3Control("Scale", scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size"))
-						changed = true;
+					const bool scaleChanged = gui::DrawVec3Control("Scale", scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size");
 					settings.MinFloat = -180.0;
 					settings.MaxFloat = 180.0;
 					settings.Enabled = { false, false, true, false };
 					settings.ResetValue = 0.0f;
 					rotation = glm::degrees(rotation);
-					if (gui::DrawVec3Control("Rotation", rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees."))
-						changed = true;
+					const bool rotChanged = gui::DrawVec3Control("Rotation", rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees.");
 
-					if (changed)
+					if (posChanged || scaleChanged || rotChanged)
 					{
 						transformation = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), scale);
 						const auto& rel = entity.GetComponent<RelationshipComponent>();
 						if (rel.Parent == entt::null)
 						{
-							tc.Position = pos;
-							tc.Scale = { scale.x, scale.y };
-							tc.Rotation = rotation.z;
+							if(posChanged) tc.Position = pos;
+							else if(scaleChanged) tc.Scale = { scale.x, scale.y };
+							else tc.Rotation = rotation.z;
 						}
 						else
 						{
@@ -416,9 +414,9 @@ namespace gte {
 							const glm::mat4& ptransform = parent.GetComponent<TransformationComponent>();
 							const glm::mat4 local = glm::inverse(ptransform) * transformation.Transform;
 							math::DecomposeTransform(local, pos, scale, rotation);
-							tc.Position = pos;
-							tc.Scale = { scale.x, scale.y };
-							tc.Rotation = glm::degrees(rotation.z);
+							if(posChanged) tc.Position = pos;
+							else if(scaleChanged) tc.Scale = { scale.x, scale.y };
+							else tc.Rotation = glm::degrees(rotation.z);
 						}
 						internal::GetContext()->ActiveScene->UpdateTransform(entity);
 					}
