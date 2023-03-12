@@ -79,6 +79,29 @@ namespace gte::gui {
 		return changed;
 	}
 
+	ENGINE_API bool DrawInputText(const char* label, std::string& text, size_t length)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		auto IconFont = io.Fonts->Fonts[0];
+		auto BoldFont = io.Fonts->Fonts[1];
+		const float lineHeight = BoldFont->FontSize + ImGui::GetStyle().FramePadding.y * 2.0f;
+
+		ImGui::PushID(label);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.063f, 0.063f, 0.063f, 1.0f });
+		char* buffer = new char[length];
+		memcpy(buffer, text.c_str(), text.size() + 1);
+		bool changed = ImGui::InputText("##InputText", buffer, length);
+		if (changed)
+			text = std::string(buffer);
+		delete[] buffer;
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar(2);
+		ImGui::PopID();
+		return changed;
+	}
+
 	bool DrawBreadcrumb(const char* label, std::filesystem::path& path)
 	{
 		ImGuiIO& io = ImGui::GetIO();

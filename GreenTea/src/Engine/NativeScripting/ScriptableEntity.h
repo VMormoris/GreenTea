@@ -31,6 +31,8 @@ namespace gte {
 		template<typename T>
 		void RemoveComponent(void) { mEntity.RemoveComponent<T>(); }
 
+		void SetActive(bool value) { mEntity.SetActive(value); }
+
 		operator uint32(void) const { return (uint32)mEntity; }
 
 	private:

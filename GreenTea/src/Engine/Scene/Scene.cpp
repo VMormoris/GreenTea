@@ -60,7 +60,7 @@ namespace gte {
 		std::vector<entt::entity> bin;
 		{
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
-			auto scripts = mReg.view<NativeScriptComponent>();
+			auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, nc] : scripts.each())
 			{
 				if (nc.State == ScriptState::MustBeInitialized)
@@ -117,10 +117,21 @@ namespace gte {
 		for (auto entityID : bin)
 			DestroyEntity({ entityID, this }, false);
 
+		{//Handle entities that were disabled or enabled
+			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
+			for (auto&& [entityID, rb] : bodies.each())
+			{
+				if (rb.Body)
+					mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+			}
+
+			SetupPhysics();
+		}
+
 		UpdateMatrices(false);
 		InformAudioEngine();
 
-		auto animations = mReg.view<AnimationComponent, SpriteRendererComponent>();
+		auto animations = mReg.view<AnimationComponent, SpriteRendererComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, ac, sprite] : animations.each())
 		{
 			ac.Animation = internal::GetContext()->AssetManager.RequestAsset(ac.Animation->ID);
@@ -142,7 +153,7 @@ namespace gte {
 			}
 		}
 
-		auto particles = mReg.view<ParticleSystemComponent>();
+		auto particles = mReg.view<ParticleSystemComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, psc] : particles.each())
 			psc.System->SetProps(psc.Props);
 
@@ -157,7 +168,7 @@ namespace gte {
 		entt::insertion_sort algo;
 		mReg.sort<TransformationComponent>([](const auto& lhs, const auto& rhs) { return lhs.Transform[3].z < rhs.Transform[3].z; }, algo);
 		Renderer2D::BeginScene(eyematrix);
-		auto view = mReg.view<TransformationComponent>();
+		auto view = mReg.view<TransformationComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, tc] : view.each())
 		{
 			if (auto* sprite = mReg.try_get<SpriteRendererComponent>(entityID))
@@ -195,12 +206,12 @@ namespace gte {
 
 		if (internal::GetContext()->Playing)
 		{
-			auto particles = mReg.view<ParticleSystemComponent, TransformationComponent>();
+			auto particles = mReg.view<ParticleSystemComponent, TransformationComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, psc, tc] : particles.each())
 				psc.System->Render(tc);
 		}
 
-		auto texts = mReg.view<TransformationComponent, TextRendererComponent>();
+		auto texts = mReg.view<TransformationComponent, TextRendererComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, tc, text] : texts.each())
 		{
 			text.Font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID);
@@ -891,6 +902,7 @@ namespace gte {
 			if (relc.Previous == entt::null)
 				prel.FirstChild = relc.Next;
 		}
+
 		uuid id = mReg.get<IDComponent>(entity);
 		mReg.destroy(entity);
 		if (mPhysicsReg.valid(entity))
@@ -923,7 +935,7 @@ namespace gte {
 	[[nodiscard]] std::vector<Entity> Scene::GetEntitiesByTag(const std::string& tag)
 	{
 		std::vector<Entity> entities;
-		auto view = mReg.view<TagComponent>();
+		auto view = mReg.view<TagComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, tc] : view.each())
 		{
 			if (tc.Tag.compare(tag) == 0)
@@ -938,7 +950,7 @@ namespace gte {
 		if (useLock)
 			mRegMutex.lock();
 
-		auto cameras = mReg.view<CameraComponent>();
+		auto cameras = mReg.view<CameraComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, cam] : cameras.each())
 		{
 			if (cam.Primary)
@@ -1177,6 +1189,9 @@ namespace gte {
 				enttMap.insert({ id, entity });
 				//entt ids' won't be valid since they are pointing source registry but they will be patch afterwards
 				dstReg.emplace_or_replace<RelationshipComponent>(entity, srcReg.get<RelationshipComponent>(entityID));
+
+				if (srcReg.any_of<filters::Disabled>(entityID))
+					dstReg.emplace<filters::Disabled>(entity);
 			}
 		}
 
@@ -1220,7 +1235,7 @@ namespace gte {
 		std::vector<entt::entity> bin;
 		{
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
-			auto scripts = mReg.view<NativeScriptComponent>();
+			auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, nc] : scripts.each())
 			{
 				if (nc.State == ScriptState::MustBeInitialized)
@@ -1276,7 +1291,7 @@ namespace gte {
 		UpdateMatrices(false);
 		
 		InformAudioEngine();
-		auto speakers = mReg.view<SpeakerComponent>();
+		auto speakers = mReg.view<SpeakerComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, speaker] : speakers.each())
 		{
 			if (speaker.PlayOnStart)
@@ -1317,14 +1332,14 @@ namespace gte {
 		const float STEP = 1.0f / settings.Rate;
 
 		{// Inform game engine about changes by physics world
-			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, cc, rb, tc] : circles.each())
 			{
 				if (rb.Type == BodyType::Static)
 					continue;
 				InformEngine(entityID, rb, tc);
 			}
-			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, bc, rb, tc] : boxes.each())
 			{
 				if (rb.Type == BodyType::Static)
@@ -1333,16 +1348,27 @@ namespace gte {
 			}
 		}
 		//Call FixedUpdate() on scripts
-		auto scripts = mReg.view<NativeScriptComponent>();
+		auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 		scripts.each([](auto& script) {
 			if (script.State == ScriptState::Active)
 				script.Instance->FixedUpdate();
 		});
 
+		{//Handle entities that were disabled or enabled
+			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
+			for (auto&& [entityID, rb] : bodies.each())
+			{
+				if (rb.Body)
+					mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+			}
+
+			SetupPhysics();
+		}
+
 		UpdateMatrices(false);
 		
 		{// Infrom physics world about changes by game engine
-			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, cc, rb, tc] : circles.each())
 			{
 				if (!mReg.all_of<NativeScriptComponent>(entityID))
@@ -1354,7 +1380,7 @@ namespace gte {
 				shape->m_p.Set(cc.Offset.x, cc.Offset.y);
 				shape->m_radius = scale.x * cc.Radius;
 			}
-			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, bc, rb, tc] : boxes.each())
 			{
 				if (!mReg.all_of<NativeScriptComponent>(entityID))
@@ -1377,7 +1403,7 @@ namespace gte {
 		const float tickRate = 1.0f / settings.Rate;
 		const float deltaTime = mAccumulator / tickRate;
 
-		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>);
+		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, rb, tc, transform] : group.each())
 		{
 			if (rb.Type == BodyType::Static)
@@ -1426,14 +1452,14 @@ namespace gte {
 			}
 		}
 
-		auto view = mReg.view<ParticleSystemComponent>();
+		auto view = mReg.view<ParticleSystemComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, psc] : view.each())
 			psc.System->Update(dt);
 	}
 
 	void Scene::InformAudioEngine(void)
 	{
-		auto view = mReg.view<SpeakerComponent, TransformationComponent>();
+		auto view = mReg.view<SpeakerComponent, TransformationComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, speaker, tc] : view.each())
 		{
 			speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(speaker.AudioClip->ID);
@@ -1507,12 +1533,30 @@ namespace gte {
 		mPhysicsWorld = new b2World({ settings.Gravity.x, settings.Gravity.y });
 		mPhysicsWorld->SetContactListener(CollisionDispatcher::Get());
 
-		auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+		SetupPhysics();
+
+		const float tickRate = 1.0f / settings.Rate;
+		mPhysicsWorld->Step(tickRate, settings.VelocityIterations, settings.PositionIterations);
+	}
+
+	void Scene::OnPhysicsStop(void)
+	{
+		delete mPhysicsWorld;
+		mPhysicsWorld = nullptr;
+		mPhysicsReg.clear<Transform2DComponent>();
+	}
+
+	void Scene::SetupPhysics(void)
+	{
+		std::unique_lock lock(mRegMutex);
+
+		auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, cc, rb, tc] : circles.each())
 		{
 			glm::vec3 pos, scale, rotation;
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
-			{//Save previous Physics Tick on a different Registry
+			if(!mPhysicsReg.valid(entityID))//Save previous Physics Tick on a different Registry
+			{
 				auto entt = mPhysicsReg.create(entityID);
 				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
 				prevTC.Position = pos;
@@ -1535,12 +1579,13 @@ namespace gte {
 			cc.Fixure = body->CreateFixture(&fixtureDef);
 		}
 
-		auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+		auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, bc, rb, tc] : boxes.each())
 		{
 			glm::vec3 pos, scale, rotation;
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
-			{//Save previous Physics Tick on a different Registry
+			if (!mPhysicsReg.valid(entityID))//Save previous Physics Tick on a different Registry
+			{
 				auto entt = mPhysicsReg.create(entityID);
 				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
 				prevTC.Position = pos;
@@ -1561,16 +1606,6 @@ namespace gte {
 			fixtureDef.isSensor = bc.Sensor;
 			bc.Fixure = body->CreateFixture(&fixtureDef);
 		}
-
-		const float tickRate = 1.0f / settings.Rate;
-		mPhysicsWorld->Step(tickRate, settings.VelocityIterations, settings.PositionIterations);
-	}
-
-	void Scene::OnPhysicsStop(void)
-	{
-		delete mPhysicsWorld;
-		mPhysicsWorld = nullptr;
-		mPhysicsReg.clear<Transform2DComponent>();
 	}
 
 	void Scene::PatchScripts(void)

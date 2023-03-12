@@ -66,6 +66,7 @@ namespace gte {
 
 		void OnPhysicsStart(void);
 		void OnPhysicsStop(void);
+		void SetupPhysics(void);
 		void FixedUpdate(void);
 		void Movement(float dt, bool physics);
 

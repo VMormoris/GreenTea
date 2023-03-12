@@ -112,7 +112,11 @@ namespace gte {
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
 		bool shouldDestroy = false;
+		
+		if (entity.HasComponent<filters::Disabled>()) ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		const bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)entity, flags, tag.c_str());
+		if (entity.HasComponent<filters::Disabled>()) ImGui::PopStyleVar();
+
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_ITEM"))
@@ -202,7 +206,8 @@ namespace gte {
 		ImGui::PopFont();
 		ImGui::SameLine();
 		auto& tag = entity.GetComponent<TagComponent>().Tag;
-		gui::DrawEditText(tag, 64, sTagEdit);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);
+		gui::DrawInputText("tag", tag, 64);
 		const float offset = ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Add").x - 16.0f;
 		ImGui::SameLine(offset);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
@@ -329,12 +334,22 @@ namespace gte {
 
 		//Draw ID Component
 		ImGui::PushFont(IconsFont);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4.0f);
 		ImGui::Text(ICON_FK_KEY_MODERN);
 		ImGui::PopFont();
 		ImGui::SameLine();
 		const uuid& id = entity.GetComponent<IDComponent>().ID;
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		ImGui::Text(id.str().c_str());
+		ImGui::PopStyleVar();
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 12.0f);
+		bool enabled = !entity.HasComponent<filters::Disabled>();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 3.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+		//ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.063f, 0.063f, 0.063f, 1.0f });
+		if (ImGui::Checkbox("##Enabled", &enabled))
+			entity.SetActive(enabled);
+		//ImGui::PopStyleColor();
 		ImGui::PopStyleVar();
 		ImGui::Separator();
 

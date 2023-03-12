@@ -68,6 +68,8 @@ namespace gte::gui {
 	*/
 	ENGINE_API bool DrawEditText(std::string& text, size_t length, bool& editing);
 
+	ENGINE_API bool DrawInputText(const char* label, std::string& text, size_t length);
+
 	ENGINE_API bool DrawBreadcrumb(const char* label, std::filesystem::path& path);
 
 	ENGINE_API bool DrawMenuItem(const char* icon, const char* item, const char* shortcut, const char* biggest = "");
