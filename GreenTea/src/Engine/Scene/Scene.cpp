@@ -41,9 +41,8 @@ namespace gte {
 
 	void Scene::Update(float dt)
 	{
-		std::unique_lock lock(mRegMutex);
 		internal::GetContext()->GlobalTime += dt;
-		const float STEP = 1.0f / FindEntityWithUUID({}, false).GetComponent<Settings>().Rate;
+		const float STEP = 1.0f / FindEntityWithUUID({}).GetComponent<Settings>().Rate;
 		mAccumulator += dt;
 		bool physics = false;
 		while (mAccumulator >= STEP)
@@ -54,13 +53,13 @@ namespace gte {
 		}
 
 		Movement(dt, physics);
-		UpdateMatrices(false);
+		UpdateMatrices();
 
 		//Handle Scripting logic
 		std::vector<entt::entity> bin;
 		{
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
-			auto scripts = mReg.view<NativeScriptComponent>();
+			auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, nc] : scripts.each())
 			{
 				if (nc.State == ScriptState::MustBeInitialized)
@@ -115,12 +114,23 @@ namespace gte {
 		}
 
 		for (auto entityID : bin)
-			DestroyEntity({ entityID, this }, false);
+			DestroyEntity({ entityID, this });
 
-		UpdateMatrices(false);
+		{//Handle entities that were disabled or enabled
+			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
+			for (auto&& [entityID, rb] : bodies.each())
+			{
+				if (rb.Body)
+					mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+			}
+
+			SetupPhysics();
+		}
+
+		UpdateMatrices();
 		InformAudioEngine();
 
-		auto animations = mReg.view<AnimationComponent, SpriteRendererComponent>();
+		auto animations = mReg.view<AnimationComponent, SpriteRendererComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, ac, sprite] : animations.each())
 		{
 			ac.Animation = internal::GetContext()->AssetManager.RequestAsset(ac.Animation->ID);
@@ -142,22 +152,20 @@ namespace gte {
 			}
 		}
 
-		auto particles = mReg.view<ParticleSystemComponent>();
+		auto particles = mReg.view<ParticleSystemComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, psc] : particles.each())
 			psc.System->SetProps(psc.Props);
 
-		if (Entity camera = GetPrimaryCameraEntity(false))
+		if (Entity camera = GetPrimaryCameraEntity())
 			SetListener(mReg, camera);
 	}
 
-	void Scene::Render(const glm::mat4& eyematrix, bool useLock)
+	void Scene::Render(const glm::mat4& eyematrix)
 	{
-		if (useLock)
-			mRegMutex.lock();
 		entt::insertion_sort algo;
 		mReg.sort<TransformationComponent>([](const auto& lhs, const auto& rhs) { return lhs.Transform[3].z < rhs.Transform[3].z; }, algo);
 		Renderer2D::BeginScene(eyematrix);
-		auto view = mReg.view<TransformationComponent>();
+		auto view = mReg.view<TransformationComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, tc] : view.each())
 		{
 			if (auto* sprite = mReg.try_get<SpriteRendererComponent>(entityID))
@@ -195,12 +203,12 @@ namespace gte {
 
 		if (internal::GetContext()->Playing)
 		{
-			auto particles = mReg.view<ParticleSystemComponent, TransformationComponent>();
+			auto particles = mReg.view<ParticleSystemComponent, TransformationComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, psc, tc] : particles.each())
 				psc.System->Render(tc);
 		}
 
-		auto texts = mReg.view<TransformationComponent, TextRendererComponent>();
+		auto texts = mReg.view<TransformationComponent, TextRendererComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, tc, text] : texts.each())
 		{
 			text.Font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID);
@@ -211,31 +219,24 @@ namespace gte {
 		}
 		
 		Renderer2D::EndScene();
-		if (useLock)
-			mRegMutex.unlock();
 	}
 
-	Entity Scene::CreateEntity(const std::string& name, bool useLock) { return CreateEntityWithUUID(uuid::Create(), name, useLock); }
+	Entity Scene::CreateEntity(const std::string& name) { return CreateEntityWithUUID(uuid::Create(), name); }
 
-	Entity Scene::CreateEntityWithUUID(const uuid& id, const std::string& name, bool useLock)
+	Entity Scene::CreateEntityWithUUID(const uuid& id, const std::string& name)
 	{
-		if (useLock)
-			mRegMutex.lock();
 		auto entityID = mReg.create();
 		const auto tag = name.empty() ? "Unnamed Enity" : name;
 		mReg.emplace<IDComponent>(entityID, id);
 		mReg.emplace<TagComponent>(entityID, tag);
 		mReg.emplace<RelationshipComponent>(entityID);
 		mReg.emplace<Transform2DComponent>(entityID);
-		if (useLock)
-			mRegMutex.unlock();
 		return { entityID, this };
 	}
 
 	Entity Scene::CreateChildEntity(Entity parent)
 	{
-		std::unique_lock lock(mRegMutex);
-		Entity entity = CreateEntity({}, false);
+		Entity entity = CreateEntity({});
 		auto& prel = parent.GetComponent<RelationshipComponent>();
 		auto nextID = prel.FirstChild;
 		prel.FirstChild = entity;
@@ -246,13 +247,13 @@ namespace gte {
 		relc.Next = nextID;
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = entity;
+
+		UpdateTransform(entity);
 		return entity;
 	}
 
-	Entity Scene::CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent, bool useLock)
+	Entity Scene::CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent)
 	{
-		if (useLock)
-			mRegMutex.lock();
 		Prefab* fab = (Prefab*)prefab->Data;
 		const YAML::Node& entities = fab->GetNode();
 
@@ -261,7 +262,7 @@ namespace gte {
 		{
 			uuid id = entityNode["Entity"].as<std::string>();
 			std::string name = entityNode["TagComponent"]["Tag"].as<std::string>();
-			Entity entity = CreateEntity(name, false);
+			Entity entity = CreateEntity(name);
 			map.insert({ id, entity });
 
 			const auto& transform = entityNode["Transform2DComponent"];
@@ -535,7 +536,7 @@ namespace gte {
 								{
 									uuid entityID = prop["Default"].as<std::string>();
 									if (map.find(entityID) == map.end())
-										*(Entity*)ptr = FindEntityWithUUID(entityID, false);
+										*(Entity*)ptr = FindEntityWithUUID(entityID);
 									else
 										*(Entity*)ptr = map[entityID];
 									break;
@@ -624,7 +625,7 @@ namespace gte {
 						{
 							uuid entityID = prop["Default"].as<std::string>();
 							if (map.find(entityID) == map.end())
-								*(Entity*)ptr = FindEntityWithUUID(entityID, false);
+								*(Entity*)ptr = FindEntityWithUUID(entityID);
 							else
 								*(Entity*)ptr = map[entityID];
 							break;
@@ -691,13 +692,13 @@ namespace gte {
 				}
 			}
 			for (auto entity : bin)
-				DestroyEntity(entity, false);
+				DestroyEntity(entity);
 		}
 
 		if (!toReturn)//Check if entity still valid
 			return {};
 
-		UpdateTransform(toReturn, false);
+		UpdateTransform(toReturn);
 
 		if (mPhysicsWorld)
 		{
@@ -764,16 +765,11 @@ namespace gte {
 				bc.Fixure = body->CreateFixture(&fixtureDef);
 			}
 		}
-
-		if (useLock)
-			mRegMutex.unlock();
-
 		return toReturn;
 	}
 
 	void Scene::MoveEntity(Entity parent, Entity toMove)
 	{
-		std::unique_lock lock(mRegMutex);
 		auto& prel = parent.GetComponent<RelationshipComponent>();
 		auto nextID = prel.FirstChild;
 		prel.FirstChild = toMove;
@@ -803,15 +799,12 @@ namespace gte {
 		if (nextID != entt::null)
 			mReg.get<RelationshipComponent>(nextID).Previous = toMove;
 
-		UpdateTransform(toMove, false);
+		UpdateTransform(toMove);
 	}
 
 	Entity Scene::Clone(Entity toClone, bool recursive)
 	{
-		if (!recursive)
-			mRegMutex.lock();
-
-		Entity entity = CreateEntity({}, false);
+		Entity entity = CreateEntity({});
 		CopyComponents(toClone, entity);
 
 		const auto& relationship = toClone.GetComponent<RelationshipComponent>();
@@ -851,16 +844,12 @@ namespace gte {
 			oldChild = child;
 		}
 
-		UpdateTransform(entity, false);
-		if (!recursive)
-			mRegMutex.unlock();
+		UpdateTransform(entity);
 		return entity;
 	}
 
-	void Scene::DestroyEntity(Entity entity, bool useLock)
+	void Scene::DestroyEntity(Entity entity)
 	{
-		if (useLock)
-			mRegMutex.lock();
 		//We need to start from the bottom up
 		auto& relc = entity.GetComponent<RelationshipComponent>();
 		const size_t childrens = relc.Childrens;
@@ -870,11 +859,11 @@ namespace gte {
 			entt::entity next = mReg.get<RelationshipComponent>(curr).Next;
 			for (size_t i = 0; i < childrens - 1; i++)
 			{
-				DestroyEntity({ curr, this }, false);
+				DestroyEntity({ curr, this });
 				curr = next;
 				next = mReg.get<RelationshipComponent>(curr).Next;
 			}
-			DestroyEntity({ curr, this }, false);
+			DestroyEntity({ curr, this });
 		}
 
 		//Now need to inform neighbours & parent
@@ -889,39 +878,29 @@ namespace gte {
 			if (relc.Previous == entt::null)
 				prel.FirstChild = relc.Next;
 		}
+
 		uuid id = mReg.get<IDComponent>(entity);
 		mReg.destroy(entity);
 		if (mPhysicsReg.valid(entity))
 			mPhysicsReg.destroy(entity);
-		if (useLock)
-			mRegMutex.unlock();
 	}
 
-	[[nodiscard]] Entity Scene::FindEntityWithUUID(const uuid& id, bool useLock)
+	[[nodiscard]] Entity Scene::FindEntityWithUUID(const uuid& id)
 	{
-		if (useLock)
-			mRegMutex.lock();
-
 		auto view = mReg.view<IDComponent>();
 		for (auto entityID : view)
 		{
 			const uuid& candidate = view.get<IDComponent>(entityID).ID;
 			if (candidate == id)
-			{
-				if(useLock)
-					mRegMutex.unlock();
 				return { entityID, this };
-			}
 		}
-		if (useLock)
-			mRegMutex.unlock();
 		return {};
 	}
 
 	[[nodiscard]] std::vector<Entity> Scene::GetEntitiesByTag(const std::string& tag)
 	{
 		std::vector<Entity> entities;
-		auto view = mReg.view<TagComponent>();
+		auto view = mReg.view<TagComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, tc] : view.each())
 		{
 			if (tc.Tag.compare(tag) == 0)
@@ -930,13 +909,11 @@ namespace gte {
 		return entities;
 	}
 
-	[[nodiscard]] Entity Scene::GetPrimaryCameraEntity(bool useLock)
+	[[nodiscard]] Entity Scene::GetPrimaryCameraEntity(void)
 	{
 		Entity entity = {};
-		if (useLock)
-			mRegMutex.lock();
 
-		auto cameras = mReg.view<CameraComponent>();
+		auto cameras = mReg.view<CameraComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, cam] : cameras.each())
 		{
 			if (cam.Primary)
@@ -946,16 +923,11 @@ namespace gte {
 			}
 		}
 
-		if (useLock)
-			mRegMutex.unlock();
-
 		return entity;
 	}
 
-	void Scene::UpdateTransform(Entity entity, bool useLock)
+	void Scene::UpdateTransform(Entity entity)
 	{
-		if (useLock)
-			mRegMutex.lock();
 		const auto& tc = entity.GetComponent<Transform2DComponent>();
 		auto& transform = entity.GetComponent<TransformationComponent>();
 		transform.Transform = glm::translate(glm::mat4(1.0f), tc.Position) * glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), { tc.Scale.x, tc.Scale.y, 1.0f });
@@ -972,7 +944,7 @@ namespace gte {
 			Entity child = { rel.FirstChild, this };
 			for (size_t i = 0; i < rel.Childrens; i++)
 			{
-				UpdateTransform(child, false);
+				UpdateTransform(child);
 				auto next = child.GetComponent<RelationshipComponent>().Next;
 				child = { next, this };
 			}
@@ -985,9 +957,6 @@ namespace gte {
 			cam.ViewMatrix = glm::inverse(transform.Transform);
 			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 		}
-
-		if (useLock)
-			mRegMutex.unlock();
 	}
 
 	Scene::Scene(void)
@@ -1013,7 +982,6 @@ namespace gte {
 
 	void Scene::OnViewportResize(uint32 width, uint32 height)
 	{
-		std::unique_lock lock(mRegMutex);
 		const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 		auto view = mReg.view<CameraComponent>();
 		for (auto entityID : view)
@@ -1031,25 +999,19 @@ namespace gte {
 		}
 	}
 
-	void Scene::UpdateMatrices(bool useLock)
+	void Scene::UpdateMatrices(void)
 	{
-		if (useLock)
-			mRegMutex.lock();
-		
 		//TODO(Vasilis): Could use a thread pool to make this run in pararel
 		auto view = mReg.view<RelationshipComponent>();
 		for (auto&& [entityID, rel] : view.each())
 		{
 			if (rel.Parent != entt::null)
 				continue;
-			UpdateTransform({ entityID, this }, false);
+			UpdateTransform({ entityID, this });
 		}
 
-		Entity me = FindEntityWithUUID({}, false);//Special Entity for scene stuff
-		UpdateTransform(me, false);
-
-		if (useLock)
-			mRegMutex.unlock();
+		Entity me = FindEntityWithUUID({});//Special Entity for scene stuff
+		UpdateTransform(me);
 	}
 
 	void Scene::CopyComponents(Entity source, Entity destination)
@@ -1063,7 +1025,7 @@ namespace gte {
 			auto& dstTC = destination.GetComponent<Transform2DComponent>();
 			dstTC = srcTC;
 
-			UpdateTransform(destination, false);
+			UpdateTransform(destination);
 		}
 
 		if (source.HasComponent<SpriteRendererComponent>())
@@ -1150,14 +1112,12 @@ namespace gte {
 	[[nodiscard]] Scene* Scene::Copy(Scene* other)
 	{
 		Scene* newScene = new Scene();
-		std::unique_lock lock1(other->mRegMutex);
-		std::unique_lock lock2(newScene->mRegMutex);
 		auto& dstReg = newScene->mReg;
 		auto& srcReg = other->mReg;
 		
 		{//Special entity for scene stuff
-			auto dstEntityID = (entt::entity)newScene->FindEntityWithUUID({}, false);
-			auto srcEntityID = (entt::entity)other->FindEntityWithUUID({}, false);
+			auto dstEntityID = (entt::entity)newScene->FindEntityWithUUID({});
+			auto srcEntityID = (entt::entity)other->FindEntityWithUUID({});
 			dstReg.emplace_or_replace<Transform2DComponent>(dstEntityID, srcReg.get<Transform2DComponent>(srcEntityID));
 			dstReg.emplace_or_replace<CameraComponent>(dstEntityID, srcReg.get<CameraComponent>(srcEntityID));
 			dstReg.emplace_or_replace<OrthographicCameraComponent>(dstEntityID, srcReg.get<OrthographicCameraComponent>(srcEntityID));
@@ -1175,6 +1135,9 @@ namespace gte {
 				enttMap.insert({ id, entity });
 				//entt ids' won't be valid since they are pointing source registry but they will be patch afterwards
 				dstReg.emplace_or_replace<RelationshipComponent>(entity, srcReg.get<RelationshipComponent>(entityID));
+
+				if (srcReg.any_of<filters::Disabled>(entityID))
+					dstReg.emplace<filters::Disabled>(entity);
 			}
 		}
 
@@ -1207,18 +1170,17 @@ namespace gte {
 				}
 			}
 		}
-		newScene->UpdateMatrices(false);
+		newScene->UpdateMatrices();
 		return newScene;
 	}
 
 	void Scene::OnStart(void)
 	{
-		std::unique_lock lock(mRegMutex);
 		InformAudioEngine();
 		std::vector<entt::entity> bin;
 		{
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
-			auto scripts = mReg.view<NativeScriptComponent>();
+			auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, nc] : scripts.each())
 			{
 				if (nc.State == ScriptState::MustBeInitialized)
@@ -1260,7 +1222,7 @@ namespace gte {
 		}
 
 		for (auto entityID : bin)
-			DestroyEntity({ entityID, this }, false);
+			DestroyEntity({ entityID, this });
 
 		auto cameras = mReg.view<OrthographicCameraComponent, CameraComponent>();
 		for (auto&& [entityID, ortho, cam] : cameras.each())
@@ -1271,10 +1233,10 @@ namespace gte {
 			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 		}
 
-		UpdateMatrices(false);
+		UpdateMatrices();
 		
 		InformAudioEngine();
-		auto speakers = mReg.view<SpeakerComponent>();
+		auto speakers = mReg.view<SpeakerComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, speaker] : speakers.each())
 		{
 			if (speaker.PlayOnStart)
@@ -1287,7 +1249,6 @@ namespace gte {
 
 	void Scene::OnStop(void)
 	{
-		std::unique_lock lock(mRegMutex);
 		OnPhysicsStop();
 		DestroyRuntime();
 		internal::GetContext()->GlobalTime = 0.0f;
@@ -1310,19 +1271,19 @@ namespace gte {
 
 	void Scene::FixedUpdate(void)
 	{
-		Entity me = FindEntityWithUUID({}, false);
+		Entity me = FindEntityWithUUID({});
 		auto& settings = me.GetComponent<Settings>();
 		const float STEP = 1.0f / settings.Rate;
 
 		{// Inform game engine about changes by physics world
-			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, cc, rb, tc] : circles.each())
 			{
 				if (rb.Type == BodyType::Static)
 					continue;
 				InformEngine(entityID, rb, tc);
 			}
-			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, bc, rb, tc] : boxes.each())
 			{
 				if (rb.Type == BodyType::Static)
@@ -1331,16 +1292,27 @@ namespace gte {
 			}
 		}
 		//Call FixedUpdate() on scripts
-		auto scripts = mReg.view<NativeScriptComponent>();
+		auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 		scripts.each([](auto& script) {
 			if (script.State == ScriptState::Active)
 				script.Instance->FixedUpdate();
 		});
 
-		UpdateMatrices(false);
+		{//Handle entities that were disabled or enabled
+			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
+			for (auto&& [entityID, rb] : bodies.each())
+			{
+				if (rb.Body)
+					mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+			}
+
+			SetupPhysics();
+		}
+
+		UpdateMatrices();
 		
 		{// Infrom physics world about changes by game engine
-			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, cc, rb, tc] : circles.each())
 			{
 				if (!mReg.all_of<NativeScriptComponent>(entityID))
@@ -1352,7 +1324,7 @@ namespace gte {
 				shape->m_p.Set(cc.Offset.x, cc.Offset.y);
 				shape->m_radius = scale.x * cc.Radius;
 			}
-			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, bc, rb, tc] : boxes.each())
 			{
 				if (!mReg.all_of<NativeScriptComponent>(entityID))
@@ -1370,12 +1342,12 @@ namespace gte {
 
 	void Scene::Movement(float dt, bool physics)
 	{
-		const auto& settings = FindEntityWithUUID({}, false).GetComponent<Settings>();
+		const auto& settings = FindEntityWithUUID({}).GetComponent<Settings>();
 		const glm::vec2 gravity = settings.Gravity;
 		const float tickRate = 1.0f / settings.Rate;
 		const float deltaTime = mAccumulator / tickRate;
 
-		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>);
+		auto group = mReg.group<Rigidbody2DComponent>(entt::get<Transform2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, rb, tc, transform] : group.each())
 		{
 			if (rb.Type == BodyType::Static)
@@ -1424,14 +1396,14 @@ namespace gte {
 			}
 		}
 
-		auto view = mReg.view<ParticleSystemComponent>();
+		auto view = mReg.view<ParticleSystemComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, psc] : view.each())
 			psc.System->Update(dt);
 	}
 
 	void Scene::InformAudioEngine(void)
 	{
-		auto view = mReg.view<SpeakerComponent, TransformationComponent>();
+		auto view = mReg.view<SpeakerComponent, TransformationComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, speaker, tc] : view.each())
 		{
 			speaker.AudioClip = internal::GetContext()->AssetManager.RequestAsset(speaker.AudioClip->ID);
@@ -1500,17 +1472,33 @@ namespace gte {
 
 	void Scene::OnPhysicsStart(void)
 	{
-		Entity me = FindEntityWithUUID({}, false);
+		Entity me = FindEntityWithUUID({});
 		const auto& settings = me.GetComponent<Settings>();
 		mPhysicsWorld = new b2World({ settings.Gravity.x, settings.Gravity.y });
 		mPhysicsWorld->SetContactListener(CollisionDispatcher::Get());
 
-		auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+		SetupPhysics();
+
+		const float tickRate = 1.0f / settings.Rate;
+		mPhysicsWorld->Step(tickRate, settings.VelocityIterations, settings.PositionIterations);
+	}
+
+	void Scene::OnPhysicsStop(void)
+	{
+		delete mPhysicsWorld;
+		mPhysicsWorld = nullptr;
+		mPhysicsReg.clear<Transform2DComponent>();
+	}
+
+	void Scene::SetupPhysics(void)
+	{
+		auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, cc, rb, tc] : circles.each())
 		{
 			glm::vec3 pos, scale, rotation;
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
-			{//Save previous Physics Tick on a different Registry
+			if(!mPhysicsReg.valid(entityID))//Save previous Physics Tick on a different Registry
+			{
 				auto entt = mPhysicsReg.create(entityID);
 				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
 				prevTC.Position = pos;
@@ -1533,12 +1521,13 @@ namespace gte {
 			cc.Fixure = body->CreateFixture(&fixtureDef);
 		}
 
-		auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
+		auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, bc, rb, tc] : boxes.each())
 		{
 			glm::vec3 pos, scale, rotation;
 			gte::math::DecomposeTransform(tc, pos, scale, rotation);
-			{//Save previous Physics Tick on a different Registry
+			if (!mPhysicsReg.valid(entityID))//Save previous Physics Tick on a different Registry
+			{
 				auto entt = mPhysicsReg.create(entityID);
 				auto& prevTC = mPhysicsReg.emplace<Transform2DComponent>(entt);
 				prevTC.Position = pos;
@@ -1559,21 +1548,10 @@ namespace gte {
 			fixtureDef.isSensor = bc.Sensor;
 			bc.Fixure = body->CreateFixture(&fixtureDef);
 		}
-
-		const float tickRate = 1.0f / settings.Rate;
-		mPhysicsWorld->Step(tickRate, settings.VelocityIterations, settings.PositionIterations);
-	}
-
-	void Scene::OnPhysicsStop(void)
-	{
-		delete mPhysicsWorld;
-		mPhysicsWorld = nullptr;
-		mPhysicsReg.clear<Transform2DComponent>();
 	}
 
 	void Scene::PatchScripts(void)
 	{
-		std::unique_lock lock(mRegMutex);
 		using namespace internal;
 		auto scripts = mReg.view<NativeScriptComponent>();
 		for (auto&& [entityID, nc] : scripts.each())

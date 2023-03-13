@@ -7,7 +7,6 @@
 
 #include <entt.hpp>
 #include <glm.hpp>
-#include <mutex>
 
 //Forward declaration(s)
 class b2World;
@@ -28,24 +27,24 @@ namespace gte {
 		~Scene(void) {}
 
 		void Update(float dt);
-		void Render(const glm::mat4& eyematrix, bool useLock = true);
+		void Render(const glm::mat4& eyematrix);
 
 		void OnViewportResize(uint32 width, uint32 height);
 
-		Entity CreateEntity(const std::string& name = std::string(), bool useLock = true);
-		Entity CreateEntityWithUUID(const uuid& id, const std::string& name = std::string(), bool useLock = true);
+		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateEntityWithUUID(const uuid& id, const std::string& name = std::string());
 		Entity CreateChildEntity(Entity parent);
-		Entity CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent, bool useLock = true);
+		Entity CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent);
 		void MoveEntity(Entity parent, Entity toMove);
 		Entity Clone(Entity toClone, bool recursive = false);
-		void DestroyEntity(Entity entity, bool useLock = true);
+		void DestroyEntity(Entity entity);
 
-		[[nodiscard]] Entity FindEntityWithUUID(const uuid& id, bool useLock = true);
+		[[nodiscard]] Entity FindEntityWithUUID(const uuid& id);
 		[[nodiscard]] std::vector<Entity> GetEntitiesByTag(const std::string& tag);
-		[[nodiscard]] Entity GetPrimaryCameraEntity(bool useLock = true);
+		[[nodiscard]] Entity GetPrimaryCameraEntity(void);
 
-		void UpdateTransform(Entity entity, bool useLock = true);
-		void UpdateMatrices(bool useLock = true);//Update Transform for all entities
+		void UpdateTransform(Entity entity);
+		void UpdateMatrices(void);//Update Transform for all entities
 
 		void OnStart(void);
 		void OnStop(void);
@@ -56,16 +55,13 @@ namespace gte {
 		[[nodiscard]] static Scene* Copy(Scene* other);
 
 		template<typename ...Components>
-		[[nodiscard]] auto GetAllEntitiesWith(void)
-		{
-			std::unique_lock lock(mRegMutex);
-			return mReg.view<Components...>();
-		} 
+		[[nodiscard]] auto GetAllEntitiesWith(void) { return mReg.view<Components...>(); } 
 
 	private:
 
 		void OnPhysicsStart(void);
 		void OnPhysicsStop(void);
+		void SetupPhysics(void);
 		void FixedUpdate(void);
 		void Movement(float dt, bool physics);
 
@@ -81,7 +77,6 @@ namespace gte {
 		entt::registry mPhysicsReg;
 		b2World* mPhysicsWorld = nullptr;
 		float mAccumulator = 0.0f;
-		std::mutex mRegMutex;
 		friend class Entity;
 		friend class SceneHierarchyPanel;
 		friend class internal::SceneSerializer;

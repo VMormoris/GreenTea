@@ -2,8 +2,7 @@
 
 #include <Engine/Core/Context.h>
 
-static void SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent = {});
-static void SpawnFromPrefabAsync(gte::uuid id, gte::Entity parent);
+static gte::Entity SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent = {});
 static void MarkForDestruction(gte::Entity entity);
 
 namespace gte {
@@ -17,13 +16,12 @@ namespace gte {
 	void ScriptableEntity::onCollisionStart(Entity other) {}
 	void ScriptableEntity::onCollisionStop(Entity other) {}
 
-	void SpawnEntity(Ref<Asset> prefab) { SpawnFromPrefab(prefab); }
-	void SpawnEntity(Entity parent, Ref<Asset>prefab) { SpawnFromPrefab(prefab, parent); }
-	void SpawnEntity(ScriptableEntity* parent, Ref<Asset>prefab)
+	Entity SpawnEntity(Ref<Asset> prefab) { return SpawnFromPrefab(prefab); }
+	Entity SpawnEntity(Entity parent, Ref<Asset>prefab) { return SpawnFromPrefab(prefab, parent); }
+	Entity SpawnEntity(ScriptableEntity* parent, Ref<Asset>prefab)
 	{
-		uuid id = parent->GetComponent<IDComponent>();
-		Entity parentEntity = internal::GetContext()->ActiveScene->FindEntityWithUUID(id, false);
-		SpawnFromPrefab(prefab, parentEntity);
+		Entity parentEntity = { (entt::entity)(uint32)*parent, internal::GetContext()->ActiveScene };
+		return SpawnFromPrefab(prefab, parentEntity);
 	}
 
 	void DestroyEntity(ScriptableEntity* entity)
@@ -71,41 +69,19 @@ void MarkForDestruction(gte::Entity entity)
 	entity.AddComponent<filters::Destructable>();
 }
 
-void SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent)
+gte::Entity SpawnFromPrefab(gte::Ref<gte::Asset> prefab, gte::Entity parent)
 {
 	using namespace gte;
+	
 	prefab = internal::GetContext()->AssetManager.RequestAsset(prefab->ID);
-	if (prefab->Type == AssetType::PREFAB)
-		internal::GetContext()->ActiveScene->CreateEntityFromPrefab(prefab, parent, false);//Called from update so we already have lock
-	else if (prefab->Type == AssetType::INVALID)
-	{
-		GTE_ERROR_LOG("Try to create prefab with ID: ", prefab->ID, " which doesn't exist.");
-		return;
-	}
-	else if (prefab->Type == AssetType::LOADING)
-		SpawnFromPrefabAsync(prefab->ID, parent);
-	else
-	{
-		GTE_ERROR_LOG("Try to create prefab with ID: ", prefab->ID, " but not asset with this ID was found.");
-	}
-}
+	while (prefab->Type == AssetType::LOADING)//Wait for prefab to be loaded
+		prefab = internal::GetContext()->AssetManager.RequestAsset(prefab->ID);
 
-void SpawnFromPrefabAsync(gte::uuid id, gte::Entity parent)
-{
-	using namespace gte;
-	std::thread th([](uuid id, Entity parent) {
-		Ref<Asset> prefab = internal::GetContext()->AssetManager.RequestAsset(id);
-		while (prefab->Type == AssetType::LOADING)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			prefab = internal::GetContext()->AssetManager.RequestAsset(id);
-		}
-		if (prefab->Type != AssetType::PREFAB)
-		{
-			GTE_ERROR_LOG("Try to create prefab with ID: ", prefab->ID, " but not asset with this ID was found.");
-			return;
-		}
-		internal::GetContext()->ActiveScene->CreateEntityFromPrefab(prefab, parent);
-	}, id, parent);
-	th.detach();
+	if (prefab->Type != AssetType::PREFAB)//Check if the requested ID coresponds to a prefab
+	{
+		GTE_ERROR_LOG("ID: ", prefab->ID, " doesn't corespond to a valid prefab.");
+		return {};
+	}
+
+	return internal::GetContext()->ActiveScene->CreateEntityFromPrefab(prefab, parent);
 }

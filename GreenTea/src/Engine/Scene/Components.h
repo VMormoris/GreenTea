@@ -302,5 +302,7 @@ namespace gte {
 
 	namespace filters {
 		struct ENGINE_API Destructable {};
+		struct ENGINE_API Disabled {};
 	}
+
 }

@@ -124,7 +124,7 @@ void CupOfTea::Update(float dt)
 		gte::RenderCommand::SetViewport(0, 0, static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
 		gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
 		gte::Renderer2D::BeginFrame(sCamFBO, false);
-		scene->Render(cam.EyeMatrix, sCamFBO);
+		scene->Render(cam.EyeMatrix);
 	}
 
 	mAnimationPanel.Update(dt);
