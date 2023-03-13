@@ -96,6 +96,7 @@ namespace gte {
 					SpawnEntity(prefab);
 				}
 			}
+			ImGui::EndDragDropTarget();
 		}
 	}
 
@@ -125,8 +126,9 @@ namespace gte {
 				Entity toMove = scene->FindEntityWithUUID(id);
 				scene->MoveEntity(entity, toMove);
 			}
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
+				GTE_TRACE_LOG("Fired on Entity");
 				std::filesystem::path filepath = (const char*)payload->Data;
 				if (filepath.extension() == ".gtprefab")
 				{

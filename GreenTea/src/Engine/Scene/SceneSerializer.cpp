@@ -120,7 +120,11 @@ namespace gte::internal {
 
 				//Create entity
 				Entity entity = mScene->CreateEntityWithUUID(entityUUID, name);
-
+				if (entityNode["Enabled"])
+				{
+					const bool val = entityNode["Enabled"].as<bool>();
+					if (!val) entity.AddComponent<filters::Disabled>();
+				}
 				//Check for other components expect Relationship
 				const auto& transform = entityNode["Transform2DComponent"];
 				if (transform)
@@ -496,6 +500,7 @@ namespace gte::internal {
 
 		out << YAML::BeginMap;
 		out << YAML::Key << "Entity" << YAML::Value << entity.GetID().str();
+		out << YAML::Key << "Enabled" << YAML::Value << !entity.HasComponent<filters::Disabled>();
 		if (entity.HasComponent<Settings>())
 		{
 			const auto& settings = entity.GetComponent<Settings>();
