@@ -1,4 +1,5 @@
 #include "ProjectManagment.h"
+#include "vs.h"
 
 #include <imgui.h>
 #include <IconsForkAwesome.h>
@@ -368,7 +369,7 @@ void CreateProject(const std::string& location, const std::string& name) noexcep
 	//Run premake5
 	std::string command = std::string("premake5 --file=") + prjdir.string() + "/premake5.lua gt";
 	system(command.c_str());
-	command = std::string("premake5 --file=") + prjdir.string() + "/premake5.lua vs2019";
+	command = std::string("premake5 --file=") + prjdir.string() + "/premake5.lua " ACTION;
 	system(command.c_str());
 
 	//Create .gt file and open project using editor
@@ -431,7 +432,7 @@ void OpenProject(const std::string& path) noexcept
 	//Run premake5
 	std::string command = std::string("premake5 --file=") + premake5 + " gt";
 	system(command.c_str());
-	command = std::string("premake5 --file=") + premake5 + " vs2019";
+	command = std::string("premake5 --file=") + premake5 + " " ACTION;
 	system(command.c_str());
 
 	//Open project using editor

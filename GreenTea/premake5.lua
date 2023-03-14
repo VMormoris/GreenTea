@@ -95,4 +95,4 @@ project "GreenTea"
 		links
 		{
 			"%{wks.location}/3rdParty/openal-soft/Release/OpenAl32.lib",
-		}
+		} 

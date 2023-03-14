@@ -1,4 +1,5 @@
 #include "ContentBrowserPanel.h"
+#include "vs.h"
 
 #include <Engine/Core/FileDialog.h>
 #include <Engine/ImGui/ImGuiWidgets.h>
@@ -528,7 +529,7 @@ void ContentBrowserPanel::CreateScript(const std::string& name) const
 	os << "#include \""<< name << ".h\"\n\n";
 	os.close();
 
-	std::string command = "premake5 vs2019";
+	std::string command = "premake5 " ACTION;
 	system(command.c_str());
 
 	command = "start devenv /Edit \"" + prjname + "\\src\\" + name + ".h\"";
