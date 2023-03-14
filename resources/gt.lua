@@ -39,10 +39,12 @@ newaction {
         end
         os.execute("attrib +h " .. prjDir .. "/.gt")
 
-        --file = io.open(prjDir .. "/.gt/Notifications", "w")
-        --io.output(file)
-        --io.write("")
-        --io.close(file)
+        src = prjDir .. "/" .. prjName
+        os.mkdir(src)
+        res, error = os.copyfile(GreenTeaDir .. "/resources/cpp.hint", src .. "/cpp.hint")
+        if not res then
+            print(error)
+        end
 
         file = io.open(prjDir .. "/.gt/compile_commands.json", "w")
         io.output(file)

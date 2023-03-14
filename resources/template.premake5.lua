@@ -37,6 +37,7 @@ project (ProjectName)
 		"%{prj.name}/**.h",
         "%{prj.name}/**.hpp",
 		"%{prj.name}/**.cpp",
+		"%{prj.name}/cpp.hint",
 	}
 
     includedirs (IncludeDirs)

@@ -1,0 +1,30 @@
+// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
+// such as names of functions and macros.
+// For more information see https://go.microsoft.com/fwlink/?linkid=865984
+
+//Macro for exporting symbols
+#define GAME_API __declspec(dllexport)
+
+//Break for debuging mode (basically is not suppose to be used here)
+#define DEBUG_BREAK
+
+//Reflection macros
+#define ENUM(...) enum class GAME_API
+#define COMPONENT(...) struct GAME_API
+#define SYSTEM(...) class GAME_API
+#define CLASS(...) class GAME_API
+#define PROPERTY(...)
+
+//Log macros
+#define GTE_TRACE_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::TRACE, __VA_ARGS__)
+#define GTE_INFO_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::INFO, __VA_ARGS__)
+#define GTE_WARN_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::WARNING, __VA_ARGS__)
+#define GTE_ERROR_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::ERR, __VA_ARGS__)
+#define GTE_FATAL_LOG(...) gte::internal::Logger::Get()->Log(gte::internal::Logger::Type::FATAL, __VA_ARGS__)
+
+//Assertion that throws runtime exception show is catched by the editor
+#define ASSERT(x, ...) {if(!(x)){GTE_ERROR_LOG("Assertion failed: ", __VA_ARGS__); throw gte::AssertException();}}
+
+//Event macros
+#define REGISTER(eventType, obj_ptr, function) gte::internal::GetContext()->Dispatcher.AddListener<eventType, std::remove_pointer<decltype(obj_ptr)>::type, function>(*obj_ptr)
+#define UNREGISTER(obj_ptr) gte::internal::GetContext()->Dispatcher.RemoveListener<std::remove_pointer<decltype(obj_ptr)>::type>(obj_ptr)

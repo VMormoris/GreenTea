@@ -58,18 +58,18 @@ typedef double float64;
 typedef unsigned char byte;
 
 //Reflection macros
-#ifdef REFLECTION
-	#define ENUM(...) enum class __attribute__((annotate("enum:" #__VA_ARGS__)))
-	#define COMPONENT(...) struct __attribute__((annotate("component:" #__VA_ARGS__)))
-	#define SYSTEM(...) class __attribute__((annotate("system:" #__VA_ARGS__)))
-	#define CLASS(...) class __attribute__((annotate("class:" #__VA_ARGS__)))
-	#define PROPERTY(...) __attribute__((annotate("property:" #__VA_ARGS__)))
-#else
+#ifndef REFLECTION
 	#define ENUM(...) enum class GAME_API
 	#define COMPONENT(...) struct GAME_API
 	#define SYSTEM(...) class GAME_API
 	#define CLASS(...) class GAME_API
 	#define PROPERTY(...)
+#else
+	#define ENUM(...) enum class __attribute__((annotate("enum:" #__VA_ARGS__)))
+	#define COMPONENT(...) struct __attribute__((annotate("component:" #__VA_ARGS__)))
+	#define SYSTEM(...) class __attribute__((annotate("system:" #__VA_ARGS__)))
+	#define CLASS(...) class __attribute__((annotate("class:" #__VA_ARGS__)))
+	#define PROPERTY(...) __attribute__((annotate("property:" #__VA_ARGS__)))
 #endif
 
 #include "Logger.h"
