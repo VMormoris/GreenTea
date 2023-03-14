@@ -1,3 +1,9 @@
+file = io.open("src/vs.h", "w")
+io.output(file)
+io.write("#pragma once\n")
+io.write("#define ACTION \"".. _ACTION .. "\"")	
+io.close()
+
 project "CupOfTea"
     kind "ConsoleApp"
     language "C++"

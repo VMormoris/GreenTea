@@ -1,4 +1,5 @@
 #include "CupOfTea.h"
+#include "vs.h"
 
 #include <Engine/Renderer/Renderer2D.h>
 
@@ -1137,7 +1138,7 @@ void ExportGame(const std::filesystem::path& location, const std::filesystem::pa
 		auto prjname = std::filesystem::current_path().filename().string();
 
 		//Create StandAlone solution in case it doesn't exist
-		std::string command = "premake5 --file=" + GreenTeaDir + "/StandAlone/premake5.lua vs2019";
+		std::string command = "premake5 --file=" + GreenTeaDir + "/StandAlone/premake5.lua " ACTION;
 		std::system(command.c_str());
 
 		//Build StandAlone app in case it hasn't been build yet
@@ -1154,7 +1155,7 @@ void ExportGame(const std::filesystem::path& location, const std::filesystem::pa
 
 		//Build project for StandAlone
 		sExportIndex++;
-		std::system("premake5 vs2019");
+		std::system("premake5 " ACTION);
 		command = "devenv " + prjname + ".sln -Build StandAlone";
 		std::system(command.c_str());
 
