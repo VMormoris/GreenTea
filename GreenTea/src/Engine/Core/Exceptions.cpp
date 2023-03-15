@@ -1,3 +1,4 @@
+#ifndef GT_DIST
 #include "Exceptions.h"
 
 #include <DbgHelp.h>
@@ -114,3 +115,4 @@ namespace gte::internal {
     }
 
 }
+#endif

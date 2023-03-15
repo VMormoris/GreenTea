@@ -26,6 +26,7 @@ namespace gte {
 		AssertException(void) noexcept = default;
 	};
 
+#ifndef GT_DIST
 	namespace internal {
 	
 		class ENGINE_API ScopedSETranslator {
@@ -41,4 +42,5 @@ namespace gte {
 
 		void TranslateFunction(uint32 errorCode, EXCEPTION_POINTERS* ptr);
 	}
+#endif
 }

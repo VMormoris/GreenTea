@@ -1139,7 +1139,13 @@ void ExportGame(const std::filesystem::path& location, const std::filesystem::pa
 
 		//Create StandAlone solution in case it doesn't exist
 		std::string command = "premake5 --file=" + GreenTeaDir + "/StandAlone/premake5.lua " ACTION;
-		std::system(command.c_str());
+		int result = std::system(command.c_str());
+		if (result != 0)
+		{
+			GTE_ERROR_LOG("Failed to create StandAlone project");
+			sExportIndex = -1;
+			return;
+		}
 
 		//Build StandAlone app in case it hasn't been build yet
 		std::ofstream os(GreenTeaDir + "/StandAlone/StandAlone.rc");
@@ -1151,13 +1157,31 @@ void ExportGame(const std::filesystem::path& location, const std::filesystem::pa
 		std::filesystem::remove(GreenTeaDir + "/StandAlone/StandAlone.aps");
 		std::filesystem::remove(GreenTeaDir + "/StandAlone/bin-int/Dist-windows/StandAlone/StandAlone.res");
 		command = "devenv " + GreenTeaDir + "/StandAlone/StandAlone.sln -Build Dist";
-		std::system(command.c_str());
+		result = std::system(command.c_str());
+		if (result != 0)
+		{
+			GTE_ERROR_LOG("Failed to build StandAlone application.");
+			sExportIndex = -1;
+			return;
+		}
 
 		//Build project for StandAlone
 		sExportIndex++;
-		std::system("premake5 " ACTION);
+		result = std::system("premake5 " ACTION);
+		if (result != 0)
+		{
+			GTE_ERROR_LOG("Failed to create project for Scripts.");
+			sExportIndex = -1;
+			return;
+		}
 		command = "devenv " + prjname + ".sln -Build StandAlone";
-		std::system(command.c_str());
+		result = std::system(command.c_str());
+		if (result != 0)
+		{
+			GTE_ERROR_LOG("Failed to build Scripts.");
+			sExportIndex = -1;
+			return;
+		}
 
 		//Create folder that we hold the standalone version
 		sExportIndex++;
@@ -1165,6 +1189,7 @@ void ExportGame(const std::filesystem::path& location, const std::filesystem::pa
 		std::filesystem::create_directories(binaries);
 		std::filesystem::copy(GreenTeaDir + "/StandAlone/bin/Dist-windows/GreenTea/GreenTea.dll", binaries, std::filesystem::copy_options::overwrite_existing);
 		std::filesystem::copy(GreenTeaDir + "/StandAlone/bin/Dist-windows/StandAlone/StandAlone.exe", binaries, std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::rename(binaries / "StandAlone.exe", binaries / (prjname + ".exe"));
 
 		auto gameData = location / (prjname + "/GameData");
 		std::filesystem::create_directories(gameData / ".gt");

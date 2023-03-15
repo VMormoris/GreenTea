@@ -58,7 +58,9 @@ namespace gte {
 		//Handle Scripting logic
 		std::vector<entt::entity> bin;
 		{
+#ifndef GT_DIST
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
+#endif
 			auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, nc] : scripts.each())
 			{
@@ -655,7 +657,9 @@ namespace gte {
 		if (internal::GetContext()->Playing)
 		{
 			std::vector<Entity> bin;
+#ifndef GT_DIST
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
+#endif
 			auto scripts = mReg.view<NativeScriptComponent>();
 			for (auto [id, entity] : map)
 			{
@@ -1179,7 +1183,9 @@ namespace gte {
 		InformAudioEngine();
 		std::vector<entt::entity> bin;
 		{
+#ifndef GT_DIST
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
+#endif
 			auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 			for (auto&& [entityID, nc] : scripts.each())
 			{
