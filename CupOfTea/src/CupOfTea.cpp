@@ -443,6 +443,7 @@ void CupOfTea::RenderGUI(void)
 			ImGui::Text("\nContributors");
 			ImGui::PopFont();
 			ImGui::BulletText("Manoussos Manouras");
+			ImGui::BulletText("Kimon Vloutis");
 
 			ImGui::PushFont(BoldFont);
 			ImGui::Text("\nQA Testers");
