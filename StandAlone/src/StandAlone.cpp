@@ -88,10 +88,7 @@ void StandAlone::Update(float dt)
 
 	mAccumulator += dt;
 	if (mAccumulator >= 5.0f && loaded)
-	{
 		ready = true;
-		internal::GetContext()->GlobalTime = 0.0f;
-	}
 	else if (!loaded)
 	{
 		const auto& assets = internal::GetContext()->AssetWatcher.GetAssets({ ".gtimg", ".gtaudio", ".gtfont", ".gtanimation" });
