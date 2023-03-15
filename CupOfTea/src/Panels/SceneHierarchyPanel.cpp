@@ -9,6 +9,9 @@
 
 #include "ContentBrowserPanel.h"
 
+template<typename Func>
+void DragDropTargetWindow(const char* payloadtype, const char* id, Func&& func);
+
 namespace gte {
 
 
@@ -41,6 +44,16 @@ namespace gte {
 		if (!gte::internal::GetContext()->ActiveScene) { ImGui::End(); return; }
 		
 		ImGui::BeginChild("##gte::Treeview");
+		DragDropTargetWindow("CONTENT_BROWSER_ITEM", "##gte::Treeview", [](const ImGuiPayload* payload) {
+			std::filesystem::path filepath = (const char*)payload->Data;
+			if (filepath.extension() == ".gtprefab")
+			{
+				uuid id = internal::GetContext()->AssetWatcher.GetID(filepath.string());
+				Ref<Asset> prefab = CreateRef<Asset>(id);
+				SpawnEntity(prefab);
+			}
+		});
+
 		if (ImGui::BeginPopupContextWindow())
 		{
 			if (ImGui::MenuItem("Add empty Entity"))
@@ -83,21 +96,6 @@ namespace gte {
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			mSelectionContext = {};
 		ImGui::EndChild();
-		
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-			{
-				std::filesystem::path filepath = (const char*)payload->Data;
-				if (filepath.extension() == ".gtprefab")
-				{
-					uuid id = internal::GetContext()->AssetWatcher.GetID(filepath.string());
-					Ref<Asset> prefab = CreateRef<Asset>(id);
-					SpawnEntity(prefab);
-				}
-			}
-			ImGui::EndDragDropTarget();
-		}
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -693,4 +691,26 @@ namespace gte {
 		mSelectionContext = {};
 	}
 
+}
+
+//Based on the discussion in this issue: https://github.com/ocornut/imgui/issues/5539
+template<typename Func>
+inline void DragDropTargetWindow(const char* payloadtype, const char* id, Func&& func)
+{
+	ImRect inner_rect = ImGui::GetCurrentWindow()->InnerRect;
+	if (ImGui::BeginDragDropTargetCustom(inner_rect, ImGui::GetID(id)))
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadtype, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+		{
+			if (payload->IsPreview())
+			{
+				ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+				draw_list->AddRectFilled(inner_rect.Min, inner_rect.Max, ImGui::GetColorU32(ImGuiCol_DragDropTarget, 0.05f));
+				draw_list->AddRect(inner_rect.Min, inner_rect.Max, ImGui::GetColorU32(ImGuiCol_DragDropTarget), 0.0f, 0, 2.0f);
+			}
+			if (payload->IsDelivery())
+				func(payload);
+			ImGui::EndDragDropTarget();
+		}
+	}
 }
