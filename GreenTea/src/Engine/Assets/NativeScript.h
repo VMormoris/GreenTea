@@ -55,7 +55,7 @@ namespace gte::internal {
 
 	ENGINE_API [[nodiscard]] bool isenum(FieldType type);
 
-	enum class ENGINE_API ReflectionType {
+	enum class ENGINE_API ReflectionType : byte {
 		Unknown = 0,
 		Enumaration,
 		Component,

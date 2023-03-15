@@ -19,7 +19,7 @@ public:
 
 private:
 	
-	void CreateScript(const std::string& name) const;
+	void CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const;
 	
 	void CreateFolder(const std::string& _template);
 	void CreateAnimation(const std::string& _template);
