@@ -33,6 +33,9 @@ namespace gte {
 
 		void SetActive(bool value) { mEntity.SetActive(value); }
 
+		std::vector<Entity> GetChildrens(void) noexcept { return mEntity.GetChildrens(); }
+		Entity GetChild(size_t index) { return mEntity.GetChild(index); }
+
 		operator uint32(void) const { return (uint32)mEntity; }
 
 	private:

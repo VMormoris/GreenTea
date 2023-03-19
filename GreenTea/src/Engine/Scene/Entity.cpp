@@ -24,4 +24,36 @@ namespace gte {
 		}
 	}
 
+	std::vector<Entity> Entity::GetChildrens(void) noexcept
+	{
+		const auto& relc = GetComponent<RelationshipComponent>();
+		std::vector<Entity> childrens;
+		childrens.reserve(relc.Childrens);
+
+		Entity child = { relc.FirstChild, mOwner };
+		for (size_t i = 0; i < relc.Childrens; i++)
+		{
+			childrens.emplace_back(child);
+			const auto& crel = child.GetComponent<RelationshipComponent>();
+			child = { crel.Next, mOwner };
+		}
+
+		return childrens;
+	}
+
+	Entity Entity::GetChild(size_t index)
+	{
+		const auto& relc = GetComponent<RelationshipComponent>();
+		ASSERT(index >= relc.Childrens || index < 0, "Index: ", index, " is out of bounds.");
+
+		Entity child = { relc.FirstChild, mOwner };
+		for (size_t i = 0; i < index; i++)
+		{
+			const auto& crel = child.GetComponent<RelationshipComponent>();
+			child = { crel.Next, mOwner };
+		}
+
+		return child;
+	}
+
 }
