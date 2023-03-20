@@ -1029,6 +1029,12 @@ namespace gte {
 			destination.AddComponent<CircleRendererComponent>(circle);
 		}
 
+		if (source.HasComponent<TextRendererComponent>())
+		{
+			const auto& text = source.GetComponent<TextRendererComponent>();
+			destination.AddComponent<TextRendererComponent>(text);
+		}
+
 		if (source.HasComponent<CameraComponent>())
 		{
 			const auto& cam = source.GetComponent<CameraComponent>();
@@ -1038,6 +1044,13 @@ namespace gte {
 			auto& destination_ortho = destination.GetComponent<OrthographicCameraComponent>();
 			destination_ortho = ortho;
 		}
+
+		if (source.HasComponent<AnimationComponent>())
+		{
+			const auto& animation = source.GetComponent<AnimationComponent>();
+			destination.AddComponent<AnimationComponent>(animation);
+		}
+
 
 		if (source.HasComponent<NativeScriptComponent>())
 		{
