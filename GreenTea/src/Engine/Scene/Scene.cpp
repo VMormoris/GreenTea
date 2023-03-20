@@ -76,14 +76,7 @@ namespace gte {
 						nc.Instance->Start();
 						nc.State = ScriptState::Active;
 					}
-					catch (RuntimeException e)
-					{
-						nc.State = ScriptState::Inactive;
-						if (nc.Instance)
-							delete nc.Instance;
-						bin.emplace_back(entityID);
-					}
-					catch (AssertException e)
+					catch (...)
 					{
 						nc.State = ScriptState::Inactive;
 						if (nc.Instance)
@@ -94,8 +87,7 @@ namespace gte {
 				else if (nc.State == ScriptState::Active)
 				{
 					try { nc.Instance->Update(dt); }
-					catch (RuntimeException e) { nc.State = ScriptState::MustBeDestroyed; }
-					catch (AssertException e) { nc.State = ScriptState::MustBeDestroyed; }
+					catch (...) { nc.State = ScriptState::MustBeDestroyed; }
 				}
 			}
 
@@ -108,8 +100,7 @@ namespace gte {
 				if (auto* nsc = mReg.try_get<NativeScriptComponent>(entityID))
 				{
 					try { nsc->Instance->Destroy(); }
-					catch (RuntimeException e) {}
-					catch (AssertException e) {}
+					catch (...) {}
 					delete nsc->Instance;
 				}
 			}
@@ -680,14 +671,7 @@ namespace gte {
 						nsc.Instance->Start();
 						nsc.State = ScriptState::Active;
 					}
-					catch (RuntimeException e)
-					{
-						nsc.State = ScriptState::Inactive;
-						if (nsc.Instance)
-							delete nsc.Instance;
-						bin.emplace_back(entity);
-					}
-					catch (AssertException e)
+					catch (...)
 					{
 						nsc.State = ScriptState::Inactive;
 						if (nsc.Instance)
@@ -1210,14 +1194,7 @@ namespace gte {
 							bin.emplace_back(entityID);
 						}
 					}
-					catch(RuntimeException e)
-					{
-						nc.State = ScriptState::Inactive;
-						if (nc.Instance)
-							delete nc.Instance;
-						bin.emplace_back(entityID);
-					}
-					catch (AssertException e)
+					catch(...)
 					{
 						nc.State = ScriptState::Inactive;
 						if (nc.Instance)
@@ -1269,8 +1246,7 @@ namespace gte {
 			if (!nc.Instance)
 				continue;
 			try { nc.Instance->Destroy(); }
-			catch (RuntimeException e) {}
-			catch (AssertException e) {}
+			catch (...) {}
 			delete nc.Instance;
 			nc.Instance = nullptr;
 		}
