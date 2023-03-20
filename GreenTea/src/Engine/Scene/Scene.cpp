@@ -122,8 +122,9 @@ namespace gte {
 			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
 			for (auto&& [entityID, rb] : bodies.each())
 			{
-				if (rb.Body)
-					mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+				if (!rb.Body) continue;
+				mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+				rb.Body = nullptr;
 			}
 
 			SetupPhysics();
@@ -1308,8 +1309,8 @@ namespace gte {
 			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
 			for (auto&& [entityID, rb] : bodies.each())
 			{
-				if (rb.Body)
-					mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
+				if (!rb.Body) continue;
+				mPhysicsWorld->DestroyBody((b2Body*)rb.Body);
 			}
 
 			SetupPhysics();
@@ -1510,21 +1511,24 @@ namespace gte {
 				prevTC.Position = pos;
 				prevTC.Rotation = rotation.z;
 			}
-			b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
-			b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
-			rb.Body = body;
-			b2CircleShape shape;
-			shape.m_p.Set(cc.Offset.x, cc.Offset.y);
-			shape.m_radius = scale.x * cc.Radius;
-			b2FixtureDef fixtureDef;
-			fixtureDef.userData.pointer = static_cast<uintptr_t>(entityID);
-			fixtureDef.shape = &shape;
-			fixtureDef.density = cc.Density;
-			fixtureDef.friction = cc.Friction;
-			fixtureDef.restitution = cc.Restitution;
-			fixtureDef.restitutionThreshold = cc.RestitutionThreshold;
-			fixtureDef.isSensor = cc.Sensor;
-			cc.Fixure = body->CreateFixture(&fixtureDef);
+			if (!rb.Body)
+			{
+				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
+				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
+				rb.Body = body;
+				b2CircleShape shape;
+				shape.m_p.Set(cc.Offset.x, cc.Offset.y);
+				shape.m_radius = scale.x * cc.Radius;
+				b2FixtureDef fixtureDef;
+				fixtureDef.userData.pointer = static_cast<uintptr_t>(entityID);
+				fixtureDef.shape = &shape;
+				fixtureDef.density = cc.Density;
+				fixtureDef.friction = cc.Friction;
+				fixtureDef.restitution = cc.Restitution;
+				fixtureDef.restitutionThreshold = cc.RestitutionThreshold;
+				fixtureDef.isSensor = cc.Sensor;
+				cc.Fixure = body->CreateFixture(&fixtureDef);
+			}
 		}
 
 		auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
@@ -1539,20 +1543,23 @@ namespace gte {
 				prevTC.Position = pos;
 				prevTC.Rotation = rotation.z;
 			}
-			b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
-			b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
-			rb.Body = body;
-			b2PolygonShape shape;
-			shape.SetAsBox(scale.x * bc.Size.x, scale.y * bc.Size.y, { bc.Offset.x, bc.Offset.y }, 0.0f);
-			b2FixtureDef fixtureDef;
-			fixtureDef.userData.pointer = static_cast<uintptr_t>(entityID);
-			fixtureDef.shape = &shape;
-			fixtureDef.density = bc.Density;
-			fixtureDef.friction = bc.Friction;
-			fixtureDef.restitution = bc.Restitution;
-			fixtureDef.restitutionThreshold = bc.RestitutionThreshold;
-			fixtureDef.isSensor = bc.Sensor;
-			bc.Fixure = body->CreateFixture(&fixtureDef);
+			if (!rb.Body)
+			{
+				b2BodyDef bodyDef = CreateBody(rb, pos, rotation.z);
+				b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
+				rb.Body = body;
+				b2PolygonShape shape;
+				shape.SetAsBox(scale.x * bc.Size.x, scale.y * bc.Size.y, { bc.Offset.x, bc.Offset.y }, 0.0f);
+				b2FixtureDef fixtureDef;
+				fixtureDef.userData.pointer = static_cast<uintptr_t>(entityID);
+				fixtureDef.shape = &shape;
+				fixtureDef.density = bc.Density;
+				fixtureDef.friction = bc.Friction;
+				fixtureDef.restitution = bc.Restitution;
+				fixtureDef.restitutionThreshold = bc.RestitutionThreshold;
+				fixtureDef.isSensor = bc.Sensor;
+				bc.Fixure = body->CreateFixture(&fixtureDef);
+			}
 		}
 	}
 
