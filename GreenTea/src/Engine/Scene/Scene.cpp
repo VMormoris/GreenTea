@@ -631,6 +631,198 @@ namespace gte {
 					}
 				}
 			}
+
+			const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+			auto& udc = entity.GetComponent<UserDefinedComponents>();
+			for (const auto& id : components)
+			{
+				Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
+				internal::NativeScript* script = (internal::NativeScript*)component->Data;
+				const auto& uc = entityNode[script->GetName()];
+				if (uc)
+				{
+					internal::NativeScript description = *script;
+					uint64 oldversion = uc["Version"].as<uint64>();
+					const auto& props = uc["Properties"];
+					const auto& specs = description.GetFieldsSpecification();
+					void* buffer = description.GetBuffer();
+					if (oldversion < script->GetVersion())
+					{
+						for (const auto& prop : props)
+						{
+							const auto name = prop["Name"].as<std::string>();
+							internal::FieldType type = (internal::FieldType)prop["Type"].as<uint64>();
+							for (const auto& spec : specs)
+							{
+								void* ptr = (byte*)buffer + spec.BufferOffset;
+								if (spec.Name.compare(name) == 0 && type == spec.Type)
+								{
+									switch (type)
+									{
+									using namespace internal;
+									case FieldType::Bool:
+										*(bool*)ptr = prop["Default"].as<bool>();
+										break;
+									case FieldType::Char:
+									case FieldType::Enum_Char:
+										*(char*)ptr = (char)prop["Default"].as<int16>();
+										break;
+									case FieldType::Enum_Byte:
+									case FieldType::Byte:
+										*(byte*)ptr = (byte)prop["Default"].as<byte>();
+										break;
+									case FieldType::Enum_Int16:
+									case FieldType::Int16:
+										*(int16*)ptr = prop["Default"].as<int16>();
+										break;
+									case FieldType::Enum_Int32:
+									case FieldType::Int32:
+										*(int32*)ptr = prop["Default"].as<int32>();
+										break;
+									case FieldType::Enum_Int64:
+									case FieldType::Int64:
+										*(int64*)ptr = prop["Default"].as<int64>();
+										break;
+									case FieldType::Enum_Uint16:
+									case FieldType::Uint16:
+										*(uint16*)ptr = prop["Default"].as<uint16>();
+										break;
+									case FieldType::Enum_Uint32:
+									case FieldType::Uint32:
+										*(uint32*)ptr = prop["Default"].as<uint32>();
+										break;
+									case FieldType::Enum_Uint64:
+									case FieldType::Uint64:
+										*(uint64*)ptr = prop["Default"].as<uint64>();
+										break;
+									case FieldType::Float32:
+										*(float*)ptr = prop["Default"].as<float>();
+										break;
+									case FieldType::Float64:
+										*(double*)ptr = prop["Default"].as<double>();
+										break;
+									case FieldType::Vec2:
+										*(glm::vec2*)ptr = prop["Default"].as<glm::vec2>();
+										break;
+									case FieldType::Vec3:
+										*(glm::vec3*)ptr = prop["Default"].as<glm::vec3>();
+										break;
+									case FieldType::Vec4:
+										*(glm::vec4*)ptr = prop["Default"].as<glm::vec4>();
+										break;
+									case FieldType::String:
+										*(std::string*)ptr = prop["Default"].as<std::string>();
+										break;
+									case FieldType::Asset:
+									{
+										uuid assetID = prop["Default"].as<std::string>();
+										Ref<Asset>& ref = *((Ref<Asset>*)ptr);
+										ref->ID = assetID;
+										break;
+									}
+									case FieldType::Entity:
+									{
+										uuid entityID = prop["Default"].as<std::string>();
+										if (map.find(entityID) == map.end())
+											*(Entity*)ptr = FindEntityWithUUID(entityID);
+										else
+											*(Entity*)ptr = map[entityID];
+										break;
+									}
+									case FieldType::Unknown:
+										break;
+									}
+								}
+							}
+						}
+					}
+					else
+					{
+						for (size_t i = 0; i < specs.size(); i++)
+						{
+							const auto& spec = specs[i];
+							const auto& prop = props[i];
+							void* ptr = (byte*)buffer + spec.BufferOffset;
+							switch (spec.Type)
+							{
+							using namespace internal;
+							case FieldType::Bool:
+								*(bool*)ptr = prop["Default"].as<bool>();
+								break;
+							case FieldType::Char:
+							case FieldType::Enum_Char:
+								*(char*)ptr = (char)prop["Default"].as<int16>();
+								break;
+							case FieldType::Int16:
+							case FieldType::Enum_Int16:
+								*(int16*)ptr = prop["Default"].as<int16>();
+								break;
+							case FieldType::Int32:
+							case FieldType::Enum_Int32:
+								*(int32*)ptr = prop["Default"].as<int32>();
+								break;
+							case FieldType::Int64:
+							case FieldType::Enum_Int64:
+								*(int64*)ptr = prop["Default"].as<int64>();
+								break;
+							case FieldType::Byte:
+							case FieldType::Enum_Byte:
+								*(byte*)ptr = (byte)prop["Default"].as<uint16>();
+								break;
+							case FieldType::Uint16:
+							case FieldType::Enum_Uint16:
+								*(uint16*)ptr = prop["Default"].as<uint16>();
+								break;
+							case FieldType::Uint32:
+							case FieldType::Enum_Uint32:
+								*(uint32*)ptr = prop["Default"].as<uint32>();
+								break;
+							case FieldType::Uint64:
+							case FieldType::Enum_Uint64:
+								*(uint64*)ptr = prop["Default"].as<uint64>();
+								break;
+							case FieldType::Float32:
+								*(float*)ptr = prop["Default"].as<float>();
+								break;
+							case FieldType::Float64:
+								*(double*)ptr = prop["Default"].as<double>();
+								break;
+							case FieldType::Vec2:
+								*(glm::vec2*)ptr = prop["Default"].as<glm::vec2>();
+								break;
+							case FieldType::Vec3:
+								*(glm::vec3*)ptr = prop["Default"].as<glm::vec3>();
+								break;
+							case FieldType::Vec4:
+								*(glm::vec4*)ptr = prop["Default"].as<glm::vec4>();
+								break;
+							case FieldType::String:
+								*(std::string*)ptr = prop["Default"].as<std::string>();
+								break;
+							case FieldType::Asset:
+							{
+								uuid assetID = prop["Default"].as<std::string>();
+								Ref<Asset>& ref = *((Ref<Asset>*)ptr);
+								ref->ID = assetID;
+								break;
+							}
+							case FieldType::Entity:
+							{
+								uuid entityID = prop["Default"].as<std::string>();
+								if (map.find(entityID) == map.end())
+									*(Entity*)ptr = FindEntityWithUUID(entityID);
+								else
+									*(Entity*)ptr = map[entityID];
+								break;
+							}
+							case FieldType::Unknown:
+								break;
+							}
+						}
+					}
+					udc.emplace_back(description);
+				}
+			}
 		}
 
 		if (parent)

@@ -1108,6 +1108,94 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "Animation" << YAML::Value << ac.Animation->ID.str();
 		out << YAML::EndMap;
 	}
+
+	if (entity.HasComponent<UserDefinedComponents>())
+	{
+		const auto& udc = entity.GetComponent<UserDefinedComponents>();
+		for (const auto& uc : udc)
+		{
+			out << YAML::Key << uc.GetName();
+			out << YAML::BeginMap;
+			out << YAML::Key << "Version" << YAML::Value << uc.GetVersion();
+			out << YAML::Key << "Properties" << YAML::Value << YAML::BeginSeq;
+			const void* buffer = uc.GetBuffer();
+			for (const auto& prop : uc.GetFieldsSpecification())
+			{
+				out << YAML::BeginMap;
+				out << YAML::Key << "Name" << YAML::Value << prop.Name;
+				out << YAML::Key << "Type" << YAML::Value << (uint16)prop.Type;
+				out << YAML::Key << "Default" << YAML::Value;
+				const void* ptr = (const byte*)buffer + prop.BufferOffset;
+				switch (prop.Type)
+				{
+				using namespace internal;
+				case FieldType::Bool:
+					out << *(bool*)ptr;
+					break;
+				case FieldType::Char:
+				case FieldType::Enum_Char:
+					out << *(int16*)ptr;
+					break;
+				case FieldType::Int16:
+				case FieldType::Enum_Int16:
+					out << *(int16*)ptr;
+					break;
+				case FieldType::Int32:
+				case FieldType::Enum_Int32:
+					out << *(int32*)ptr;
+					break;
+				case FieldType::Int64:
+				case FieldType::Enum_Int64:
+					out << *(int64*)ptr;
+					break;
+				case FieldType::Byte:
+				case FieldType::Enum_Byte:
+					out << (uint16) * (byte*)ptr;
+					break;
+				case FieldType::Uint16:
+				case FieldType::Enum_Uint16:
+					out << *(uint16*)ptr;
+					break;
+				case FieldType::Uint32:
+				case FieldType::Enum_Uint32:
+					out << *(uint32*)ptr;
+					break;
+				case FieldType::Uint64:
+				case FieldType::Enum_Uint64:
+					out << *(uint64*)ptr;
+					break;
+				case FieldType::Float32:
+					out << *(float*)ptr;
+					break;
+				case FieldType::Float64:
+					out << *(double*)ptr;
+					break;
+				case FieldType::Vec2:
+					out << *(glm::vec2*)ptr;
+					break;
+				case FieldType::Vec3:
+					out << *(glm::vec3*)ptr;
+					break;
+				case FieldType::Vec4:
+					out << *(glm::vec4*)ptr;
+					break;
+				case FieldType::String:
+					out << *(std::string*)ptr;
+					break;
+				case FieldType::Asset:
+					out << (*(Ref<Asset>*)ptr)->ID.str();
+					break;
+				case FieldType::Entity:
+					out << ((Entity*)ptr)->GetID().str();
+					break;
+				}
+				out << YAML::EndMap;
+			}
+			out << YAML::EndSeq;
+			out << YAML::EndMap;
+		}
+	}
+
 	out << YAML::EndMap;
 
 	Entity child = { rc.FirstChild, scene };
