@@ -225,6 +225,7 @@ namespace gte {
 		mReg.emplace<TagComponent>(entityID, tag);
 		mReg.emplace<RelationshipComponent>(entityID);
 		mReg.emplace<Transform2DComponent>(entityID);
+		mReg.emplace<UserDefinedComponents>(entityID);
 		return { entityID, this };
 	}
 
@@ -1620,6 +1621,85 @@ namespace gte {
 					}
 				}
 				nc.Description = newDescription;
+			}
+		}
+
+		const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+		auto udcs = mReg.view<UserDefinedComponents>();
+		for (auto&& [entityID, udc] : udcs.each())
+		{
+			for (auto& uc : udc)
+			{
+				for (const auto& id : components)
+				{
+					Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
+					const NativeScript* script = (NativeScript*)component->Data;
+					
+					if (uc.GetName().compare(script->GetName()) == 0)
+					{
+						if (script->GetVersion() > uc.GetVersion())
+						{
+							const auto& oldSpecs = uc.GetFieldsSpecification();
+							void* oldBuffer = uc.GetBuffer();
+							NativeScript description = *script;
+							const auto& specs = description.GetFieldsSpecification();
+							void* buffer = description.GetBuffer();
+							for (const auto& oldspec : oldSpecs)
+							{
+								void* srcPtr = (byte*)oldBuffer + oldspec.BufferOffset;
+								for (const auto& spec : specs)
+								{
+									void* dstPtr = (byte*)buffer + spec.BufferOffset;
+									if (spec.Name.compare(oldspec.Name) == 0 && oldspec.Type == spec.Type)
+									{
+										switch (spec.Type)
+										{
+										case FieldType::Bool:
+										case FieldType::Enum_Char:
+										case FieldType::Char:
+										case FieldType::Enum_Byte:
+										case FieldType::Byte:
+										case FieldType::Enum_Int16:
+										case FieldType::Int16:
+										case FieldType::Enum_Int32:
+										case FieldType::Int32:
+										case FieldType::Enum_Int64:
+										case FieldType::Int64:
+										case FieldType::Enum_Uint16:
+										case FieldType::Uint16:
+										case FieldType::Enum_Uint32:
+										case FieldType::Uint32:
+										case FieldType::Enum_Uint64:
+										case FieldType::Uint64:
+										case FieldType::Float32:
+										case FieldType::Float64:
+										case FieldType::Vec2:
+										case FieldType::Vec3:
+										case FieldType::Vec4:
+										case FieldType::Entity:
+											//Can be trivially copied
+											memcpy(dstPtr, srcPtr, spec.Size);
+											break;
+										case FieldType::String:
+											*(std::string*)dstPtr = *(std::string*)srcPtr;
+											break;
+										case FieldType::Asset:
+										{
+											uuid assetID = (*((Ref<Asset>*)srcPtr))->ID;
+											Ref<Asset>& ref = *((Ref<Asset>*)dstPtr);
+											ref->ID = assetID;
+											break;
+										}
+										case FieldType::Unknown:
+											break;
+										}
+									}
+								}
+							}
+							uc = description;
+						}
+					}
+				}
 			}
 		}
 	}

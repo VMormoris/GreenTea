@@ -381,6 +381,36 @@ void CupOfTea::RenderGUI(void)
 		ImGui::End();
 	}
 
+	if (!sLoaded)
+	{
+		ImGui::OpenPopup("Loading");
+
+		ImVec2 size = { 160.0f, 32.0f };
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImVec2 pos = { (viewport->Size.x - size.x) / 2.0f, (viewport->Size.y - size.y) / 2.0f };
+		ImGui::SetNextWindowPos({ viewport->Pos.x + pos.x, viewport->Pos.y + pos.y });
+		ImGui::SetNextWindowSize(size);
+	}
+
+	if (ImGui::BeginPopupModal("Loading", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove))
+	{
+		ImGui::Text("Loading assets...");
+		std::vector<gte::uuid> ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript", ".gtcomp", ".gtsystem" });
+		sLoaded = true;
+		for (const auto& id : ids)
+		{
+			gte::Ref<gte::Asset> asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
+			if (asset->Type == gte::AssetType::LOADING)
+				sLoaded = false;
+		}
+		if (sLoaded)
+		{
+			gte::internal::GetContext()->ActiveScene->PatchScripts();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+
 	if (mPanels[3] && !mPanels[7])
 	{
 		if (ImGui::Begin("Properties", &mPanels[3], ImGuiWindowFlags_NoCollapse))
@@ -527,36 +557,6 @@ void CupOfTea::RenderGUI(void)
 		ImGui::PopStyleColor();
 	}
 
-	if (!sLoaded)
-	{
-		ImGui::OpenPopup("Loading");
-
-		ImVec2 size = { 160.0f, 32.0f };
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImVec2 pos = { (viewport->Size.x - size.x) / 2.0f, (viewport->Size.y - size.y) / 2.0f };
-		ImGui::SetNextWindowPos({ viewport->Pos.x + pos.x, viewport->Pos.y + pos.y });
-		ImGui::SetNextWindowSize(size);
-	}
-
-	if (ImGui::BeginPopupModal("Loading", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove))
-	{
-		ImGui::Text("Loading assets...");
-		std::vector<gte::uuid> ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript" });
-		sLoaded = true;
-		for (const auto& id : ids)
-		{
-			gte::Ref<gte::Asset> asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
-			if (asset->Type == gte::AssetType::LOADING)
-				sLoaded = false;
-		}
-		if (sLoaded)
-		{
-			gte::internal::GetContext()->ActiveScene->PatchScripts();
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::EndPopup();
-	}
-
 	if (mPanels[7])
 	{
 		mAnimationPanel.Draw(mPanels[7]);
@@ -595,7 +595,7 @@ CupOfTea::CupOfTea(const std::string& filepath)
 	gte::internal::GetContext()->AssetWatcher.LoadProject(".");
 	if (std::filesystem::exists("Assets/" + scenename) && !scenename.empty())
 	{
-		std::vector<gte::uuid> ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript" });
+		std::vector<gte::uuid> ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript", ".gtcomp", ".gtsystem" });
 		while (true)
 		{
 			bool loaded = true;

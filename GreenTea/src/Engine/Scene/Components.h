@@ -149,7 +149,6 @@ namespace gte {
 
 	};
 
-
 	enum class ENGINE_API DistanceModel : byte {
 		None = 0,
 		Inverse,
@@ -295,10 +294,19 @@ namespace gte {
 		AnimationComponent& operator=(const AnimationComponent&) = default;
 	};
 
+	using UserDefinedComponents = ENGINE_API std::vector<internal::NativeScript>;
+
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent, SpriteRendererComponent, CircleRendererComponent, TextRendererComponent, CameraComponent, OrthographicCameraComponent, NativeScriptComponent, Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent, SpeakerComponent, ParticleSystemComponent, AnimationComponent>;
+	using AllComponents = ComponentGroup<Transform2DComponent,
+		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
+		CameraComponent, OrthographicCameraComponent,
+		NativeScriptComponent,
+		Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent,
+		SpeakerComponent,
+		ParticleSystemComponent,
+		AnimationComponent>;
 
 	namespace filters {
 		struct ENGINE_API Destructable {};

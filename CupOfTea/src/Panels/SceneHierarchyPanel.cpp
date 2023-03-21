@@ -329,6 +329,37 @@ namespace gte {
 				}
 			}
 
+			//User defined components
+			const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+			auto& udc = entity.GetComponent<UserDefinedComponents>();
+			bool separator = false;
+			for (const auto& id : components)
+			{
+				Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
+				internal::NativeScript* script = (internal::NativeScript*)component->Data;
+				const auto& name = script->GetName();
+				
+				bool found = false;
+				for (const auto& uc : udc)
+				{
+					if (name.compare(uc.GetName()) == 0)
+					{
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					if (!separator) { ImGui::Separator(); separator = true; }
+					if (ImGui::MenuItem(name.c_str()))
+					{
+						udc.push_back(*script);
+						ImGui::CloseCurrentPopup();
+					}
+				}
+			}
+			
 			ImGui::EndPopup();
 		}
 
@@ -681,6 +712,39 @@ namespace gte {
 			});
 		}
 
+		const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+		auto& udc = entity.GetComponent<UserDefinedComponents>();
+		std::vector<int64> bin;
+		for (int64 i = udc.size() - 1; i >= 0; i--)
+		{
+			const auto& uc = udc[i];
+			bool found = false;
+			for (const auto& id : components)
+			{
+				Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
+				if (component->Type == AssetType::LOADING) { found = true; break; }
+				internal::NativeScript* script = (internal::NativeScript*)component->Data;
+				if (uc.GetName().compare(script->GetName()) == 0) { found = true; break; }
+			}
+			if (!found)
+				bin.emplace_back(i);
+		}
+		for (auto&& index : bin)
+			udc.erase(udc.begin() + index);
+
+		int64 index = -1;
+		for (int64 i = 0; i < udc.size(); i++)
+		{
+			auto& uc = udc[i];
+			void* ptr = internal::GetContext()->Playing ? internal::GetContext()->DynamicLoader.GetComponent(uc.GetName(), entity) : uc.GetBuffer();
+			if (gui::DrawUserComponent(&uc, entity, ptr))
+			{
+				if (internal::GetContext()->Playing) internal::GetContext()->DynamicLoader.RemoveComponent(uc.GetName(), entity);
+				index = i;
+			}
+		}
+		if (index != -1)
+			udc.erase(udc.begin() + index);
 	}
 
 	void SceneHierarchyPanel::DeleteSelected(void)

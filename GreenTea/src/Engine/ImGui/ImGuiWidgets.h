@@ -148,6 +148,9 @@ namespace gte::gui {
 	ENGINE_API bool DrawEntityControl(const char* label, uuid& id, const UISettings& settings, const std::string& help = "");
 
 	ENGINE_API bool DrawFieldControl(const internal::FieldSpecification& spec, void* buffer);
+
+	ENGINE_API bool DrawUserComponent(const internal::NativeScript* script, Entity entity, void* ptr);
+
 }
 
 #endif

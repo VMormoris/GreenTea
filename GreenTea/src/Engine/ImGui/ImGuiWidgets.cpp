@@ -1280,6 +1280,38 @@ namespace gte::gui {
 		}
 		return changed;
 	}
+	
+	ENGINE_API bool DrawUserComponent(const internal::NativeScript* script, Entity entity, void* ptr)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		auto IconsFont = io.Fonts->Fonts[3];
+		constexpr ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_OpenOnArrow;
+		
+		const char* name = script->GetName().c_str();
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+		const bool open = ImGui::TreeNodeEx(name, treeNodeFlags);
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 24.0f);
+		ImGui::PushFont(IconsFont);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
+		const bool remove = ImGui::Button(ICON_FK_TRASH);
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
+		ImGui::PopFont();
+		ImGui::PopStyleVar();
+
+		if (open)
+		{
+			const auto& fields = script->GetFieldsSpecification();
+			for (const auto& field : fields)
+				DrawFieldControl(field, ptr);
+			ImGui::TreePop();
+			ImGui::Separator();
+		}
+
+		return remove;
+	}
 }
 
 void DrawPrefix(const char* label, float width, const std::string& help)
