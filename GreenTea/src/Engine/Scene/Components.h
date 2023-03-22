@@ -302,7 +302,7 @@ namespace gte {
 	using AllComponents = ComponentGroup<Transform2DComponent,
 		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
 		CameraComponent, OrthographicCameraComponent,
-		NativeScriptComponent,
+		NativeScriptComponent, UserDefinedComponents,
 		Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent,
 		SpeakerComponent,
 		ParticleSystemComponent,

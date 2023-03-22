@@ -820,9 +820,12 @@ namespace gte {
 							}
 						}
 					}
+					
 					udc.emplace_back(description);
 				}
 			}
+			
+			SetupUserComponents(entity, udc);
 		}
 
 		if (parent)
@@ -1365,6 +1368,13 @@ namespace gte {
 				}
 			}
 		}
+
+		{//Patch user defined components
+			auto view = srcReg.view<UserDefinedComponents>();
+			for (auto&& [entityID, udc] : view.each())
+				newScene->SetupUserComponents(entityID, udc);
+		}
+
 		newScene->UpdateMatrices();
 		return newScene;
 	}
@@ -1588,6 +1598,71 @@ namespace gte {
 		auto view = mReg.view<ParticleSystemComponent>(entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, psc] : view.each())
 			psc.System->Update(dt);
+	}
+
+	void Scene::SetupUserComponents(entt::entity entityID, const UserDefinedComponents& udc)
+	{
+		for (const auto& uc : udc)
+		{
+			void* buffer = internal::GetContext()->DynamicLoader.AddComponent(uc.GetName(), { entityID, this });
+			const void* srcBuffer = uc.GetBuffer();
+			for (const auto& spec : uc.GetFieldsSpecification())
+			{
+				void* ptr = (byte*)buffer + spec.Offset;
+				const void* src = (byte*)srcBuffer + spec.BufferOffset;
+				switch (spec.Type)
+				{
+				using namespace internal;
+				case FieldType::Bool:
+				case FieldType::Char:
+				case FieldType::Int16:
+				case FieldType::Int32:
+				case FieldType::Int64:
+				case FieldType::Byte:
+				case FieldType::Uint16:
+				case FieldType::Uint32:
+				case FieldType::Uint64:
+				case FieldType::Enum_Char:
+				case FieldType::Enum_Int16:
+				case FieldType::Enum_Int32:
+				case FieldType::Enum_Int64:
+				case FieldType::Enum_Byte:
+				case FieldType::Enum_Uint16:
+				case FieldType::Enum_Uint32:
+				case FieldType::Enum_Uint64:
+				case FieldType::Float32:
+				case FieldType::Float64:
+				case FieldType::Vec2:
+				case FieldType::Vec3:
+				case FieldType::Vec4:
+				//Can be trivially copied
+					memcpy(ptr, src, spec.Size);
+					break;
+				case FieldType::Entity:
+				{
+					Entity* srcEntity = (Entity*)src;
+					auto entityID = (entt::entity)*srcEntity;
+					Entity* entity = (Entity*)ptr;
+					new (entity) Entity(entityID, this);
+					break;
+				}
+				case FieldType::String:
+				{
+					std::string& val = *((std::string*)ptr);
+					val = *((const std::string*)src);
+					break;
+				}
+				case FieldType::Asset:
+				{
+					Ref<Asset>* ref = (Ref<Asset>*)ptr;
+					*ref = internal::GetContext()->AssetManager.RequestAsset((*(const Ref<Asset>*)src)->ID);
+					break;
+				}
+				default:
+					break;
+				}
+			}
+		}
 	}
 
 	void Scene::InformAudioEngine(void)
