@@ -28,15 +28,19 @@ namespace gte::gui {
 		ImGui::PopFont();
 		ImGui::SameLine();
 		ImGui::Text(name);
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 24.0f);
-		ImGui::PushFont(IconsFont);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-		ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
-		const bool remove = ImGui::Button(ICON_FK_TRASH);
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
-		ImGui::PopFont();
+		bool remove = false;
+		if constexpr(!std::is_same<T, Transform2DComponent>::value)
+		{
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 24.0f);
+			ImGui::PushFont(IconsFont);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+			ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
+			remove = ImGui::Button(ICON_FK_TRASH);
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar();
+			ImGui::PopFont();
+		}
 		ImGui::PopStyleVar();
 
 		if (open)
