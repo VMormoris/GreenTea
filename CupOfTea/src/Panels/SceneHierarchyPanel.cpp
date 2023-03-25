@@ -66,7 +66,7 @@ namespace gte {
 			}
 			ImGui::EndPopup();
 		}
-			
+		
 		if (mFilter.empty())
 		{
 			auto view = scene->mReg.view<RelationshipComponent>();

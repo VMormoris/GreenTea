@@ -311,6 +311,8 @@ namespace gte::internal {
 					auto& nc = entity.AddComponent<NativeScriptComponent>();
 					uuid scriptID = nativescript["Asset"].as<std::string>();
 					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(scriptID);
+					if (nc.ScriptAsset->Type == AssetType::INVALID)
+						continue;
 					uint64 oldversion = nativescript["Version"].as<uint64>();
 					if (scriptID.IsValid() && ((NativeScript*)nc.ScriptAsset->Data)->GetVersion() > oldversion)
 					{

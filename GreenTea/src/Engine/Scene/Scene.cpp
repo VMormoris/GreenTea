@@ -76,34 +76,26 @@ namespace gte {
 						nc.Instance->Start();
 						nc.State = ScriptState::Active;
 					}
-					catch (...)
-					{
-						nc.State = ScriptState::Inactive;
-						if (nc.Instance)
-							delete nc.Instance;
-						bin.emplace_back(entityID);
-					}
+					catch (...) { mReg.emplace<filters::Destructable>(entityID); }
 				}
 				else if (nc.State == ScriptState::Active)
 				{
 					try { nc.Instance->Update(dt); }
-					catch (...) { nc.State = ScriptState::MustBeDestroyed; }
+					catch (...) { mReg.emplace<filters::Destructable>(entityID); }
+				}
+				else if (nc.State == ScriptState::MustBeDestroyed)
+				{
+					try { nc.Instance->Destroy(); }
+					catch (...) { bin.emplace_back(entityID); }
+					delete nc.Instance;
+					nc.Instance = nullptr;
+					nc.State = ScriptState::Inactive;
 				}
 			}
 
 			auto destructables = mReg.view<filters::Destructable>();
 			for (auto entityID : destructables)
-			{
-				const auto& rel = mReg.get<RelationshipComponent>(entityID);
-				if (!destructables.contains(rel.Parent))
-					bin.emplace_back(entityID);
-				if (auto* nsc = mReg.try_get<NativeScriptComponent>(entityID))
-				{
-					try { nsc->Instance->Destroy(); }
-					catch (...) {}
-					delete nsc->Instance;
-				}
-			}
+				DestroyEntity({ entityID, this });
 		}
 
 		for (auto entityID : bin)
@@ -844,7 +836,6 @@ namespace gte {
 
 		if (internal::GetContext()->Playing)
 		{
-			std::vector<Entity> bin;
 #ifndef GT_DIST
 			internal::ScopedSETranslator translator(internal::TranslateFunction);
 #endif
@@ -867,17 +858,13 @@ namespace gte {
 						nsc.Instance->Start();
 						nsc.State = ScriptState::Active;
 					}
-					catch (...)
-					{
-						nsc.State = ScriptState::Inactive;
-						if (nsc.Instance)
-							delete nsc.Instance;
-						bin.emplace_back(entity);
-					}
+					catch (...) { mReg.emplace<filters::Destructable>(entity); }
 				}
 			}
-			for (auto entity : bin)
-				DestroyEntity(entity);
+
+			auto destructables = mReg.view<filters::Destructable>();
+			for (auto entityID : destructables)
+				DestroyEntity({ entityID, this });
 		}
 
 		if (!toReturn)//Check if entity still valid
@@ -1050,6 +1037,24 @@ namespace gte {
 			}
 			DestroyEntity({ curr, this });
 		}
+
+		//Delete Scipts & UserDefinedComponents
+		if (auto* nsc = mReg.try_get<NativeScriptComponent>(entity))
+		{
+			if (nsc->Instance)
+			{
+				try { nsc->Instance->Destroy(); }
+				catch (...) {}
+				delete nsc->Instance;
+			}
+		}
+		auto& udc = mReg.get<UserDefinedComponents>(entity);
+		if (internal::GetContext()->Playing)
+		{
+			for (const auto& uc : udc)
+				internal::GetContext()->DynamicLoader.RemoveComponent(uc.GetName(), entity);
+		}
+		udc.clear();
 
 		//Now need to inform neighbours & parent
 		if (relc.Previous != entt::null)
@@ -1410,17 +1415,14 @@ namespace gte {
 							bin.emplace_back(entityID);
 						}
 					}
-					catch(...)
-					{
-						nc.State = ScriptState::Inactive;
-						if (nc.Instance)
-							delete nc.Instance;
-						bin.emplace_back(entityID);
-					}
+					catch(...) { mReg.emplace<filters::Destructable>(entityID); }
 				}
 			}
 		}
 
+		auto destructables = mReg.view<filters::Destructable>();
+		for (auto entityID : destructables)
+			DestroyEntity({ entityID, this });
 		for (auto entityID : bin)
 			DestroyEntity({ entityID, this });
 
@@ -1466,6 +1468,17 @@ namespace gte {
 			delete nc.Instance;
 			nc.Instance = nullptr;
 		}
+
+		auto udcs = mReg.view<UserDefinedComponents>();
+		for (auto&& [entityID, udc] : udcs.each())
+		{
+			for (const auto& uc : udc)
+			{
+				const auto& name = uc.GetName();
+				if (internal::GetContext()->DynamicLoader.HasComponent(name, { entityID, this }))
+					internal::GetContext()->DynamicLoader.RemoveComponent(name, { entityID, this });
+			}
+		}
 	}
 
 	void Scene::FixedUpdate(void)
@@ -1494,8 +1507,15 @@ namespace gte {
 		auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 		scripts.each([](auto& script) {
 			if (script.State == ScriptState::Active)
-				script.Instance->FixedUpdate();
+			{
+				try { script.Instance->FixedUpdate(); }
+				catch (...) { script.Instance->AddComponent<filters::Destructable>(); }
+			}
 		});
+
+		auto destructables = mReg.view<filters::Destructable>();
+		for (auto entityID : destructables)
+			DestroyEntity({ entityID, this });
 
 		{//Handle entities that were disabled or enabled
 			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
