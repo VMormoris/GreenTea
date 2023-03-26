@@ -340,7 +340,7 @@ namespace gte {
 		SystemsComponent(void) = default;
 		SystemsComponent(const SystemsComponent&) = default;
 		SystemsComponent(const uuid& id, const internal::NativeScript& ns)
-			: AssetID(id), Description(ns) {}
+			: Instance(nullptr), AssetID(id), Description(ns) {}
 
 		SystemsComponent& operator=(const SystemsComponent&) = default;
 	};
