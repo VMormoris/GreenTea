@@ -29,8 +29,8 @@ namespace gte::internal {
 		std::string GreenTeaDir = "";
 		Window* GlobalWindow = nullptr;
 		byte WindowCount = 0;
-		glm::vec2 ViewportOffset;
-		glm::vec2 ViewportSize;
+		glm::vec2 ViewportOffset{ 0.0f, 0.0f };
+		glm::vec2 ViewportSize{ 0.0f, 0.0f };
 		EventDispatcher Dispatcher;
 		
 		ScriptingEngine* ScriptEngine = nullptr;

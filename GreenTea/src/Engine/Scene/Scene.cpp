@@ -2,12 +2,12 @@
 #include "Components.h"
 #include "CollisionDispatcher.h"
 #include "Entity.h"
+#include "Systems.h"
 
 #include <Engine/Assets/Prefab.h>
 #include <Engine/Core/Context.h>
 #include <Engine/Core/Math.h>
 #include <Engine/NativeScripting/ScriptableEntity.h>
-#include <Engine/Renderer/Renderer2D.h>
 
 //glm
 #include <gtc/matrix_transform.hpp>
@@ -36,6 +36,8 @@ static void DestroyCollider(entt::registry& reg, entt::entity entityID);
 
 static b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, float angle);
 static void SetListener(entt::registry& reg, entt::entity entity);
+
+static void PatchFields(void* oldBuffer, void* buffer, const std::vector<gte::internal::FieldSpecification>& oldSpecs, const std::vector<gte::internal::FieldSpecification>& specs);
 
 namespace gte {
 
@@ -146,66 +148,7 @@ namespace gte {
 			SetListener(mReg, camera);
 	}
 
-	void Scene::Render(const glm::mat4& eyematrix)
-	{
-		entt::insertion_sort algo;
-		mReg.sort<TransformationComponent>([](const auto& lhs, const auto& rhs) { return lhs.Transform[3].z < rhs.Transform[3].z; }, algo);
-		Renderer2D::BeginScene(eyematrix);
-		auto view = mReg.view<TransformationComponent>(entt::exclude<filters::Disabled>);
-		for (auto&& [entityID, tc] : view.each())
-		{
-			if (auto* sprite = mReg.try_get<SpriteRendererComponent>(entityID))
-			{
-				if (!sprite->Visible)
-					continue;
-				sprite->Texture = internal::GetContext()->AssetManager.RequestAsset(sprite->Texture->ID);
-				if (sprite->Texture->Type == AssetType::INVALID)
-					Renderer2D::DrawQuad(tc.Transform, (uint32)entityID, sprite->Color);
-				else if (sprite->Texture->Type == AssetType::TEXTURE)
-				{
-					TextureCoordinates coords = sprite->Coordinates;
-					if (sprite->FlipX)
-					{
-						float x = coords.BottomLeft.x;
-						coords.BottomLeft.x = coords.TopRight.x;
-						coords.TopRight.x = x;
-					}
-					if (sprite->FlipY)
-					{
-						float y = coords.BottomLeft.y;
-						coords.BottomLeft.y = coords.TopRight.y;
-						coords.TopRight.y = y;
-					}
-					Renderer2D::DrawQuad(tc.Transform, (GPU::Texture*)sprite->Texture->Data, coords, (uint32)entityID, sprite->Color, sprite->TilingFactor);
-				}
-			}
-			else if (auto* circle = mReg.try_get<CircleRendererComponent>(entityID))
-			{
-				if(circle->Visible)
-					Renderer2D::DrawCircle(tc.Transform, circle->Color, (uint32)entityID, circle->Thickness, circle->Fade);
-			}
-				
-		}
-
-		if (internal::GetContext()->Playing)
-		{
-			auto particles = mReg.view<ParticleSystemComponent, TransformationComponent>(entt::exclude<filters::Disabled>);
-			for (auto&& [entityID, psc, tc] : particles.each())
-				psc.System->Render(tc);
-		}
-
-		auto texts = mReg.view<TransformationComponent, TextRendererComponent>(entt::exclude<filters::Disabled>);
-		for (auto&& [entityID, tc, text] : texts.each())
-		{
-			text.Font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID);
-			if (text.Font->Type != AssetType::TEXTURE || !text.Visible)
-				continue;
-			Ref<Asset> font = internal::GetContext()->AssetManager.RequestAsset(text.Font->ID, true);
-			Renderer2D::DrawString(text.Text, tc, text.Size, (GPU::Texture*)text.Font->Data, (internal::Font*)font->Data, text.Color);
-		}
-		
-		Renderer2D::EndScene();
-	}
+	void Scene::Render(const glm::mat4& eyematrix) { internal::RenderScene(&mReg, eyematrix); }
 
 	Entity Scene::CreateEntity(const std::string& name) { return CreateEntityWithUUID(uuid::Create(), name); }
 
@@ -1851,63 +1794,8 @@ namespace gte {
 				continue;
 			if (((NativeScript*)nc.ScriptAsset->Data)->GetVersion() > nc.Description.GetVersion())
 			{
-				const auto& oldSpecs = nc.Description.GetFieldsSpecification();
-				void* oldBuffer = nc.Description.GetBuffer();
 				auto newDescription = *(NativeScript*)nc.ScriptAsset->Data;
-				const auto& specs = newDescription.GetFieldsSpecification();
-				void* buffer = newDescription.GetBuffer();
-				for (const auto& oldspec : oldSpecs)
-				{
-					void* srcPtr = (byte*)oldBuffer + oldspec.BufferOffset;
-					for (const auto& spec : specs)
-					{
-						void* dstPtr = (byte*)buffer + spec.BufferOffset;
-						if (spec.Name.compare(oldspec.Name) == 0 && oldspec.Type == spec.Type)
-						{
-							switch (spec.Type)
-							{
-							case FieldType::Bool:
-							case FieldType::Enum_Char:
-							case FieldType::Char:
-							case FieldType::Enum_Byte:
-							case FieldType::Byte:
-							case FieldType::Enum_Int16:
-							case FieldType::Int16:
-							case FieldType::Enum_Int32:
-							case FieldType::Int32:
-							case FieldType::Enum_Int64:
-							case FieldType::Int64:
-							case FieldType::Enum_Uint16:
-							case FieldType::Uint16:
-							case FieldType::Enum_Uint32:
-							case FieldType::Uint32:
-							case FieldType::Enum_Uint64:
-							case FieldType::Uint64:
-							case FieldType::Float32:
-							case FieldType::Float64:
-							case FieldType::Vec2:
-							case FieldType::Vec3:
-							case FieldType::Vec4:
-							case FieldType::Entity:
-								//Can be trivially copied
-								memcpy(dstPtr, srcPtr, spec.Size);
-								break;
-							case FieldType::String:
-								*(std::string*)dstPtr = *(std::string*)srcPtr;
-								break;
-							case FieldType::Asset:
-							{
-								uuid assetID = (*((Ref<Asset>*)srcPtr))->ID;
-								Ref<Asset>& ref = *((Ref<Asset>*)dstPtr);
-								ref->ID = assetID;
-								break;
-							}
-							case FieldType::Unknown:
-								break;
-							}
-						}
-					}
-				}
+				PatchFields(nc.Description.GetBuffer(), newDescription.GetBuffer(), nc.Description.GetFieldsSpecification(), newDescription.GetFieldsSpecification());
 				nc.Description = newDescription;
 			}
 		}
@@ -1927,67 +1815,28 @@ namespace gte {
 					{
 						if (script->GetVersion() > uc.GetVersion())
 						{
-							const auto& oldSpecs = uc.GetFieldsSpecification();
-							void* oldBuffer = uc.GetBuffer();
 							NativeScript description = *script;
-							const auto& specs = description.GetFieldsSpecification();
-							void* buffer = description.GetBuffer();
-							for (const auto& oldspec : oldSpecs)
-							{
-								void* srcPtr = (byte*)oldBuffer + oldspec.BufferOffset;
-								for (const auto& spec : specs)
-								{
-									void* dstPtr = (byte*)buffer + spec.BufferOffset;
-									if (spec.Name.compare(oldspec.Name) == 0 && oldspec.Type == spec.Type)
-									{
-										switch (spec.Type)
-										{
-										case FieldType::Bool:
-										case FieldType::Enum_Char:
-										case FieldType::Char:
-										case FieldType::Enum_Byte:
-										case FieldType::Byte:
-										case FieldType::Enum_Int16:
-										case FieldType::Int16:
-										case FieldType::Enum_Int32:
-										case FieldType::Int32:
-										case FieldType::Enum_Int64:
-										case FieldType::Int64:
-										case FieldType::Enum_Uint16:
-										case FieldType::Uint16:
-										case FieldType::Enum_Uint32:
-										case FieldType::Uint32:
-										case FieldType::Enum_Uint64:
-										case FieldType::Uint64:
-										case FieldType::Float32:
-										case FieldType::Float64:
-										case FieldType::Vec2:
-										case FieldType::Vec3:
-										case FieldType::Vec4:
-										case FieldType::Entity:
-											//Can be trivially copied
-											memcpy(dstPtr, srcPtr, spec.Size);
-											break;
-										case FieldType::String:
-											*(std::string*)dstPtr = *(std::string*)srcPtr;
-											break;
-										case FieldType::Asset:
-										{
-											uuid assetID = (*((Ref<Asset>*)srcPtr))->ID;
-											Ref<Asset>& ref = *((Ref<Asset>*)dstPtr);
-											ref->ID = assetID;
-											break;
-										}
-										case FieldType::Unknown:
-											break;
-										}
-									}
-								}
-							}
+							PatchFields(uc.GetBuffer(), description.GetBuffer(), uc.GetFieldsSpecification(), description.GetFieldsSpecification());
 							uc = description;
 						}
 					}
 				}
+			}
+		}
+
+		const auto systems = internal::GetContext()->AssetWatcher.GetAssets({ ".gtsystem" });
+		auto& uds = mReg.get<UserDefinedSystems>(FindEntityWithUUID({}));
+		for (auto& us : uds)
+		{
+			for (const auto& id : systems)
+			{
+				Ref<Asset> system = internal::GetContext()->AssetManager.RequestAsset(id);
+				const NativeScript* script = (NativeScript*)system->Data;
+				if (us.Description.GetName().compare(script->GetName()) != 0) continue;
+				if (us.Description.GetVersion() == script->GetVersion()) continue;
+				NativeScript description = *script;
+				PatchFields(us.Description.GetBuffer(), description.GetBuffer(), us.Description.GetFieldsSpecification(), description.GetFieldsSpecification());
+				us.Description = description;
 			}
 		}
 	}
@@ -2131,4 +1980,61 @@ void SetListener(entt::registry& reg, entt::entity entity)
 		alListener3f(AL_VELOCITY, rb->Velocity.x, rb->Velocity.y, 0.0f);
 	else
 		alListener3f(AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+}
+
+void PatchFields(void* oldBuffer, void* buffer, const std::vector<gte::internal::FieldSpecification>& oldSpecs, const std::vector<gte::internal::FieldSpecification>& specs)
+{
+	using namespace gte::internal;
+	for (const auto& oldspec : oldSpecs)
+	{
+		void* srcPtr = (byte*)oldBuffer + oldspec.BufferOffset;
+		for (const auto& spec : specs)
+		{
+			void* dstPtr = (byte*)buffer + spec.BufferOffset;
+			if (spec.Name.compare(oldspec.Name) == 0 && oldspec.Type == spec.Type)
+			{
+				switch (spec.Type)
+				{
+				case FieldType::Bool:
+				case FieldType::Enum_Char:
+				case FieldType::Char:
+				case FieldType::Enum_Byte:
+				case FieldType::Byte:
+				case FieldType::Enum_Int16:
+				case FieldType::Int16:
+				case FieldType::Enum_Int32:
+				case FieldType::Int32:
+				case FieldType::Enum_Int64:
+				case FieldType::Int64:
+				case FieldType::Enum_Uint16:
+				case FieldType::Uint16:
+				case FieldType::Enum_Uint32:
+				case FieldType::Uint32:
+				case FieldType::Enum_Uint64:
+				case FieldType::Uint64:
+				case FieldType::Float32:
+				case FieldType::Float64:
+				case FieldType::Vec2:
+				case FieldType::Vec3:
+				case FieldType::Vec4:
+				case FieldType::Entity:
+					//Can be trivially copied
+					memcpy(dstPtr, srcPtr, spec.Size);
+					break;
+				case FieldType::String:
+					*(std::string*)dstPtr = *(std::string*)srcPtr;
+					break;
+				case FieldType::Asset:
+				{
+					gte::uuid assetID = (*((gte::Ref<gte::Asset>*)srcPtr))->ID;
+					gte::Ref<gte::Asset>& ref = *((gte::Ref<gte::Asset>*)dstPtr);
+					ref->ID = assetID;
+					break;
+				}
+				case FieldType::Unknown:
+					break;
+				}
+			}
+		}
+	}
 }
