@@ -44,7 +44,8 @@ namespace gte {
 	void Scene::Update(float dt)
 	{
 		internal::GetContext()->GlobalTime += dt;
-		const float STEP = 1.0f / FindEntityWithUUID({}).GetComponent<Settings>().Rate;
+		Entity me = FindEntityWithUUID({});
+		const float STEP = 1.0f / me.GetComponent<Settings>().Rate;
 		mAccumulator += dt;
 		bool physics = false;
 		while (mAccumulator >= STEP)
@@ -56,6 +57,10 @@ namespace gte {
 
 		Movement(dt, physics);
 		UpdateMatrices();
+
+		auto& systems = mReg.get<UserDefinedSystems>(me);
+		for (auto& system : systems)
+			system.Instance->onUpdateStart(dt);
 
 		//Handle Scripting logic
 		std::vector<entt::entity> bin;
@@ -102,6 +107,9 @@ namespace gte {
 
 		for (auto entityID : bin)
 			DestroyEntity({ entityID, this });
+
+		for (auto& system : systems)
+			system.Instance->onUpdateEnd(dt);
 
 		{//Handle entities that were disabled or enabled
 			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();
@@ -1269,6 +1277,7 @@ namespace gte {
 			dstReg.emplace_or_replace<CameraComponent>(dstEntityID, srcReg.get<CameraComponent>(srcEntityID));
 			dstReg.emplace_or_replace<OrthographicCameraComponent>(dstEntityID, srcReg.get<OrthographicCameraComponent>(srcEntityID));
 			dstReg.emplace_or_replace<Settings>(dstEntityID, srcReg.get<Settings>(srcEntityID));
+			dstReg.emplace_or_replace<UserDefinedSystems>(dstEntityID, srcReg.get<UserDefinedSystems>(srcEntityID));
 		}
 
 		std::unordered_map<uuid, entt::entity> enttMap;
@@ -1389,6 +1398,15 @@ namespace gte {
 				speaker.Source.Play();
 		}
 
+		Entity me = FindEntityWithUUID({});
+		auto& systems = mReg.get<UserDefinedSystems>(me);
+		for (auto& system : systems)
+		{
+			system.Instance = internal::GetContext()->DynamicLoader.CreateInstance<System>(system.Description.GetName());
+			internal::GetContext()->ScriptEngine->Instantiate(system.Instance, system.Description);
+			system.Instance->mReg = &mReg;
+		}
+
 		OnPhysicsStart();
 		internal::GetContext()->GlobalTime = 0.0f;
 	}
@@ -1423,6 +1441,11 @@ namespace gte {
 					internal::GetContext()->DynamicLoader.RemoveComponent(name, { entityID, this });
 			}
 		}
+
+		Entity me = FindEntityWithUUID({});
+		auto& systems = mReg.get<UserDefinedSystems>(me);
+		for (auto& system : systems)
+			delete system.Instance;
 	}
 
 	void Scene::FixedUpdate(void)
@@ -1447,6 +1470,11 @@ namespace gte {
 				InformEngine(entityID, rb, tc);
 			}
 		}
+
+		auto& systems = mReg.get<UserDefinedSystems>(me);
+		for (auto& system : systems)
+			system.Instance->onFixedUpdateStart();
+
 		//Call FixedUpdate() on scripts
 		auto scripts = mReg.view<NativeScriptComponent>(entt::exclude<filters::Disabled>);
 		scripts.each([](auto& script) {
@@ -1460,6 +1488,9 @@ namespace gte {
 		auto destructables = mReg.view<filters::Destructable>();
 		for (auto entityID : destructables)
 			DestroyEntity({ entityID, this });
+
+		for (auto& system : systems)
+			system.Instance->onFixedUpdateEnd();
 
 		{//Handle entities that were disabled or enabled
 			auto bodies = mReg.view<Rigidbody2DComponent, filters::Disabled>();

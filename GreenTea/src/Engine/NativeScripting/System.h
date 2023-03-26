@@ -14,7 +14,7 @@ namespace gte {
 		virtual void onFixedUpdateEnd(void);
 
 		virtual void onUpdateStart(float dt);
-		virtual void onUpdateEnd(void);
+		virtual void onUpdateEnd(float dt);
 
 		template<typename Component, typename ...Other, typename ...Exclude>
 		auto View(entt::exclude_t<Exclude...> excluded = {}) { return mReg->view<Component, Other...>(excluded); }
