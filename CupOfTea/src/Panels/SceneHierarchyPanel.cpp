@@ -226,7 +226,10 @@ namespace gte {
 			auto& system = uds[i];
 			Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(system.AssetID);
 			if (asset->Type == AssetType::INVALID)
+			{
 				bin.emplace_back(i);
+				continue;
+			}
 			else if (asset->Type == AssetType::LOADING)
 				continue;
 
