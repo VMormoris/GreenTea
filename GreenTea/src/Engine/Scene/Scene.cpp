@@ -1168,6 +1168,7 @@ namespace gte {
 		mReg.emplace<Transform2DComponent>(me);
 		mReg.emplace<CameraComponent>(me);
 		mReg.emplace<Settings>(me);
+		mReg.emplace<UserDefinedSystems>(me);
 	}
 
 	void Scene::OnViewportResize(uint32 width, uint32 height)

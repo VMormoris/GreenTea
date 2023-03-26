@@ -1281,7 +1281,7 @@ namespace gte::gui {
 		return changed;
 	}
 	
-	ENGINE_API bool DrawUserComponent(const internal::NativeScript* script, Entity entity, void* ptr)
+	ENGINE_API bool DrawUserScript(const internal::NativeScript* script, void* ptr)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		auto IconsFont = io.Fonts->Fonts[3];
@@ -1312,6 +1312,7 @@ namespace gte::gui {
 
 		return remove;
 	}
+
 }
 
 void DrawPrefix(const char* label, float width, const std::string& help)

@@ -21,6 +21,9 @@ namespace gte {
 
 		void DrawEntityNode(Entity entity);
 
+		void DrawSystemsNode(void);
+		void DrawSystemsComponents(Entity entity);
+
 	private:
 
 		Entity mSelectionContext;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Engine/Assets/Asset.h>
-#include <Engine/Assets/NativeScript.h>
 #include <Engine/Assets/Animation.h>
+#include <Engine/Assets/NativeScript.h>
 #include <Engine/Audio/Source.h>
 #include <Engine/Core/Ref.h>
 #include <Engine/GPU/Texture.h>
@@ -12,6 +12,10 @@
 #include <entt.hpp>
 
 namespace gte {
+
+	//Forward Declaration(s)
+	class ScriptableEntity;
+	class System;
 
 	struct ENGINE_API IDComponent {
 		uuid ID;
@@ -23,6 +27,8 @@ namespace gte {
 
 		operator uuid& () { return ID; }
 		operator const uuid& () const { return ID; }
+
+		IDComponent& operator=(const IDComponent&) = default;
 	};
 
 	/**
@@ -35,6 +41,8 @@ namespace gte {
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
 			: Tag(tag) {}
+
+		TagComponent& operator=(const TagComponent&) = default;
 	};
 
 	/**
@@ -67,6 +75,7 @@ namespace gte {
 		RelationshipComponent(void) = default;
 		RelationshipComponent(const RelationshipComponent&) = default;
 
+		RelationshipComponent& operator=(const RelationshipComponent&) = default;
 	};
 
 	/**
@@ -82,6 +91,8 @@ namespace gte {
 		Transform2DComponent(const Transform2DComponent&) = default;
 		Transform2DComponent(const glm::vec3& position, const glm::vec2& scale, float rotation)
 			: Position(position), Scale(scale), Rotation(rotation) {}
+
+		Transform2DComponent& operator=(const Transform2DComponent&) = default;
 	};
 
 	/**
@@ -97,6 +108,8 @@ namespace gte {
 
 		operator glm::mat4& () { return Transform; }
 		operator const glm::mat4& () const { return Transform; }
+
+		TransformationComponent& operator=(const TransformationComponent&) = default;
 	};
 
 	/**
@@ -114,6 +127,8 @@ namespace gte {
 		TextureCoordinates Coordinates;
 		SpriteRendererComponent(void) = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
+
+		SpriteRendererComponent& operator=(const SpriteRendererComponent&) = default;
 	};
 
 	struct ENGINE_API CircleRendererComponent {
@@ -124,6 +139,8 @@ namespace gte {
 		bool Visible = true;
 		CircleRendererComponent(void) = default;
 		CircleRendererComponent(const CircleRendererComponent&) = default;
+
+		CircleRendererComponent& operator=(const CircleRendererComponent&) = default;
 	};
 
 	struct ENGINE_API TextRendererComponent {
@@ -136,6 +153,8 @@ namespace gte {
 
 		TextRendererComponent(void) = default;
 		TextRendererComponent(const TextRendererComponent&) = default;
+
+		TextRendererComponent& operator=(const TextRendererComponent&) = default;
 	};
 
 	struct ENGINE_API OrthographicCameraComponent {
@@ -147,6 +166,8 @@ namespace gte {
 		OrthographicCameraComponent(float zoomLevel, float verticalBoundary)
 			: ZoomLevel(zoomLevel), VerticalBoundary(verticalBoundary) {}
 
+
+		OrthographicCameraComponent& operator=(const OrthographicCameraComponent&) = default;
 	};
 
 	enum class ENGINE_API DistanceModel : byte {
@@ -177,6 +198,8 @@ namespace gte {
 
 		operator glm::mat4& (void) { return EyeMatrix; }
 		operator const glm::mat4& (void) const { return EyeMatrix; }
+	
+		CameraComponent& operator=(const CameraComponent&) = default;
 	};
 
 	enum class ENGINE_API ScriptState : byte {
@@ -185,9 +208,6 @@ namespace gte {
 		Active = 0x02,
 		MustBeDestroyed = 0x03
 	};
-
-	//Forward Declaration(s)
-	class ScriptableEntity;
 
 	struct ENGINE_API NativeScriptComponent {
 		ScriptableEntity* Instance = nullptr;
@@ -220,6 +240,8 @@ namespace gte {
 
 		Rigidbody2DComponent(void) = default;
 		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
+	
+		Rigidbody2DComponent& operator=(const Rigidbody2DComponent&) = default;
 	};
 
 	struct ENGINE_API Collider {
@@ -234,6 +256,8 @@ namespace gte {
 		bool Sensor = false;
 		Collider(void) = default;
 		Collider(const Collider&) = default;
+	
+		Collider& operator=(const Collider&) = default;
 	};
 
 	struct ENGINE_API BoxColliderComponent : public Collider {
@@ -241,6 +265,8 @@ namespace gte {
 
 		BoxColliderComponent(void) = default;
 		BoxColliderComponent(const BoxColliderComponent&) = default;
+
+		BoxColliderComponent& operator=(const BoxColliderComponent&) = default;
 	};
 
 	struct ENGINE_API CircleColliderComponent : public Collider {
@@ -248,6 +274,8 @@ namespace gte {
 
 		CircleColliderComponent(void) = default;
 		CircleColliderComponent(const CircleColliderComponent&) = default;
+
+		CircleColliderComponent& operator=(const CircleColliderComponent&) = default;
 	};
 
 	struct ENGINE_API Settings {
@@ -260,6 +288,8 @@ namespace gte {
 		
 		Settings(void) = default;
 		Settings(const Settings&) = default;
+
+		Settings& operator=(const Settings&) = default;
 	};
 
 	struct ENGINE_API SpeakerComponent {
@@ -275,6 +305,8 @@ namespace gte {
 
 		SpeakerComponent(void) = default;
 		SpeakerComponent(const SpeakerComponent&) = default;
+
+		SpeakerComponent& operator=(const SpeakerComponent&) = default;
 	};
 
 	struct ENGINE_API ParticleSystemComponent {
@@ -283,6 +315,8 @@ namespace gte {
 		bool PlayOnStart = false;
 		
 		ParticleSystemComponent(void) = default;
+		ParticleSystemComponent(const ParticleSystemComponent&) = default;
+
 		ParticleSystemComponent& operator=(const ParticleSystemComponent&) = default;
 	};
 
@@ -291,18 +325,35 @@ namespace gte {
 		internal::Animation Description;
 
 		AnimationComponent(void) = default;
+		AnimationComponent(const AnimationComponent&) = default;
+
 		AnimationComponent& operator=(const AnimationComponent&) = default;
 	};
 
 	using UserDefinedComponents = ENGINE_API std::vector<internal::NativeScript>;
 
+	struct ENGINE_API SystemsComponent {
+		System* Instance = nullptr;
+		uuid AssetID = {};
+		internal::NativeScript Description;
+
+		SystemsComponent(void) = default;
+		SystemsComponent(const SystemsComponent&) = default;
+		SystemsComponent(const uuid& id, const internal::NativeScript& ns)
+			: AssetID(id), Description(ns) {}
+
+		SystemsComponent& operator=(const SystemsComponent&) = default;
+	};
+
+	using UserDefinedSystems = ENGINE_API std::vector<SystemsComponent>;
+
 	template<typename ...Components>
 	struct ComponentGroup {};
 
-	using AllComponents = ComponentGroup<Transform2DComponent,
+	using AllComponents = ComponentGroup <Transform2DComponent,
 		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
 		CameraComponent, OrthographicCameraComponent,
-		NativeScriptComponent, UserDefinedComponents,
+		NativeScriptComponent, UserDefinedComponents, UserDefinedSystems,
 		Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent,
 		SpeakerComponent,
 		ParticleSystemComponent,

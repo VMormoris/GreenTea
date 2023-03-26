@@ -66,6 +66,8 @@ namespace gte {
 			}
 			ImGui::EndPopup();
 		}
+
+		DrawSystemsNode();
 		
 		if (mFilter.empty())
 		{
@@ -185,10 +187,69 @@ namespace gte {
 
 	}
 
+	void SceneHierarchyPanel::DrawSystemsNode(void)
+	{
+		Scene* scene = gte::internal::GetContext()->ActiveScene;
+		Entity entity = scene->FindEntityWithUUID({});
+
+		const ImGuiTreeNodeFlags flags = ((mSelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
+		ImGui::TreeNodeEx((void*)(uint64)(uint32)entity, flags, "Systems");
+		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+			mSelectionContext = entity;
+		ImGui::TreePop();
+	}
+
+	void SceneHierarchyPanel::DrawSystemsComponents(Entity entity)
+	{
+		auto& uds = entity.GetComponent<UserDefinedSystems>();
+		DragDropTargetWindow("CONTENT_BROWSER_ITEM", "Properties", [&](const ImGuiPayload* payload) {
+			const char* filepath = (const char*)payload->Data;
+			uuid id = internal::GetContext()->AssetWatcher.GetID(filepath);
+			bool found = false;
+			for(const auto& system : uds)
+			{
+				if (system.AssetID == id)
+					found = true;
+			}
+			if (!found)
+			{
+				Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(id);
+				internal::NativeScript* ns = (internal::NativeScript*)asset->Data;
+				uds.emplace_back(SystemsComponent{ id, *ns });
+			}
+		});
+
+		
+		std::vector<int32> bin;
+		for (int32 i = 0; i < (int32)uds.size(); i++)
+		{
+			auto& system = uds[i];
+			Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(system.AssetID);
+			if (asset->Type == AssetType::INVALID)
+				bin.emplace_back(i);
+			else if (asset->Type == AssetType::LOADING)
+				continue;
+
+			internal::NativeScript* script = (internal::NativeScript*)asset->Data;
+			void* ptr = internal::GetContext()->Playing ? system.Instance : system.Description.GetBuffer();
+			if (gui::DrawUserScript(script, ptr))
+				bin.emplace_back(i);
+		}
+
+		for (auto it = bin.rbegin(); it != bin.rend(); ++it)
+			uds.erase(uds.begin() + *it);
+	}
+
 	void SceneHierarchyPanel::DrawComponents(Entity entity)
 	{
 		if (!entity)
 			return;
+
+		if (entity == internal::GetContext()->ActiveScene->FindEntityWithUUID({}))
+		{
+			DrawSystemsComponents(entity);
+			return;
+		}
 
 		if (!entity.HasComponent<TagComponent>())
 		{
@@ -742,7 +803,7 @@ namespace gte {
 				if (internal::GetContext()->DynamicLoader.HasComponent(script->GetName(), entity))
 				{
 					void* ptr = internal::GetContext()->DynamicLoader.GetComponent(script->GetName(), entity);
-					if (gui::DrawUserComponent(script, entity, ptr))
+					if (gui::DrawUserScript(script, ptr))
 						internal::GetContext()->DynamicLoader.RemoveComponent(script->GetName(), entity);
 				}
 			}
@@ -773,7 +834,7 @@ namespace gte {
 			{
 				auto& uc = udc[i];
 				void* ptr = uc.GetBuffer();
-				if (gui::DrawUserComponent(&uc, entity, ptr))
+				if (gui::DrawUserScript(&uc, ptr))
 					index = i;
 			}
 			if (index != -1)

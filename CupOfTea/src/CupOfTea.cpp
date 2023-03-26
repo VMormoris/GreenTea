@@ -540,7 +540,7 @@ void CupOfTea::RenderGUI(void)
 	}
 
 	gte::Entity entity = mSceneHierarchyPanel.GetSelectedEntity();
-	if (!gte::internal::GetContext()->Playing && entity && entity.HasComponent<gte::CameraComponent>())
+	if (!gte::internal::GetContext()->Playing && entity && entity != gte::internal::GetContext()->ActiveScene->FindEntityWithUUID({}) && entity.HasComponent<gte::CameraComponent>())
 	{
 		ImGui::PushStyleColor(ImGuiCol_Border, { 0.0f, 0.0f, 0.0f, 1.0f });
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -816,10 +816,11 @@ bool CupOfTea::DrawGuizmo(void)
 	Entity SelectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
 	if (!SelectedEntity)
 		return false;
-	if (!SelectedEntity.HasComponent<Transform2DComponent>())
-		return false;
 
 	Scene* ActiveScene = internal::GetContext()->ActiveScene;
+	if (SelectedEntity == ActiveScene->FindEntityWithUUID({}))
+		return false;
+
 	Entity EditorCamera = ActiveScene->FindEntityWithUUID({});
 	const auto& ortho = EditorCamera.GetComponent<OrthographicCameraComponent>();
 	const auto& cam = EditorCamera.GetComponent<CameraComponent>();

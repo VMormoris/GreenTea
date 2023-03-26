@@ -153,7 +153,7 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawFieldControl(const internal::FieldSpecification& spec, void* buffer);
 
-	ENGINE_API bool DrawUserComponent(const internal::NativeScript* script, Entity entity, void* ptr);
+	ENGINE_API bool DrawUserScript(const internal::NativeScript* script, void* ptr);
 
 }
 
