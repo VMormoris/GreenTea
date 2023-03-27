@@ -8,6 +8,8 @@
 //Break for debuging mode (basically is not suppose to be used here)
 #define DEBUG_BREAK
 
+#define let const auto
+
 //Reflection macros
 #define ENUM(...) enum class GAME_API
 #define COMPONENT(...) struct GAME_API
