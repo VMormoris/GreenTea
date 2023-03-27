@@ -5,7 +5,10 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <IconsForkAwesome.h>
+
 #include <gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 
 #include "ContentBrowserPanel.h"
 
@@ -282,11 +285,11 @@ namespace gte {
 		if (ImGui::BeginPopup("AddComponent"))
 		{
 			constexpr char biggest[] = "Circle Collider Component";
-			if (!entity.HasComponent<Transform2DComponent>())
+			if (!entity.HasComponent<TransformComponent>())
 			{
 				if (gui::DrawMenuItem(ICON_FK_CUBE, "Trasnform 2D Component", nullptr, biggest))
 				{
-					entity.AddComponent<Transform2DComponent>();
+					entity.AddComponent<TransformComponent>();
 					gte::internal::GetContext()->ActiveScene->UpdateTransform(entity);
 					ImGui::CloseCurrentPopup();
 				}
@@ -335,8 +338,6 @@ namespace gte {
 
 					gte::Window* window = gte::internal::GetContext()->GlobalWindow;
 					cam.AspectRatio = static_cast<float>(window->GetWidth()) / static_cast<float>(window->GetHeight());
-					if (!entity.HasComponent<Transform2DComponent>())
-						entity.AddComponent<Transform2DComponent>();
 					const auto& tc = entity.GetComponent<TransformationComponent>();
 					cam.ViewMatrix = glm::inverse(tc.Transform);
 					glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
@@ -469,9 +470,9 @@ namespace gte {
 		ImGui::Separator();
 
 		//Draw all other Components
-		if (entity.HasComponent<Transform2DComponent>())
+		if (entity.HasComponent<TransformComponent>())
 		{
-			gui::DrawComponent<Transform2DComponent>(ICON_FK_CUBE, "Transform 2D Component", entity, [&](auto& tc) {
+			gui::DrawComponent<TransformComponent>(ICON_FK_CUBE, "Transform 2D Component", entity, [&](auto& tc) {
 				static int32 world = 0;
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
@@ -486,26 +487,17 @@ namespace gte {
 				{
 					gui::UISettings settings;
 					bool changed = gui::DrawVec3Control("Position", tc.Position, settings, "Position of the Transform in X, Y, and Z coordinates.");
-					glm::vec3 scale = { tc.Scale.x, tc.Scale.y, 1.0f };
+
 					settings.MaxFloat = FLT_MAX;
-					settings.Enabled[2] = false;
 					settings.ResetValue = 1.0f;
-					if (gui::DrawVec3Control("Scale", scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size"))
-					{
-						tc.Scale = { scale.x, scale.y };
+					if (gui::DrawVec3Control("Scale", tc.Scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size"))
 						changed = true;
-					}
 
 					settings.MinFloat = -180.0;
 					settings.MaxFloat = 180.0;
-					settings.Enabled = { false, false, true, false };
 					settings.ResetValue = 0.0f;
-					glm::vec3 rotation{ 0.0f, 0.0f, tc.Rotation };
-					if (gui::DrawVec3Control("Rotation", rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees."))
-					{
-						tc.Rotation = rotation.z;
+					if (gui::DrawVec3Control("Rotation", tc.Rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees."))
 						changed = true;
-					}
 
 					if (changed)
 						internal::GetContext()->ActiveScene->UpdateTransform(entity);
@@ -518,25 +510,25 @@ namespace gte {
 					math::DecomposeTransform(transformation, pos, scale, rotation);
 					const bool posChanged = gui::DrawVec3Control("Position", pos, settings, "Position of the Transform in X, Y, and Z coordinates.");
 					settings.MaxFloat = FLT_MAX;
-					settings.Enabled[2] = false;
 					settings.ResetValue = 1.0f;
 					const bool scaleChanged = gui::DrawVec3Control("Scale", scale, settings, "Scale of the Transform along X and Y axes. Value '1' is the original size");
 					settings.MinFloat = -180.0;
 					settings.MaxFloat = 180.0;
-					settings.Enabled = { false, false, true, false };
 					settings.ResetValue = 0.0f;
 					rotation = glm::degrees(rotation);
 					const bool rotChanged = gui::DrawVec3Control("Rotation", rotation, settings, "Rotation of the Transform around the Z axis, measured in degrees.");
 
 					if (posChanged || scaleChanged || rotChanged)
 					{
-						transformation = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }) * glm::scale(glm::mat4(1.0f), scale);
+						transformation = glm::translate(glm::mat4(1.0f), pos) *
+							glm::toMat4(glm::quat(rotation)) *
+							glm::scale(glm::mat4(1.0f), scale);
 						const auto& rel = entity.GetComponent<RelationshipComponent>();
 						if (rel.Parent == entt::null)
 						{
 							if(posChanged) tc.Position = pos;
-							else if(scaleChanged) tc.Scale = { scale.x, scale.y };
-							else tc.Rotation = rotation.z;
+							else if(scaleChanged) tc.Scale = scale;
+							else tc.Rotation = glm::degrees(rotation);
 						}
 						else
 						{
@@ -545,8 +537,8 @@ namespace gte {
 							const glm::mat4 local = glm::inverse(ptransform) * transformation.Transform;
 							math::DecomposeTransform(local, pos, scale, rotation);
 							if(posChanged) tc.Position = pos;
-							else if(scaleChanged) tc.Scale = { scale.x, scale.y };
-							else tc.Rotation = glm::degrees(rotation.z);
+							else if(scaleChanged) tc.Scale = scale;
+							else tc.Rotation = glm::degrees(rotation);
 						}
 						internal::GetContext()->ActiveScene->UpdateTransform(entity);
 					}

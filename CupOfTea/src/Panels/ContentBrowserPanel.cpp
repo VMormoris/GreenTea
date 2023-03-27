@@ -851,11 +851,11 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "Parent" << YAML::Value << (rc.Parent == entt::null ? uuid().str() : Entity{ rc.Parent, scene }.GetID().str());
 	out << YAML::EndMap;
 
-	if (entity.HasComponent<Transform2DComponent>())
+	if (entity.HasComponent<TransformComponent>())
 	{
 		out << YAML::Key << "Transform2DComponent";
 		out << YAML::BeginMap;
-		const auto& tc = entity.GetComponent<Transform2DComponent>();
+		const auto& tc = entity.GetComponent<TransformComponent>();
 		out << YAML::Key << "Position" << YAML::Value << tc.Position;
 		out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
 		out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;

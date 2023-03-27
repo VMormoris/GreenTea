@@ -8,7 +8,10 @@
 #include <IconsForkAwesome.h>
 #include <ImGuizmo.h>
 #include "imspinner.h"
+
 #include <gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 
 #include <fstream>
 #include <shellapi.h>
@@ -36,7 +39,7 @@ void CupOfTea::Update(float dt)
 	gte::Entity EditorCamera = scene->FindEntityWithUUID({});
 	if (sGameEvents && !gte::internal::GetContext()->Playing)
 	{
-		auto& tc = EditorCamera.GetComponent<gte::Transform2DComponent>();
+		auto& tc = EditorCamera.GetComponent<gte::TransformComponent>();
 		const auto& settings = EditorCamera.GetComponent<gte::Settings>();
 		bool changed = false;
 		if (gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right) && gte::Input::IsKeyPressed(gte::KeyCode::W))
@@ -504,7 +507,7 @@ void CupOfTea::RenderGUI(void)
 			
 			gte::gui::DrawComponent<gte::CameraComponent>(ICON_FK_CAMERA_RETRO, "Editor's Camers", SceneEntity, [&](auto& cam) {
 				gte::gui::UISettings settings;
-				auto& tc = SceneEntity.GetComponent<gte::Transform2DComponent>();
+				auto& tc = SceneEntity.GetComponent<gte::TransformComponent>();
 				glm::vec2 pos = { tc.Position.x, tc.Position.y };
 				if (gte::gui::DrawVec2Control("Position", pos, settings))
 				{
@@ -706,7 +709,7 @@ bool CupOfTea::OnKeyDown(gte::KeyCode keycode)
 		return true;
 	case gte::KeyCode::E:
 		if (playing || !sGameEvents || gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right)) return false;
-		sGuizmoOP = ImGuizmo::OPERATION::ROTATE_Z;
+		sGuizmoOP = ImGuizmo::OPERATION::ROTATE;
 		return true;
 	case gte::KeyCode::R:
 		if (playing || !sGameEvents || gte::Input::IsMouseButtonPressed(gte::MouseButtonType::Right)) return false;
@@ -824,7 +827,7 @@ bool CupOfTea::DrawGuizmo(void)
 	Entity EditorCamera = ActiveScene->FindEntityWithUUID({});
 	const auto& ortho = EditorCamera.GetComponent<OrthographicCameraComponent>();
 	const auto& cam = EditorCamera.GetComponent<CameraComponent>();
-	const auto& camTC = EditorCamera.GetComponent<Transform2DComponent>();
+	const auto& camTC = EditorCamera.GetComponent<TransformComponent>();
 
 	ImGuizmo::SetOrthographic(true);
 	ImGuizmo::SetDrawlist();
@@ -835,10 +838,10 @@ bool CupOfTea::DrawGuizmo(void)
 	box *= ortho.ZoomLevel;
 	glm::mat4 ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, 0.0f, 2.0f);
 
-	auto& tc = SelectedEntity.GetComponent<Transform2DComponent>();
+	auto& tc = SelectedEntity.GetComponent<TransformComponent>();
 	glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Position) *
-		glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), glm::vec3(0.0f, 0.0f, 1.0f)) *
-		glm::scale(glm::mat4(1.0f), glm::vec3(tc.Scale.x, tc.Scale.y, 1.0f));
+		glm::toMat4(glm::quat(glm::radians(tc.Rotation))) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(tc.Scale.x, tc.Scale.y, tc.Scale.z));
 
 	//Check ansector's for transform and Manipulate accordigly
 	const auto& rel = SelectedEntity.GetComponent<RelationshipComponent>();
@@ -884,8 +887,8 @@ bool CupOfTea::DrawGuizmo(void)
 		glm::vec3 Position, Rotation, Scale;
 		ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(Position), glm::value_ptr(Rotation), glm::value_ptr(Scale));
 		tc.Position = Position;
-		tc.Scale = glm::vec2(Scale.x, Scale.y);
-		const float delta = Rotation.z - tc.Rotation;
+		tc.Scale = Scale;
+		let delta = Rotation - tc.Rotation;
 		tc.Rotation += delta;
 		ActiveScene->UpdateTransform(SelectedEntity);
 		return true;
@@ -920,10 +923,10 @@ bool VisualizeOperation(void)
 	if (sGuizmoOP == ImGuizmo::OPERATION::TRANSLATE)
 		ImGui::PopStyleColor();
 	ImGui::SameLine();
-	if (sGuizmoOP == ImGuizmo::OPERATION::ROTATE_Z)
+	if (sGuizmoOP == ImGuizmo::OPERATION::ROTATE)
 		ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.5, 0.0f, 1.0f });
 	const bool rotate = ImGui::Button(ICON_FK_REFRESH, { 24.0f, 24.0f });
-	if (sGuizmoOP == ImGuizmo::OPERATION::ROTATE_Z)
+	if (sGuizmoOP == ImGuizmo::OPERATION::ROTATE)
 		ImGui::PopStyleColor();
 	ImGui::SameLine();
 	if (sGuizmoOP == (ImGuizmo::OPERATION::SCALE))
@@ -940,7 +943,7 @@ bool VisualizeOperation(void)
 
 	if (bounds) sGuizmoOP = ImGuizmo::OPERATION::BOUNDS;
 	else if (translate) sGuizmoOP = ImGuizmo::OPERATION::TRANSLATE;
-	else if (rotate) sGuizmoOP = ImGuizmo::OPERATION::ROTATE_Z;
+	else if (rotate) sGuizmoOP = ImGuizmo::OPERATION::ROTATE;
 	else if (scale) sGuizmoOP = ImGuizmo::OPERATION::SCALE;
 	if (bounds || translate || rotate || scale)
 		return true;

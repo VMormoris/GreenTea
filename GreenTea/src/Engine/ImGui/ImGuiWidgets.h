@@ -29,7 +29,7 @@ namespace gte::gui {
 		ImGui::SameLine();
 		ImGui::Text(name);
 		bool remove = false;
-		if constexpr(!std::is_same<T, Transform2DComponent>::value)
+		if constexpr(!std::is_same<T, TransformComponent>::value)
 		{
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 24.0f);
