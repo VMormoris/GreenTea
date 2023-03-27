@@ -664,8 +664,8 @@ void CupOfTea::OpenScene(const std::filesystem::path& path)
 	glm::vec2 size = gte::internal::GetContext()->ViewportSize;
 	gte::internal::GetContext()->ActiveScene->OnViewportResize(static_cast<uint32>(size.x), static_cast<uint32>(size.y));
 	
-	auto gtFile = std::filesystem::current_path().filename().string() + ".gt";
-	auto lastScene = std::filesystem::relative(path, std::filesystem::current_path() / "Assets");
+	let gtFile = std::filesystem::current_path().filename().string() + ".gt";
+	let lastScene = std::filesystem::relative(path, std::filesystem::current_path() / "Assets");
 	auto output = lastScene.string();
 	std::replace(output.begin(), output.end(), '\\', '/');
 	std::ofstream os(std::filesystem::current_path() / gtFile);
@@ -683,10 +683,20 @@ void CupOfTea::SaveScene(void)
 
 void CupOfTea::SaveSceneAs(const std::filesystem::path& path)
 {
+	if (path.empty()) return;
 	auto filepath = path;
 	filepath.replace_extension("gtscene");
 	gte::internal::SceneSerializer serializer(gte::internal::GetContext()->ActiveScene);
 	serializer.Serialize(filepath.string());
+	
+	mScenePath = filepath.string();
+	let gtFile = std::filesystem::current_path().filename().string() + ".gt";
+	let lastScene = std::filesystem::relative(filepath, std::filesystem::current_path() / "Assets");
+	auto output = lastScene.string();
+	std::replace(output.begin(), output.end(), '\\', '/');
+	std::ofstream os(std::filesystem::current_path() / gtFile);
+	os << output;
+	os.close();
 }
 
 bool CupOfTea::OnKeyDown(gte::KeyCode keycode)
