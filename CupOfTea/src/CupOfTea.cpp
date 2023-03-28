@@ -141,23 +141,28 @@ void CupOfTea::Update(float dt)
 	let playing = gte::internal::GetContext()->Playing;
 	if (!playing && entity && entity.HasComponent<gte::CameraComponent>() && sCamViewport.x > 0.0f && sCamViewport.y > 0.0f)
 	{
-		let& ortho = entity.GetComponent<gte::OrthographicCameraComponent>();
 		auto& cam = entity.GetComponent<gte::CameraComponent>();
-		if (!cam.FixedAspectRatio)
+		glm::mat4 EyeMatrix;
+		let aspectRatio = cam.FixedAspectRatio ? cam.AspectRatio : sCamViewport.x / sCamViewport.y;
+		if (cam.Type == gte::CameraType::Orthographic)
 		{
-			cam.AspectRatio = sCamViewport.x / sCamViewport.y;
-			glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-			box *= glm::vec2(cam.AspectRatio, 1.0f);
-
-			cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
-			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+			let& ortho = entity.GetComponent<gte::OrthographicCameraComponent>();
+			let box = ortho.VerticalBoundary * ortho.ZoomLevel * glm::vec2{ aspectRatio,1.0f };
+			let proj = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+			EyeMatrix = proj * cam.ViewMatrix;
+		}
+		else
+		{
+			let& persp = entity.GetComponent<gte::PerspectiveCameraComponent>();
+			let proj = glm::perspective(glm::radians(persp.FoV), aspectRatio, persp.Near, persp.Far);
+			EyeMatrix = proj * cam.ViewMatrix;
 		}
 
 		sCamFBO->Resize(static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
 		gte::RenderCommand::SetViewport(0, 0, static_cast<uint32>(sCamViewport.x), static_cast<uint32>(sCamViewport.y));
 		gte::RenderCommand::SetClearColor({ ClearColor, ClearColor, ClearColor, 1.0f });
 		gte::Renderer2D::BeginFrame(sCamFBO, false);
-		scene->Render(cam.EyeMatrix);
+		scene->Render(EyeMatrix);
 	}
 
 	mAnimationPanel.Update(dt);

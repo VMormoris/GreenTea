@@ -114,7 +114,6 @@ namespace gte::internal {
 					cam.MasterVolume = camera["MasterVolume"].as<float>();
 					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 
-
 					let& settings = entityNode["Settings"];
 					auto& sett = entity.GetComponent<Settings>();
 					sett.Gravity = settings["Gravity"].as<glm::vec2>();

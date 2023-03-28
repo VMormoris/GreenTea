@@ -131,7 +131,6 @@ namespace gte {
 			}
 			else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
-				GTE_TRACE_LOG("Fired on Entity");
 				std::filesystem::path filepath = (const char*)payload->Data;
 				if (filepath.extension() == ".gtprefab")
 				{
@@ -619,15 +618,36 @@ namespace gte {
 
 		if (entity.HasComponent<CameraComponent>())
 		{
-			auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 			gui::DrawComponent<CameraComponent>(ICON_FK_CAMERA_RETRO, "Camera Component", entity, [&](auto& cam) {
 				gui::UISettings settings;
-				settings.MinFloat = 0.25f;
-				settings.MaxFloat = FLT_MAX;
-				bool changed = gui::DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings,"Zoom out with bigger values.");
-				settings.MinFloat = 0.5f;
-				if (gui::DrawFloatControl("Vertical Boundary", ortho.VerticalBoundary, settings, "The top and bottom padding of the camera"))
-					changed = true;
+				static constexpr char* typestr[2] = { "Orthographic", "Perspective" };
+				int32 index = static_cast<int32>(cam.Type);
+				if (gui::DrawComboControl("Type", index, typestr, 2, settings, "Select Orthographic or Perspective camera behavior"))
+					cam.Type = static_cast<CameraType>(index);
+				bool changed;
+				if (cam.Type == CameraType::Orthographic)
+				{
+					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
+					settings.MinFloat = 0.25f;
+					settings.MaxFloat = FLT_MAX;
+					changed = gui::DrawFloatControl("Zoom Level", ortho.ZoomLevel, settings, "Zoom out with bigger values.");
+					settings.MinFloat = 0.5f;
+					if (gui::DrawFloatControl("Vertical Boundary", ortho.VerticalBoundary, settings, "The top and bottom padding of the camera"))
+						changed = true;
+				}
+				else
+				{
+					auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+					settings.MinFloat = 25.0f;
+					settings.MaxFloat = FLT_MAX;
+					changed = gui::DrawFloatControl("FoV", persp.FoV, settings, "Camera's Field of View");
+					settings.MinFloat = 0.0001f;
+					if (gui::DrawFloatControl("Near", persp.Near, settings, "Camera's Near Plane"))
+						changed = true;
+					settings.MinFloat = persp.Near + 1.0f;
+					if (gui::DrawFloatControl("Far", persp.Far, settings, "Camera's Far Plane"))
+						changed = true;
+				}
 				gui::DrawBoolControl("Primary", cam.Primary, settings, "If checked the camera becomes primary");
 				if (gui::DrawBoolControl("Fixed Asp. Ratio", cam.FixedAspectRatio, settings, "If checked the Aspect Ratio of the camera stays constant") && !cam.FixedAspectRatio)
 					cam.AspectRatio = static_cast<float>(internal::GetContext()->ViewportSize.x) / static_cast<float>(internal::GetContext()->ViewportSize.y);
@@ -642,9 +662,9 @@ namespace gte {
 				ImGui::SetCursorPosX(0.0f);
 				if (ImGui::TreeNodeEx("Audio Listener", ImGuiTreeNodeFlags_OpenOnArrow))
 				{
-					static constexpr char* typestr[] = { "None", "Inverse", "Inverse Clamp", "Linear", "Linear Clamp", "Exponent", "Exponent Clamp" };
+					static constexpr char* modelstr[] = { "None", "Inverse", "Inverse Clamp", "Linear", "Linear Clamp", "Exponent", "Exponent Clamp" };
 					int32 index = static_cast<int32>(cam.Model);
-					if (gui::DrawComboControl("Distance Model", index, typestr, 7, settings,"Select Inverse, Linear or Exponent sound models"))
+					if (gui::DrawComboControl("Distance Model", index, modelstr, 7, settings, "Select Inverse, Linear or Exponent sound models"))
 						cam.Model = static_cast<DistanceModel>(index);
 					settings.MinFloat = 0.0f;
 					settings.MaxFloat = 1.0f;
@@ -654,10 +674,20 @@ namespace gte {
 
 				if (changed)
 				{
-					glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-					box *= glm::vec2(cam.AspectRatio, 1.0f);
-					cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
-					cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+					if (cam.Type == CameraType::Orthographic)
+					{
+						let& ortho = entity.GetComponent<OrthographicCameraComponent>();
+						glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
+						box *= glm::vec2(cam.AspectRatio, 1.0f);
+						cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+						cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+					}
+					else
+					{
+						let& persp = entity.GetComponent<PerspectiveCameraComponent>();
+						cam.ProjectionMatrix = glm::perspective(glm::radians(persp.FoV), cam.AspectRatio, persp.Near, persp.Far);
+						cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
+					}
 				}
 			});
 		}
