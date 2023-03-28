@@ -894,7 +894,7 @@ inline void DragDropTargetWindow(const char* payloadtype, const char* id, Func&&
 			}
 			if (payload->IsDelivery())
 				func(payload);
-			ImGui::EndDragDropTarget();
 		}
+		ImGui::EndDragDropTarget();
 	}
 }
