@@ -82,6 +82,8 @@ project "GreenTea"
 
         defines { "DEBUG_BUILD" }
 
+		buildoptions { "/bigobj" }
+
 		links
 		{
 			"%{wks.location}/3rdParty/openal-soft/Debug/OpenAl32.lib",

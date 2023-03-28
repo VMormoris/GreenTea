@@ -30,7 +30,7 @@ namespace gte::internal {
 		Window* GlobalWindow = nullptr;
 		byte WindowCount = 0;
 		glm::vec2 ViewportOffset{ 0.0f, 0.0f };
-		glm::vec2 ViewportSize{ 0.0f, 0.0f };
+		glm::vec2 ViewportSize{ 1.0f, 1.0f };
 		EventDispatcher Dispatcher;
 		
 		ScriptingEngine* ScriptEngine = nullptr;

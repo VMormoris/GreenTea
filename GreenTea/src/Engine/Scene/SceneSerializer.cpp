@@ -81,7 +81,7 @@ namespace gte::internal {
 		auto entities = data["Entities"];
 		if (entities)
 		{
-			for (const auto& entityNode : entities)
+			for (let& entityNode : entities)
 			{
 				//Get components that all entities should have (aka ID and Tag)
 				uuid entityUUID = entityNode["Entity"].as<std::string>();
@@ -94,16 +94,20 @@ namespace gte::internal {
 				if (!entityUUID.IsValid())//Special Entity for scene stuff
 				{
 					Entity entity = mScene->FindEntityWithUUID(entityUUID);
-					const auto& transform = entityNode["Transform2DComponent"];
+					let& transform = entityNode["TransformComponent"];
 					auto& tc = entity.GetComponent<TransformComponent>();
 					tc.Position = transform["Position"].as<glm::vec3>();
 					tc.Scale = transform["Scale"].as<glm::vec3>();
 					tc.Rotation = transform["Rotation"].as<glm::vec3>();
 
-					const auto& camera = entityNode["CameraComponent"];
+					let& camera = entityNode["CameraComponent"];
 					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 					ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
 					ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
+					auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+					persp.FoV = camera["FoV"].as<float>();
+					persp.Near = camera["Near"].as<float>();
+					persp.Far = camera["Far"].as<float>();
 					auto& cam = entity.GetComponent<CameraComponent>();
 					cam.Primary = camera["Primary"].as<bool>();
 					cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
@@ -111,26 +115,26 @@ namespace gte::internal {
 					cam.Model = (DistanceModel)camera["DistanceModel"].as<uint16>();
 
 
-					const auto& settings = entityNode["Settings"];
+					let& settings = entityNode["Settings"];
 					auto& sett = entity.GetComponent<Settings>();
 					sett.Gravity = settings["Gravity"].as<glm::vec2>();
 					sett.Rate = settings["Rate"].as<int32>();
 					sett.VelocityIterations = settings["VelocityIterations"].as<int32>();
 					sett.PositionIterations = settings["PositionIterations"].as<int32>();
-					sett.CameraVelocity = settings["CameraVelocity"].as<glm::vec2>();
+					sett.CameraVelocity = settings["CameraVelocity"].as<float>();
 
-					const auto systems = internal::GetContext()->AssetWatcher.GetAssets({ ".gtsystem" });
+					let systems = internal::GetContext()->AssetWatcher.GetAssets({ ".gtsystem" });
 					auto& uds = entity.GetComponent<UserDefinedSystems>();
-					for (const auto& id : systems)
+					for (let& id : systems)
 					{
 						Ref<Asset> system = internal::GetContext()->AssetManager.RequestAsset(id);
 						NativeScript* script = (NativeScript*)system->Data;
-						const auto& us = entityNode[script->GetName()];
+						let& us = entityNode[script->GetName()];
 						if (us)
 						{
 							NativeScript description = *script;
 							uint64 oldversion = us["Version"].as<uint64>();
-							const auto& props = us["Properties"];
+							let& props = us["Properties"];
 							DeserializeFields(&description, props);
 							uds.emplace_back(SystemsComponent{ id, description });
 						}
@@ -142,11 +146,11 @@ namespace gte::internal {
 				Entity entity = mScene->CreateEntityWithUUID(entityUUID, name);
 				if (entityNode["Enabled"])
 				{
-					const bool val = entityNode["Enabled"].as<bool>();
+					let val = entityNode["Enabled"].as<bool>();
 					if (!val) entity.AddComponent<filters::Disabled>();
 				}
 				//Check for other components expect Relationship
-				const auto& transform = entityNode["Transform2DComponent"];
+				let& transform = entityNode["TransformComponent"];
 				if (transform)
 				{
 					auto& tc = entity.GetComponent<TransformComponent>();
@@ -157,7 +161,7 @@ namespace gte::internal {
 					tc.Rotation = transform["Rotation"].as<glm::vec3>();
 				}
 
-				const auto& renderable = entityNode["SpriteRendererComponent"];
+				let& renderable = entityNode["SpriteRendererComponent"];
 				if(renderable)
 				{
 					auto& sprite = entity.AddComponent<SpriteRendererComponent>();
@@ -170,13 +174,13 @@ namespace gte::internal {
 						sprite.TilingFactor = renderable["TilingFactor"].as<float>();
 						sprite.FlipX = renderable["FilpX"].as<bool>();
 						sprite.FlipY = renderable["FlipY"].as<bool>();
-						const auto& coords = renderable["TextureCoordinates"];
+						let& coords = renderable["TextureCoordinates"];
 						sprite.Coordinates.BottomLeft = coords["BottomLeft"].as<glm::vec2>();
 						sprite.Coordinates.TopRight = coords["TopRight"].as<glm::vec2>();
 					}
 				}
 
-				const auto& circleRenderable = entityNode["CircleRendererComponent"];
+				let& circleRenderable = entityNode["CircleRendererComponent"];
 				if (circleRenderable)
 				{
 					auto& circle = entity.AddComponent<CircleRendererComponent>();
@@ -186,7 +190,7 @@ namespace gte::internal {
 					circle.Visible = circleRenderable["Visible"].as<bool>();
 				}
 
-				const auto& textRenderable = entityNode["TextRendererComponent"];
+				let& textRenderable = entityNode["TextRendererComponent"];
 				if (textRenderable)
 				{
 					auto& tc = entity.AddComponent<TextRendererComponent>();
@@ -197,10 +201,11 @@ namespace gte::internal {
 					tc.Visible = textRenderable["Visible"].as<bool>();
 				}
 
-				const auto& camera = entityNode["CameraComponent"];
+				let& camera = entityNode["CameraComponent"];
 				if (camera)
 				{
 					auto& cam = entity.AddComponent<CameraComponent>();
+					cam.Type = (CameraType)camera["Type"].as<uint16>();
 					cam.Primary = camera["Primary"].as<bool>();
 					cam.FixedAspectRatio = camera["FixedAspectRatio"].as<bool>();
 					if (cam.FixedAspectRatio)
@@ -211,9 +216,14 @@ namespace gte::internal {
 					auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 					ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
 					ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
+
+					auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+					persp.FoV = camera["FoV"].as<float>();
+					persp.Near = camera["Near"].as<float>();
+					persp.Far = camera["Far"].as<float>();
 				}
 
-				const auto& rigidbody = entityNode["Rigidbody2DComponent"];
+				let& rigidbody = entityNode["Rigidbody2DComponent"];
 				if (rigidbody)
 				{
 					auto& rb = entity.AddComponent<Rigidbody2DComponent>();
@@ -225,7 +235,7 @@ namespace gte::internal {
 					rb.Bullet = rigidbody["Bullet"].as<bool>();
 				}
 
-				const auto& boxcollider = entityNode["BoxColliderComponent"];
+				let& boxcollider = entityNode["BoxColliderComponent"];
 				if (boxcollider)
 				{
 					auto& bc = entity.AddComponent<BoxColliderComponent>();
@@ -238,7 +248,7 @@ namespace gte::internal {
 					bc.Sensor = boxcollider["Sensor"].as<bool>();
 				}
 
-				const auto& circlecollider = entityNode["CircleColliderComponent"];
+				let& circlecollider = entityNode["CircleColliderComponent"];
 				if(circlecollider)
 				{
 					auto& cc = entity.AddComponent<CircleColliderComponent>();
@@ -250,7 +260,7 @@ namespace gte::internal {
 					cc.Sensor = circlecollider["Sensor"].as<bool>();
 				}
 
-				const auto& speaker = entityNode["SpeakerComponent"];
+				let& speaker = entityNode["SpeakerComponent"];
 				if (speaker)
 				{
 					auto& sc = entity.AddComponent<SpeakerComponent>();
@@ -261,11 +271,11 @@ namespace gte::internal {
 					sc.RefDistance = speaker["RefDistance"].as<float>();
 					sc.MaxDistance = speaker["MaxDistance"].as<float>();
 					sc.Looping = speaker["Looping"].as<bool>();
-					if (const auto& play = speaker["PlayOnStart"])
+					if (let& play = speaker["PlayOnStart"])
 						sc.PlayOnStart = play.as<bool>();
 				}
 
-				const auto& particleSystem = entityNode["ParticleSystemComponent"];
+				let& particleSystem = entityNode["ParticleSystemComponent"];
 				if (particleSystem)
 				{
 					auto& psc = entity.AddComponent<ParticleSystemComponent>();
@@ -284,11 +294,11 @@ namespace gte::internal {
 					psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
 					psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 					psc.Props.Looping = particleSystem["Looping"].as<bool>();
-					if (const auto& play = particleSystem["PlayOnStart"])
+					if (let& play = particleSystem["PlayOnStart"])
 						psc.PlayOnStart = play.as<bool>();
 				}
 
-				const auto& animation = entityNode["AnimationComponent"];
+				let& animation = entityNode["AnimationComponent"];
 				if (animation)
 				{
 					auto& ac = entity.AddComponent<AnimationComponent>();
@@ -297,12 +307,12 @@ namespace gte::internal {
 			}
 
 			//Second iteration to create relationships & Native Scripts
-			for (const auto& entityNode : entities)
+			for (let& entityNode : entities)
 			{
 				uuid entityUUID = entityNode["Entity"].as<std::string>();
 				Entity entity = mScene->FindEntityWithUUID(entityUUID);
 
-				const auto& relationship = entityNode["RelationshipComponent"];
+				let& relationship = entityNode["RelationshipComponent"];
 				if (!relationship)//Special entity for Scene stuff
 					continue;
 
@@ -324,10 +334,10 @@ namespace gte::internal {
 				if (candidate.IsValid())
 					rc.Parent = (entt::entity)mScene->FindEntityWithUUID(candidate);
 
-				const auto& nativescript = entityNode["NativeScriptComponent"];
+				let& nativescript = entityNode["NativeScriptComponent"];
 				if (nativescript)
 				{
-					const auto& props = nativescript["Properties"];
+					let& props = nativescript["Properties"];
 					auto& nc = entity.AddComponent<NativeScriptComponent>();
 					uuid scriptID = nativescript["Asset"].as<std::string>();
 					nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(scriptID);
@@ -338,18 +348,18 @@ namespace gte::internal {
 					}
 				}
 
-				const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+				let components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
 				auto& udc = entity.GetComponent<UserDefinedComponents>();
-				for (const auto& id : components)
+				for (let& id : components)
 				{
 					Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
 					NativeScript* script = (NativeScript*)component->Data;
-					const auto& uc = entityNode[script->GetName()];
+					let& uc = entityNode[script->GetName()];
 					if (uc)
 					{
 						NativeScript description = *script;
 						uint64 oldversion = uc["Version"].as<uint64>();
-						const auto& props = uc["Properties"];
+						let& props = uc["Properties"];
 						DeserializeFields(&description, props);
 						udc.emplace_back(description);
 					}
@@ -371,7 +381,7 @@ namespace gte::internal {
 		out << YAML::Key << "Enabled" << YAML::Value << !entity.HasComponent<filters::Disabled>();
 		if (entity.HasComponent<Settings>())
 		{
-			const auto& settings = entity.GetComponent<Settings>();
+			let& settings = entity.GetComponent<Settings>();
 			out << YAML::Key << "Settings";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Gravity" << YAML::Value << settings.Gravity;
@@ -387,7 +397,7 @@ namespace gte::internal {
 			out << YAML::Key << "TagComponent";
 			out << YAML::BeginMap;
 
-			const auto& tag = entity.GetComponent<TagComponent>().Tag;
+			let& tag = entity.GetComponent<TagComponent>().Tag;
 			out << YAML::Key << "Tag" << YAML::Value << tag;
 			out << YAML::EndMap;
 		}
@@ -397,7 +407,7 @@ namespace gte::internal {
 			out << YAML::Key << "RelationshipComponent";
 			out << YAML::BeginMap;
 
-			const auto& rc = entity.GetComponent<RelationshipComponent>();
+			let& rc = entity.GetComponent<RelationshipComponent>();
 			out << YAML::Key << "Childrens" << YAML::Value << rc.Childrens;
 			out << YAML::Key << "FirstChild" << YAML::Value << (rc.FirstChild == entt::null ? uuid().str() : Entity{ rc.FirstChild, mScene }.GetID().str());
 			out << YAML::Key << "Previous" << YAML::Value << (rc.Previous == entt::null ? uuid().str() : Entity{ rc.Previous, mScene }.GetID().str());
@@ -408,10 +418,10 @@ namespace gte::internal {
 
 		if (entity.HasComponent<TransformComponent>())
 		{
-			out << YAML::Key << "Transform2DComponent";
+			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
 
-			const auto& tc = entity.GetComponent<TransformComponent>();
+			let& tc = entity.GetComponent<TransformComponent>();
 			out << YAML::Key << "Position" << YAML::Value << tc.Position;
 			out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
 			out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
@@ -423,7 +433,7 @@ namespace gte::internal {
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
 
-			const auto& sprite = entity.GetComponent<SpriteRendererComponent>();
+			let& sprite = entity.GetComponent<SpriteRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << sprite.Color;
 			out << YAML::Key << "Visible" << YAML::Value << sprite.Visible;
 			out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->ID.str();
@@ -443,7 +453,7 @@ namespace gte::internal {
 
 		if (entity.HasComponent<CircleRendererComponent>())
 		{
-			const auto& circle = entity.GetComponent<CircleRendererComponent>();
+			let& circle = entity.GetComponent<CircleRendererComponent>();
 			out << YAML::Key << "CircleRendererComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Color" << YAML::Value << circle.Color;
@@ -455,7 +465,7 @@ namespace gte::internal {
 
 		if (entity.HasComponent<TextRendererComponent>())
 		{
-			const auto& tc = entity.GetComponent<TextRendererComponent>();
+			let& tc = entity.GetComponent<TextRendererComponent>();
 			out << YAML::Key << "TextRendererComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Text" << YAML::Value << tc.Text;
@@ -468,12 +478,17 @@ namespace gte::internal {
 
 		if (entity.HasComponent<CameraComponent>())
 		{
-			const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
-			const auto& cam = entity.GetComponent<CameraComponent>();
+			let& ortho = entity.GetComponent<OrthographicCameraComponent>();
+			let& persp = entity.GetComponent<PerspectiveCameraComponent>();
+			let& cam = entity.GetComponent<CameraComponent>();
 			out << YAML::Key << "CameraComponent";
 			out << YAML::BeginMap;
+			out << YAML::Key << "Type" << YAML::Value << (uint16)cam.Type;
 			out << YAML::Key << "ZoomLevel" << YAML::Value << ortho.ZoomLevel;
 			out << YAML::Key << "VerticalBoundary" << YAML::Value << ortho.VerticalBoundary;
+			out << YAML::Key << "FoV" << YAML::Value << persp.FoV;
+			out << YAML::Key << "Near" << YAML::Value << persp.Near;
+			out << YAML::Key << "Far" << YAML::Value << persp.Far;
 			if(cam.FixedAspectRatio)
 				out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
 			out << YAML::Key << "Primary" << YAML::Value << cam.Primary;
@@ -488,7 +503,7 @@ namespace gte::internal {
 			out << YAML::Key << "Rigidbody2DComponent";
 			out << YAML::BeginMap;
 
-			const auto& rb = entity.GetComponent<Rigidbody2DComponent>();
+			let& rb = entity.GetComponent<Rigidbody2DComponent>();
 			out << YAML::Key << "Type" << YAML::Value << (uint64)rb.Type;
 			out << YAML::Key << "Velocity" << YAML::Value << rb.Velocity;
 			out << YAML::Key << "AngularVelocity" << YAML::Value << rb.AngularVelocity;
@@ -503,7 +518,7 @@ namespace gte::internal {
 			out << YAML::Key << "BoxColliderComponent";
 			out << YAML::BeginMap;
 
-			const auto& bc = entity.GetComponent<BoxColliderComponent>();
+			let& bc = entity.GetComponent<BoxColliderComponent>();
 			out << YAML::Key << "Offset" << YAML::Value << bc.Offset;
 			out << YAML::Key << "Size" << YAML::Value << bc.Size;
 			out << YAML::Key << "Density" << YAML::Value << bc.Density;
@@ -519,7 +534,7 @@ namespace gte::internal {
 			out << YAML::Key << "CircleColliderComponent";
 			out << YAML::BeginMap;
 
-			const auto& cc = entity.GetComponent<CircleColliderComponent>();
+			let& cc = entity.GetComponent<CircleColliderComponent>();
 			out << YAML::Key << "Offset" << YAML::Value << cc.Offset;
 			out << YAML::Key << "Radius" << YAML::Value << cc.Radius;
 			out << YAML::Key << "Density" << YAML::Value << cc.Density;
@@ -535,7 +550,7 @@ namespace gte::internal {
 			out << YAML::Key << "NativeScriptComponent";
 			out << YAML::BeginMap;
 
-			const auto& nc = entity.GetComponent<NativeScriptComponent>();
+			let& nc = entity.GetComponent<NativeScriptComponent>();
 			out << YAML::Key << "Asset" << YAML::Value << nc.ScriptAsset->ID.str();
 			out << YAML::Key << "Version" << YAML::Value << nc.Description.GetVersion();
 			out << YAML::Key << "Properties" << YAML::Value <<YAML::BeginSeq;
@@ -546,7 +561,7 @@ namespace gte::internal {
 
 		if (entity.HasComponent<SpeakerComponent>())
 		{
-			const auto& speaker = entity.GetComponent<SpeakerComponent>();
+			let& speaker = entity.GetComponent<SpeakerComponent>();
 			out << YAML::Key << "SpeakerComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "AudioClip" << YAML::Value << speaker.AudioClip->ID.str();
@@ -562,7 +577,7 @@ namespace gte::internal {
 
 		if (entity.HasComponent<ParticleSystemComponent>())
 		{
-			const auto& psc = entity.GetComponent<ParticleSystemComponent>();
+			let& psc = entity.GetComponent<ParticleSystemComponent>();
 			out << YAML::Key << "ParticleSystemComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Position" << YAML::Value << psc.Props.Position;
@@ -586,7 +601,7 @@ namespace gte::internal {
 
 		if (entity.HasComponent<AnimationComponent>())
 		{
-			const auto& ac = entity.GetComponent<AnimationComponent>();
+			let& ac = entity.GetComponent<AnimationComponent>();
 			out << YAML::Key << "AnimationComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Animation" << YAML::Value << ac.Animation->ID.str();
@@ -595,8 +610,8 @@ namespace gte::internal {
 
 		if (entity.HasComponent<UserDefinedComponents>())
 		{
-			const auto& udc = entity.GetComponent<UserDefinedComponents>();
-			for (const auto& uc : udc)
+			let& udc = entity.GetComponent<UserDefinedComponents>();
+			for (let& uc : udc)
 			{
 				out << YAML::Key << uc.GetName();
 				out << YAML::BeginMap;
@@ -610,8 +625,8 @@ namespace gte::internal {
 
 		if (entity.HasComponent<UserDefinedSystems>())
 		{
-			const auto& uds = entity.GetComponent<UserDefinedSystems>();
-			for (const auto& system : uds)
+			let& uds = entity.GetComponent<UserDefinedSystems>();
+			for (let& system : uds)
 			{
 				out << YAML::Key << system.Description.GetName();
 				out << YAML::BeginMap;
@@ -631,7 +646,7 @@ namespace gte::internal {
 void SerializeFields(YAML::Emitter& out, const void* buffer, const std::vector<gte::internal::FieldSpecification>& fields)
 {
 	using namespace gte;
-	for (const auto& prop : fields)
+	for (let& prop : fields)
 	{
 		out << YAML::BeginMap;
 		out << YAML::Key << "Name" << YAML::Value << prop.Name;
@@ -710,13 +725,13 @@ void DeserializeFields(gte::internal::NativeScript* description, const YAML::Nod
 {
 	using namespace gte;
 	const void* buffer = description->GetBuffer();
-	const auto& specs = description->GetFieldsSpecification();
-	for (const auto& prop : props)
+	let& specs = description->GetFieldsSpecification();
+	for (let& prop : props)
 	{
 		using namespace gte::internal;
-		const auto name = prop["Name"].as<std::string>();
+		let name = prop["Name"].as<std::string>();
 		FieldType type = (FieldType)prop["Type"].as<uint64>();
-		for (const auto& spec : specs)
+		for (let& spec : specs)
 		{
 			if (name.compare(spec.Name) != 0 || type != spec.Type)
 				continue;

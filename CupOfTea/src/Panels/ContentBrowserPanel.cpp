@@ -75,7 +75,7 @@ void ContentBrowserPanel::Draw(void)
 
 	ImGui::PushFont(IconsFont);
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
-	const bool disablePrev = mCurrentIndex == 0;
+	let disablePrev = mCurrentIndex == 0;
 	if (disablePrev)
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -89,7 +89,7 @@ void ContentBrowserPanel::Draw(void)
 		ImGui::PopStyleVar();
 	}
 	ImGui::SameLine();
-	const bool disableNext = mCurrentIndex == mHistory.size() - 1;
+	let disableNext = mCurrentIndex == mHistory.size() - 1;
 	if(disableNext)
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -144,9 +144,9 @@ void ContentBrowserPanel::Draw(void)
 	constexpr int32 padding = 32;
 	constexpr float thumbnailSize = 64.0f;
 	constexpr float cellSize = thumbnailSize + 2 * padding;
-	const float panelWidth = ImGui::GetContentRegionAvail().x;
-	const int colCalc = (int)(panelWidth / cellSize);
-	const int columnCount = colCalc > 1 ? colCalc : 1;
+	let panelWidth = ImGui::GetContentRegionAvail().x;
+	let colCalc = (int)(panelWidth / cellSize);
+	let columnCount = colCalc > 1 ? colCalc : 1;
 
 	bool openPopup = false;
 	static gte::internal::ReflectionType scriptType = gte::internal::ReflectionType::Unknown;
@@ -211,8 +211,8 @@ void ContentBrowserPanel::Draw(void)
 			}
 			else
 			{
-				const auto& ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript" });
-				for (const auto& id : ids)
+				let& ids = gte::internal::GetContext()->AssetWatcher.GetAssets({ ".gtscript" });
+				for (let& id : ids)
 				{
 					auto asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
 					if (((gte::internal::NativeScript*)asset->Data)->GetName().compare(name) == 0)
@@ -250,9 +250,9 @@ void ContentBrowserPanel::Draw(void)
 		ImGui::EndPopup();
 	}
 
-	for (const auto entry : std::filesystem::directory_iterator(mCurrentPath))
+	for (let entry : std::filesystem::directory_iterator(mCurrentPath))
 	{
-		const auto name = entry.path().stem().string();
+		let name = entry.path().stem().string();
 		if (!mFilter.empty())//Check if it doesn't match filter to skip
 		{
 			std::string temp = "";
@@ -260,9 +260,9 @@ void ContentBrowserPanel::Draw(void)
 			if (temp.find(mFilter) == std::string::npos)
 				continue;
 		}
-		const float textSize = ImGui::CalcTextSize(name.c_str()).x;
-		const float offsetCalc = (cellSize - textSize) * 0.5f;
-		const float offset = offsetCalc > 0.0f ? offsetCalc : 0.0f;
+		let textSize = ImGui::CalcTextSize(name.c_str()).x;
+		let offsetCalc = (cellSize - textSize) * 0.5f;
+		let offset = offsetCalc > 0.0f ? offsetCalc : 0.0f;
 
 		auto& colors = ImGui::GetStyle().Colors;
 		auto selectionColor = colors[ImGuiCol_ButtonHovered];
@@ -276,7 +276,7 @@ void ContentBrowserPanel::Draw(void)
 		ImGui::PushID(entry.path().filename().string().c_str());
 		if (!entry.is_directory())
 		{
-			const auto extension = entry.path().extension();
+			let extension = entry.path().extension();
 			if (extension == ".gtscene")
 				ImGui::ImageButton(sSceneFile->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
 			else if (extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
@@ -352,13 +352,13 @@ void ContentBrowserPanel::Draw(void)
 		}
 		else if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			const auto extension = entry.path().extension();
+			let extension = entry.path().extension();
 			if (entry.is_directory())
 			{
 				mCurrentPath /= entry.path().filename();
 
 				//Change history queue
-				const size_t end = mHistory.size() - 1;
+				let end = mHistory.size() - 1;
 				for (size_t i = end; i > mCurrentIndex; i--)
 					mHistory.emplace_back(mHistory[i]);
 				mHistory.emplace_back(mHistory[mCurrentIndex]);
@@ -373,7 +373,7 @@ void ContentBrowserPanel::Draw(void)
 			{
 				gte::uuid id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 				auto asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
-				const auto& header = ((gte::internal::NativeScript*)asset->Data)->GetHeader();
+				let& header = ((gte::internal::NativeScript*)asset->Data)->GetHeader();
 				GTE_TRACE_LOG("Opening file: ", header, " on Visual Studio");
 				std::string command = "start devenv /Edit \"" + header + "\"";
 				system(command.c_str());
@@ -404,8 +404,8 @@ void ContentBrowserPanel::Draw(void)
 			{
 				mTempName = std::string(buffer);
 				if (!mTempName.empty()) {
-					const auto out = mCurrentPath / mTempName;
-					const auto filepath = out.string() + entry.path().extension().string();
+					let out = mCurrentPath / mTempName;
+					let filepath = out.string() + entry.path().extension().string();
 					if(!std::filesystem::exists(filepath))
 						std::filesystem::rename(entry, filepath);
 				}
@@ -434,7 +434,7 @@ void ContentBrowserPanel::Draw(void)
 
 	if (ImGui::BeginDragDropTarget())
 	{
-		if (const auto* payload = ImGui::AcceptDragDropPayload("ENTITY_ITEM"))
+		if (let* payload = ImGui::AcceptDragDropPayload("ENTITY_ITEM"))
 		{
 			gte::uuid id = *(gte::uuid*)payload->Data;
 			if (id.IsValid())
@@ -462,7 +462,7 @@ void ContentBrowserPanel::CreateFolder(const std::string& _template)
 		size_t i = 1;
 		do
 		{
-			const auto name = _template + " (" + std::to_string(i) + ')';
+			let name = _template + " (" + std::to_string(i) + ')';
 			path = mCurrentPath / name;
 			i++;
 		}
@@ -481,7 +481,7 @@ void ContentBrowserPanel::CreateAnimation(const std::string& _template)
 		size_t i = 1;
 		do
 		{
-			const auto name = _template + " (" + std::to_string(i) + ')';
+			let name = _template + " (" + std::to_string(i) + ')';
 			path = mCurrentPath / name;
 			i++;
 		} while (std::filesystem::exists(path));
@@ -674,7 +674,7 @@ void ContentBrowserPanel::CreateFontAsset(const std::filesystem::path& filepath)
 	msdfgen::deinitializeFreetype(ft);
 
 	// Paint glyphs for msdf
-	const double maxCornerAngle = 3.0;
+	let maxCornerAngle = 3.0;
 	for (auto& glyph : glyphs)
 		glyph.edgeColoring(&msdfgen::edgeColoringInkTrap, maxCornerAngle, 0);
 
@@ -702,13 +702,13 @@ void ContentBrowserPanel::CreateFontAsset(const std::filesystem::path& filepath)
 		GTE_WARN_LOG("The font you choosen doesn't have kern table.\n\tYou might want to consider another font or re-exporting with an external tool like: FontForge.");
 	}
 
-	const auto& bitmap = (msdfgen::BitmapConstRef<byte, 3>)generator.atlasStorage();
+	let& bitmap = (msdfgen::BitmapConstRef<byte, 3>)generator.atlasStorage();
 	gte::Image img;
 	img.Load(bitmap.pixels, bitmap.width, bitmap.height, 3);
 
 	std::map<uint32, uint32> indexToCodepoint;
 	std::map<uint32, gte::internal::Character> characters;
-	for (const auto& glyph : glyphs)
+	for (let& glyph : glyphs)
 	{
 		gte::internal::Character character;
 		uint32 unicode = glyph.getCodepoint();
@@ -727,7 +727,7 @@ void ContentBrowserPanel::CreateFontAsset(const std::filesystem::path& filepath)
 	}
 
 	std::map<std::pair<uint32, uint32>, float> kernings;
-	for (const auto& [key, val] : fontGeometry.getKerning())
+	for (let& [key, val] : fontGeometry.getKerning())
 		kernings.emplace
 		(
 			std::make_pair(indexToCodepoint[key.first], indexToCodepoint[key.second]),
@@ -739,7 +739,7 @@ void ContentBrowserPanel::CreateFontAsset(const std::filesystem::path& filepath)
 	out << YAML::BeginMap;
 	out << YAML::Key << "Glyphs" << YAML::Value;
 	out << YAML::BeginSeq;
-	for (const auto& [unicode, character] : characters)
+	for (let& [unicode, character] : characters)
 	{
 		using namespace gte::math;
 		out << YAML::BeginMap;
@@ -756,7 +756,7 @@ void ContentBrowserPanel::CreateFontAsset(const std::filesystem::path& filepath)
 
 	out << YAML::Key << "Kernings" << YAML::Value;
 	out << YAML::BeginSeq;
-	for (const auto& [key, kerning] : kernings)
+	for (let& [key, kerning] : kernings)
 	{
 
 		out << YAML::BeginMap;
@@ -796,7 +796,7 @@ void CreatePrefab(gte::Entity entity, const std::filesystem::path& dir)
 	SerializeEntity(entity, out);
 	out << YAML::EndSeq;
 
-	const auto name = entity.GetName();
+	let name = entity.GetName();
 	auto path = (dir / name).string() + ".gtprefab";
 	size_t i = 0;
 	while (std::filesystem::exists(path))
@@ -840,7 +840,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	out << YAML::Key << "RelationshipComponent";
 	out << YAML::BeginMap;
-	const auto& rc = entity.GetComponent<gte::RelationshipComponent>();
+	let& rc = entity.GetComponent<gte::RelationshipComponent>();
 	out << YAML::Key << "Childrens" << YAML::Value << rc.Childrens;
 	out << YAML::Key << "FirstChild" << YAML::Value << (rc.FirstChild == entt::null ? uuid().str() : Entity{ rc.FirstChild, scene }.GetID().str());
 	out << YAML::Key << "Previous" << YAML::Value << (rc.Previous == entt::null ? uuid().str() : Entity{ rc.Previous, scene }.GetID().str());
@@ -853,9 +853,9 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<TransformComponent>())
 	{
-		out << YAML::Key << "Transform2DComponent";
+		out << YAML::Key << "TransformComponent";
 		out << YAML::BeginMap;
-		const auto& tc = entity.GetComponent<TransformComponent>();
+		let& tc = entity.GetComponent<TransformComponent>();
 		out << YAML::Key << "Position" << YAML::Value << tc.Position;
 		out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
 		out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
@@ -867,7 +867,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "SpriteRendererComponent";
 		out << YAML::BeginMap;
 
-		const auto& sprite = entity.GetComponent<SpriteRendererComponent>();
+		let& sprite = entity.GetComponent<SpriteRendererComponent>();
 		out << YAML::Key << "Color" << YAML::Value << sprite.Color;
 		out << YAML::Key << "Visible" << YAML::Value << sprite.Visible;
 		out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->ID.str();
@@ -887,7 +887,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<CircleRendererComponent>())
 	{
-		const auto& circle = entity.GetComponent<CircleRendererComponent>();
+		let& circle = entity.GetComponent<CircleRendererComponent>();
 		out << YAML::Key << "CircleRendererComponent";
 		out << YAML::BeginMap;
 		out << YAML::Key << "Color" << YAML::Value << circle.Color;
@@ -899,7 +899,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<TextRendererComponent>())
 	{
-		const auto& tc = entity.GetComponent<TextRendererComponent>();
+		let& tc = entity.GetComponent<TextRendererComponent>();
 		out << YAML::Key << "TextRendererComponent";
 		out << YAML::BeginMap;
 		out << YAML::Key << "Text" << YAML::Value << tc.Text;
@@ -912,12 +912,17 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<CameraComponent>())
 	{
-		const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
-		const auto& cam = entity.GetComponent<CameraComponent>();
+		let& ortho = entity.GetComponent<OrthographicCameraComponent>();
+		let& persp = entity.GetComponent<PerspectiveCameraComponent>();
+		let& cam = entity.GetComponent<CameraComponent>();
 		out << YAML::Key << "CameraComponent";
 		out << YAML::BeginMap;
+		out << YAML::Key << "Type" << YAML::Value << (uint16)cam.Type;
 		out << YAML::Key << "ZoomLevel" << YAML::Value << ortho.ZoomLevel;
 		out << YAML::Key << "VerticalBoundary" << YAML::Value << ortho.VerticalBoundary;
+		out << YAML::Key << "FoV" << YAML::Value << persp.FoV;
+		out << YAML::Key << "Near" << YAML::Value << persp.Near;
+		out << YAML::Key << "Far" << YAML::Value << persp.Far;
 		if (cam.FixedAspectRatio)
 			out << YAML::Key << "AspectRatio" << YAML::Value << cam.AspectRatio;
 		out << YAML::Key << "Primary" << YAML::Value << cam.Primary;
@@ -932,7 +937,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "Rigidbody2DComponent";
 		out << YAML::BeginMap;
 
-		const auto& rb = entity.GetComponent<Rigidbody2DComponent>();
+		let& rb = entity.GetComponent<Rigidbody2DComponent>();
 		out << YAML::Key << "Type" << YAML::Value << (uint64)rb.Type;
 		out << YAML::Key << "Velocity" << YAML::Value << rb.Velocity;
 		out << YAML::Key << "AngularVelocity" << YAML::Value << rb.AngularVelocity;
@@ -947,7 +952,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "BoxColliderComponent";
 		out << YAML::BeginMap;
 
-		const auto& bc = entity.GetComponent<BoxColliderComponent>();
+		let& bc = entity.GetComponent<BoxColliderComponent>();
 		out << YAML::Key << "Offset" << YAML::Value << bc.Offset;
 		out << YAML::Key << "Size" << YAML::Value << bc.Size;
 		out << YAML::Key << "Density" << YAML::Value << bc.Density;
@@ -963,7 +968,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "CircleColliderComponent";
 		out << YAML::BeginMap;
 
-		const auto& cc = entity.GetComponent<CircleColliderComponent>();
+		let& cc = entity.GetComponent<CircleColliderComponent>();
 		out << YAML::Key << "Offset" << YAML::Value << cc.Offset;
 		out << YAML::Key << "Radius" << YAML::Value << cc.Radius;
 		out << YAML::Key << "Density" << YAML::Value << cc.Density;
@@ -979,12 +984,12 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		out << YAML::Key << "NativeScriptComponent";
 		out << YAML::BeginMap;
 
-		const auto& nc = entity.GetComponent<NativeScriptComponent>();
+		let& nc = entity.GetComponent<NativeScriptComponent>();
 		out << YAML::Key << "Asset" << YAML::Value << nc.ScriptAsset->ID.str();
 		out << YAML::Key << "Version" << YAML::Value << nc.Description.GetVersion();
 		out << YAML::Key << "Properties" << YAML::Value << YAML::BeginSeq;
 		const void* buffer = nc.Description.GetBuffer();
-		for (const auto& prop : nc.Description.GetFieldsSpecification())
+		for (let& prop : nc.Description.GetFieldsSpecification())
 		{
 			out << YAML::BeginMap;
 			out << YAML::Key << "Name" << YAML::Value << prop.Name;
@@ -1062,7 +1067,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<SpeakerComponent>())
 	{
-		const auto& speaker = entity.GetComponent<SpeakerComponent>();
+		let& speaker = entity.GetComponent<SpeakerComponent>();
 		out << YAML::Key << "SpeakerComponent";
 		out << YAML::BeginMap;
 		out << YAML::Key << "AudioClip" << YAML::Value << speaker.AudioClip->ID.str();
@@ -1078,7 +1083,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<ParticleSystemComponent>())
 	{
-		const auto& psc = entity.GetComponent<ParticleSystemComponent>();
+		let& psc = entity.GetComponent<ParticleSystemComponent>();
 		out << YAML::Key << "ParticleSystemComponent";
 		out << YAML::BeginMap;
 		out << YAML::Key << "Position" << YAML::Value << psc.Props.Position;
@@ -1102,7 +1107,7 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<AnimationComponent>())
 	{
-		const auto& ac = entity.GetComponent<AnimationComponent>();
+		let& ac = entity.GetComponent<AnimationComponent>();
 		out << YAML::Key << "AnimationComponent";
 		out << YAML::BeginMap;
 		out << YAML::Key << "Animation" << YAML::Value << ac.Animation->ID.str();
@@ -1111,15 +1116,15 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 
 	if (entity.HasComponent<UserDefinedComponents>())
 	{
-		const auto& udc = entity.GetComponent<UserDefinedComponents>();
-		for (const auto& uc : udc)
+		let& udc = entity.GetComponent<UserDefinedComponents>();
+		for (let& uc : udc)
 		{
 			out << YAML::Key << uc.GetName();
 			out << YAML::BeginMap;
 			out << YAML::Key << "Version" << YAML::Value << uc.GetVersion();
 			out << YAML::Key << "Properties" << YAML::Value << YAML::BeginSeq;
 			const void* buffer = uc.GetBuffer();
-			for (const auto& prop : uc.GetFieldsSpecification())
+			for (let& prop : uc.GetFieldsSpecification())
 			{
 				out << YAML::BeginMap;
 				out << YAML::Key << "Name" << YAML::Value << prop.Name;

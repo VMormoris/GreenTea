@@ -46,7 +46,7 @@ namespace gte {
 	{
 		internal::GetContext()->GlobalTime += dt;
 		Entity me = FindEntityWithUUID({});
-		const float STEP = 1.0f / me.GetComponent<Settings>().Rate;
+		let STEP = 1.0f / me.GetComponent<Settings>().Rate;
 		mAccumulator += dt;
 		bool physics = false;
 		while (mAccumulator >= STEP)
@@ -143,7 +143,7 @@ namespace gte {
 			Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(ac.Description.GetAtlas());
 			if (asset->Type == AssetType::TEXTURE)
 			{
-				const auto& frame = ac.Description.GetCurrentFrame();
+				let& frame = ac.Description.GetCurrentFrame();
 				sprite.Coordinates = frame.Coords;
 				sprite.Texture = asset;
 			}
@@ -164,7 +164,7 @@ namespace gte {
 	Entity Scene::CreateEntityWithUUID(const uuid& id, const std::string& name)
 	{
 		auto entityID = mReg.create();
-		const auto tag = name.empty() ? "Unnamed Enity" : name;
+		let tag = name.empty() ? "Unnamed Enity" : name;
 		mReg.emplace<IDComponent>(entityID, id);
 		mReg.emplace<TagComponent>(entityID, tag);
 		mReg.emplace<RelationshipComponent>(entityID);
@@ -194,17 +194,17 @@ namespace gte {
 	Entity Scene::CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent)
 	{
 		Prefab* fab = (Prefab*)prefab->Data;
-		const YAML::Node& entities = fab->GetNode();
+		let& entities = fab->GetNode();
 
 		std::unordered_map<uuid, Entity> map;
-		for (const auto& entityNode : entities)
+		for (let& entityNode : entities)
 		{
 			uuid id = entityNode["Entity"].as<std::string>();
 			std::string name = entityNode["TagComponent"]["Tag"].as<std::string>();
 			Entity entity = CreateEntity(name);
 			map.insert({ id, entity });
 
-			const auto& transform = entityNode["Transform2DComponent"];
+			let& transform = entityNode["TransformComponent"];
 			if (transform)
 			{
 				auto& tc = entity.GetComponent<TransformComponent>();
@@ -213,7 +213,7 @@ namespace gte {
 				tc.Rotation = transform["Rotation"].as<glm::vec3>();
 			}
 
-			const auto& renderable = entityNode["SpriteRendererComponent"];
+			let& renderable = entityNode["SpriteRendererComponent"];
 			if (renderable)
 			{
 				auto& sprite = entity.AddComponent<SpriteRendererComponent>();
@@ -226,13 +226,13 @@ namespace gte {
 					sprite.TilingFactor = renderable["TilingFactor"].as<float>();
 					sprite.FlipX = renderable["FlipX"].as<bool>();
 					sprite.FlipY = renderable["FlipY"].as<bool>();
-					const auto& coords = renderable["TextureCoordinates"];
+					let& coords = renderable["TextureCoordinates"];
 					sprite.Coordinates.BottomLeft = coords["BottomLeft"].as<glm::vec2>();
 					sprite.Coordinates.TopRight = coords["TopRight"].as<glm::vec2>();
 				}
 			}
 
-			const auto& circleRenderable = entityNode["CircleRendererComponent"];
+			let& circleRenderable = entityNode["CircleRendererComponent"];
 			if (circleRenderable)
 			{
 				auto& circle = entity.AddComponent<CircleRendererComponent>();
@@ -242,7 +242,7 @@ namespace gte {
 				circle.Visible = circleRenderable["Visible"].as<bool>();
 			}
 
-			const auto& textRenderer = entityNode["TextRendererComponent"];
+			let& textRenderer = entityNode["TextRendererComponent"];
 			if (textRenderer)
 			{
 				auto& tc = entity.AddComponent<TextRendererComponent>();
@@ -253,7 +253,7 @@ namespace gte {
 				tc.Visible = textRenderer["Visible"].as<bool>();
 			}
 
-			const auto& camera = entityNode["CameraComponent"];
+			let& camera = entityNode["CameraComponent"];
 			if (camera)
 			{
 				auto& cam = entity.AddComponent<CameraComponent>();
@@ -267,9 +267,14 @@ namespace gte {
 				auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 				ortho.ZoomLevel = camera["ZoomLevel"].as<float>();
 				ortho.VerticalBoundary = camera["VerticalBoundary"].as<float>();
+
+				auto& persp = entity.GetComponent<PerspectiveCameraComponent>();
+				persp.FoV = camera["FoV"].as<float>();
+				persp.Near = camera["Near"].as<float>();
+				persp.Far = camera["Far"].as<float>();
 			}
 
-			const auto& rigidbody = entityNode["Rigidbody2DComponent"];
+			let& rigidbody = entityNode["Rigidbody2DComponent"];
 			if (rigidbody)
 			{
 				auto& rb = entity.AddComponent<Rigidbody2DComponent>();
@@ -281,7 +286,7 @@ namespace gte {
 				rb.Bullet = rigidbody["Bullet"].as<bool>();
 			}
 
-			const auto& boxcollider = entityNode["BoxColliderComponent"];
+			let& boxcollider = entityNode["BoxColliderComponent"];
 			if (boxcollider)
 			{
 				auto& bc = entity.AddComponent<BoxColliderComponent>();
@@ -294,7 +299,7 @@ namespace gte {
 				bc.Sensor = boxcollider["Sensor"].as<bool>();
 			}
 
-			const auto& circlecollider = entityNode["CircleColliderComponent"];
+			let& circlecollider = entityNode["CircleColliderComponent"];
 			if (circlecollider)
 			{
 				auto& cc = entity.AddComponent<CircleColliderComponent>();
@@ -306,7 +311,7 @@ namespace gte {
 				cc.Sensor = circlecollider["Sensor"].as<bool>();
 			}
 
-			const auto& speaker = entityNode["SpeakerComponent"];
+			let& speaker = entityNode["SpeakerComponent"];
 			if (speaker)
 			{
 				auto& sc = entity.AddComponent<SpeakerComponent>();
@@ -317,14 +322,14 @@ namespace gte {
 				sc.RefDistance = speaker["RefDistance"].as<float>();
 				sc.MaxDistance = speaker["MaxDistance"].as<float>();
 				sc.Looping = speaker["Looping"].as<bool>();
-				if (const auto& play = speaker["PlayOnStart"])
+				if (let& play = speaker["PlayOnStart"])
 					sc.PlayOnStart = play.as<bool>();
 
 				if (sc.PlayOnStart && internal::GetContext()->Playing)
 					sc.Source.Play();
 			}
 
-			const auto& particleSystem = entityNode["ParticleSystemComponent"];
+			let& particleSystem = entityNode["ParticleSystemComponent"];
 			if (particleSystem)
 			{
 				auto& psc = entity.AddComponent<ParticleSystemComponent>();
@@ -343,11 +348,11 @@ namespace gte {
 				psc.Props.EmitionRate = particleSystem["EmitionRate"].as<float>();
 				psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 				psc.Props.Looping = particleSystem["Looping"].as<bool>();
-				if (const auto& play = particleSystem["PlayOnStart"])
+				if (let& play = particleSystem["PlayOnStart"])
 					psc.PlayOnStart = play.as<bool>();
 			}
 
-			const auto& animation = entityNode["AnimationComponent"];
+			let& animation = entityNode["AnimationComponent"];
 			if (animation)
 			{
 				auto& ac = entity.AddComponent<AnimationComponent>();
@@ -357,12 +362,12 @@ namespace gte {
 
 		//Second iteration to create relationships & Native Scripts
 		Entity toReturn;
-		for (const auto& entityNode : entities)
+		for (let& entityNode : entities)
 		{
 			uuid id = entityNode["Entity"].as<std::string>();
 			Entity entity = map[id];
 
-			const auto& relationship = entityNode["RelationshipComponent"];
+			let& relationship = entityNode["RelationshipComponent"];
 			if (!relationship)//Special entity for Scene stuff
 				continue;
 
@@ -386,10 +391,10 @@ namespace gte {
 			else
 				toReturn = entity;
 
-			const auto& nativescript = entityNode["NativeScriptComponent"];
+			let& nativescript = entityNode["NativeScriptComponent"];
 			if (nativescript)
 			{
-				const auto& props = nativescript["Properties"];
+				let& props = nativescript["Properties"];
 				auto& nc = entity.AddComponent<NativeScriptComponent>();
 				uuid id = nativescript["Asset"].as<std::string>();
 				nc.ScriptAsset = internal::GetContext()->AssetManager.RequestAsset(id);
@@ -397,13 +402,13 @@ namespace gte {
 				if (((internal::NativeScript*)nc.ScriptAsset->Data)->GetVersion() > oldversion)
 				{
 					nc.Description = *(internal::NativeScript*)nc.ScriptAsset->Data;
-					const auto& specs = nc.Description.GetFieldsSpecification();
+					let& specs = nc.Description.GetFieldsSpecification();
 					void* buffer = nc.Description.GetBuffer();
-					for (const auto& prop : props)
+					for (let& prop : props)
 					{
-						const auto name = prop["Name"].as<std::string>();
+						let name = prop["Name"].as<std::string>();
 						internal::FieldType type = (internal::FieldType)prop["Type"].as<uint64>();
-						for (const auto& spec : specs)
+						for (let& spec : specs)
 						{
 							void* ptr = (byte*)buffer + spec.BufferOffset;
 							if (spec.Name.compare(name) == 0 && type == spec.Type)
@@ -490,12 +495,12 @@ namespace gte {
 				else
 				{
 					nc.Description = *(internal::NativeScript*)nc.ScriptAsset->Data;
-					const auto& specs = nc.Description.GetFieldsSpecification();
+					let& specs = nc.Description.GetFieldsSpecification();
 					void* buffer = nc.Description.GetBuffer();
 					for (size_t i = 0; i < specs.size(); i++)
 					{
-						const auto& spec = specs[i];
-						const auto& prop = props[i];
+						let& spec = specs[i];
+						let& prop = props[i];
 						void* ptr = (byte*)buffer + spec.BufferOffset;
 						switch (spec.Type)
 						{
@@ -576,27 +581,27 @@ namespace gte {
 				}
 			}
 
-			const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+			let components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
 			auto& udc = entity.GetComponent<UserDefinedComponents>();
-			for (const auto& id : components)
+			for (let& id : components)
 			{
 				Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
 				internal::NativeScript* script = (internal::NativeScript*)component->Data;
-				const auto& uc = entityNode[script->GetName()];
+				let& uc = entityNode[script->GetName()];
 				if (uc)
 				{
 					internal::NativeScript description = *script;
 					uint64 oldversion = uc["Version"].as<uint64>();
-					const auto& props = uc["Properties"];
-					const auto& specs = description.GetFieldsSpecification();
+					let& props = uc["Properties"];
+					let& specs = description.GetFieldsSpecification();
 					void* buffer = description.GetBuffer();
 					if (oldversion < script->GetVersion())
 					{
-						for (const auto& prop : props)
+						for (let& prop : props)
 						{
-							const auto name = prop["Name"].as<std::string>();
+							let name = prop["Name"].as<std::string>();
 							internal::FieldType type = (internal::FieldType)prop["Type"].as<uint64>();
-							for (const auto& spec : specs)
+							for (let& spec : specs)
 							{
 								void* ptr = (byte*)buffer + spec.BufferOffset;
 								if (spec.Name.compare(name) == 0 && type == spec.Type)
@@ -684,8 +689,8 @@ namespace gte {
 					{
 						for (size_t i = 0; i < specs.size(); i++)
 						{
-							const auto& spec = specs[i];
-							const auto& prop = props[i];
+							let& spec = specs[i];
+							let& prop = props[i];
 							void* ptr = (byte*)buffer + spec.BufferOffset;
 							switch (spec.Type)
 							{
@@ -931,7 +936,7 @@ namespace gte {
 		Entity entity = CreateEntity({});
 		CopyComponents(toClone, entity);
 
-		const auto& relationship = toClone.GetComponent<RelationshipComponent>();
+		let& relationship = toClone.GetComponent<RelationshipComponent>();
 		auto& rel = entity.GetComponent<RelationshipComponent>();
 		rel.Childrens = relationship.Childrens;
 		Entity parent = { relationship.Parent, this };
@@ -958,7 +963,7 @@ namespace gte {
 		for (size_t i = 1; i < relationship.Childrens; i++)
 		{
 			Entity prevChild = currChild;
-			const auto& prel = prevChild.GetComponent<RelationshipComponent>();
+			let& prel = prevChild.GetComponent<RelationshipComponent>();
 			currChild = { prel.Next, this };
 			Entity child = Clone(currChild, true);
 			auto& crel = child.GetComponent<RelationshipComponent>();
@@ -976,7 +981,7 @@ namespace gte {
 	{
 		//We need to start from the bottom up
 		auto& relc = entity.GetComponent<RelationshipComponent>();
-		const size_t childrens = relc.Childrens;
+		let childrens = relc.Childrens;
 		if (childrens > 0)//Call destroy on children recursively
 		{
 			auto curr = relc.FirstChild;
@@ -1003,7 +1008,7 @@ namespace gte {
 		auto& udc = mReg.get<UserDefinedComponents>(entity);
 		if (internal::GetContext()->Playing)
 		{
-			for (const auto& uc : udc)
+			for (let& uc : udc)
 				internal::GetContext()->DynamicLoader.RemoveComponent(uc.GetName(), entity);
 		}
 		udc.clear();
@@ -1032,7 +1037,7 @@ namespace gte {
 		auto view = mReg.view<IDComponent>();
 		for (auto entityID : view)
 		{
-			const uuid& candidate = view.get<IDComponent>(entityID).ID;
+			let& candidate = view.get<IDComponent>(entityID).ID;
 			if (candidate == id)
 				return { entityID, this };
 		}
@@ -1070,7 +1075,7 @@ namespace gte {
 
 	void Scene::UpdateTransform(Entity entity)
 	{
-		const auto& tc = entity.GetComponent<TransformComponent>();
+		let& tc = entity.GetComponent<TransformComponent>();
 		auto& transform = entity.GetComponent<TransformationComponent>();
 		transform.Transform = glm::translate(glm::mat4(1.0f), tc.Position) *
 			glm::toMat4(glm::quat(glm::radians(tc.Rotation)));
@@ -1078,11 +1083,11 @@ namespace gte {
 
 		if (entity.HasComponent<RelationshipComponent>())
 		{
-			const auto& rel = entity.GetComponent<RelationshipComponent>();
+			let& rel = entity.GetComponent<RelationshipComponent>();
 			if (rel.Parent != entt::null)
 			{
-				const glm::mat4& pTransform = mReg.get<TransformationComponent>(rel.Parent);
-				transform.Transform = pTransform * transform.Transform;
+				let& pTransform = mReg.get<TransformationComponent>(rel.Parent);
+				transform.Transform = pTransform.Transform * transform.Transform;
 			}
 
 			Entity child = { rel.FirstChild, this };
@@ -1096,9 +1101,23 @@ namespace gte {
 
 		if (entity.HasComponent<CameraComponent>())
 		{
-			const auto& ortho = entity.GetComponent<OrthographicCameraComponent>();
 			auto& cam = entity.GetComponent<CameraComponent>();
-			cam.ViewMatrix = glm::inverse(transform.Transform);
+			if (cam.Type == CameraType::Orthographic)
+			{
+				let& ortho = entity.GetComponent<OrthographicCameraComponent>();
+				let pos = glm::vec3(transform.Transform[3]);
+				cam.ViewMatrix = glm::inverse(glm::translate(glm::mat4{ 1.0f }, { pos.x, pos.y, 0.0f }));
+			}
+			else
+			{
+				let& persp = entity.GetComponent<PerspectiveCameraComponent>();
+				glm::vec3 Pos, Scale, Rotation;
+				math::DecomposeTransform(transform, Pos, Scale, Rotation);
+				let orientation = glm::quat(Rotation);
+				let target = Pos + glm::rotate(orientation, { 0.0f, 0.0f, -1.0f });
+				let upvector = glm::rotate(orientation, { 0.0f, 1.0f, 0.0f });
+				cam.ViewMatrix = glm::lookAt(Pos, target, upvector);
+			}
 			cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 		}
 	}
@@ -1127,7 +1146,7 @@ namespace gte {
 
 	void Scene::OnViewportResize(uint32 width, uint32 height)
 	{
-		const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+		let aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 		auto view = mReg.view<CameraComponent>();
 		for (auto entityID : view)
 		{
@@ -1135,10 +1154,17 @@ namespace gte {
 			if (!cam.FixedAspectRatio)
 			{
 				cam.AspectRatio = aspectRatio;
-				auto& ortho = mReg.get<OrthographicCameraComponent>(entityID);
-				glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
-				box *= glm::vec2(cam.AspectRatio, 1.0f);
-				cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+				if (cam.Type == CameraType::Orthographic)
+				{
+					let& ortho = mReg.get<OrthographicCameraComponent>(entityID);
+					let box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel) * glm::vec2(cam.AspectRatio, 1.0f);
+					cam.ProjectionMatrix = glm::ortho(-box.x, box.x, -box.y, box.y, -1.0f, 1.0f);
+				}
+				else
+				{
+					let& persp = mReg.get<PerspectiveCameraComponent>(entityID);
+					cam.ProjectionMatrix = glm::perspective(glm::radians(persp.FoV), cam.AspectRatio, persp.Near, persp.Far);
+				}
 				cam.EyeMatrix = cam.ProjectionMatrix * cam.ViewMatrix;
 			}
 		}
@@ -1161,12 +1187,12 @@ namespace gte {
 
 	void Scene::CopyComponents(Entity source, Entity destination)
 	{
-		const auto& tag = source.GetComponent<TagComponent>().Tag;
+		let& tag = source.GetComponent<TagComponent>().Tag;
 		destination.GetComponent<TagComponent>().Tag = tag;
 
 		if (source.HasComponent<TransformComponent>())
 		{
-			const auto& srcTC = source.GetComponent<TransformComponent>();
+			let& srcTC = source.GetComponent<TransformComponent>();
 			auto& dstTC = destination.GetComponent<TransformComponent>();
 			dstTC = srcTC;
 
@@ -1175,72 +1201,72 @@ namespace gte {
 
 		if (source.HasComponent<SpriteRendererComponent>())
 		{
-			const auto& sprite = source.GetComponent<SpriteRendererComponent>();
+			let& sprite = source.GetComponent<SpriteRendererComponent>();
 			destination.AddComponent<SpriteRendererComponent>(sprite);
 		}
 
 		if (source.HasComponent<CircleRendererComponent>())
 		{
-			const auto& circle = source.GetComponent<CircleRendererComponent>();
+			let& circle = source.GetComponent<CircleRendererComponent>();
 			destination.AddComponent<CircleRendererComponent>(circle);
 		}
 
 		if (source.HasComponent<TextRendererComponent>())
 		{
-			const auto& text = source.GetComponent<TextRendererComponent>();
+			let& text = source.GetComponent<TextRendererComponent>();
 			destination.AddComponent<TextRendererComponent>(text);
 		}
 
 		if (source.HasComponent<CameraComponent>())
 		{
-			const auto& cam = source.GetComponent<CameraComponent>();
+			let& cam = source.GetComponent<CameraComponent>();
 			destination.AddComponent<CameraComponent>(cam);
 
-			const auto& ortho = source.GetComponent<OrthographicCameraComponent>();
+			let& ortho = source.GetComponent<OrthographicCameraComponent>();
 			auto& destination_ortho = destination.GetComponent<OrthographicCameraComponent>();
 			destination_ortho = ortho;
 		}
 
 		if (source.HasComponent<AnimationComponent>())
 		{
-			const auto& animation = source.GetComponent<AnimationComponent>();
+			let& animation = source.GetComponent<AnimationComponent>();
 			destination.AddComponent<AnimationComponent>(animation);
 		}
 
 
 		if (source.HasComponent<NativeScriptComponent>())
 		{
-			const auto& nc = source.GetComponent<NativeScriptComponent>();
+			let& nc = source.GetComponent<NativeScriptComponent>();
 			destination.AddComponent<NativeScriptComponent>(nc);
 		}
 
 		if (source.HasComponent<Rigidbody2DComponent>())
 		{
-			const auto& rb = source.GetComponent<Rigidbody2DComponent>();
+			let& rb = source.GetComponent<Rigidbody2DComponent>();
 			destination.AddComponent<Rigidbody2DComponent>(rb);
 		}
 
 		if (source.HasComponent<BoxColliderComponent>())
 		{
-			const auto& bc = source.GetComponent<BoxColliderComponent>();
+			let& bc = source.GetComponent<BoxColliderComponent>();
 			destination.AddComponent<BoxColliderComponent>(bc);
 		}
 
 		if (source.HasComponent<CircleColliderComponent>())
 		{
-			const auto& cc = source.GetComponent<CircleColliderComponent>();
+			let& cc = source.GetComponent<CircleColliderComponent>();
 			destination.AddComponent<CircleColliderComponent>(cc);
 		}
 
 		if (source.HasComponent<SpeakerComponent>())
 		{
-			const auto& speaker = source.GetComponent<SpeakerComponent>();
+			let& speaker = source.GetComponent<SpeakerComponent>();
 			destination.AddComponent<SpeakerComponent>(speaker);
 		}
 
 		if (source.HasComponent<ParticleSystemComponent>())
 		{
-			const auto& psc = source.GetComponent<ParticleSystemComponent>();
+			let& psc = source.GetComponent<ParticleSystemComponent>();
 			destination.AddComponent<ParticleSystemComponent>(psc);
 		}
 	}
@@ -1319,7 +1345,7 @@ namespace gte {
 				if (!nsc.ScriptAsset->ID.IsValid())
 					continue;
 				auto& specs = nsc.Description.GetFieldsSpecification();
-				for (const auto& spec : specs)
+				for (let& spec : specs)
 				{
 					if (spec.Type != internal::FieldType::Entity)
 						continue;
@@ -1437,9 +1463,9 @@ namespace gte {
 		auto udcs = mReg.view<UserDefinedComponents>();
 		for (auto&& [entityID, udc] : udcs.each())
 		{
-			for (const auto& uc : udc)
+			for (let& uc : udc)
 			{
-				const auto& name = uc.GetName();
+				let& name = uc.GetName();
 				if (internal::GetContext()->DynamicLoader.HasComponent(name, { entityID, this }))
 					internal::GetContext()->DynamicLoader.RemoveComponent(name, { entityID, this });
 			}
@@ -1455,7 +1481,7 @@ namespace gte {
 	{
 		Entity me = FindEntityWithUUID({});
 		auto& settings = me.GetComponent<Settings>();
-		const float STEP = 1.0f / settings.Rate;
+		let STEP = 1.0f / settings.Rate;
 
 		{// Inform game engine about changes by physics world
 			auto circles = mReg.group<CircleColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
@@ -1539,10 +1565,10 @@ namespace gte {
 
 	void Scene::Movement(float dt, bool physics)
 	{
-		const auto& settings = FindEntityWithUUID({}).GetComponent<Settings>();
-		const glm::vec2 gravity = settings.Gravity;
-		const float tickRate = 1.0f / settings.Rate;
-		const float deltaTime = mAccumulator / tickRate;
+		let& settings = FindEntityWithUUID({}).GetComponent<Settings>();
+		let gravity = settings.Gravity;
+		let tickRate = 1.0f / settings.Rate;
+		let deltaTime = mAccumulator / tickRate;
 
 		auto group = mReg.group<Rigidbody2DComponent>(entt::get<TransformComponent, TransformationComponent>, entt::exclude<filters::Disabled>);
 		for (auto&& [entityID, rb, tc, transform] : group.each())
@@ -1558,15 +1584,15 @@ namespace gte {
 				if (rb.Type == BodyType::Dynamic && !body->IsAwake())
 					continue;
 				
-				const glm::vec3 targetPos = { body->GetPosition().x, body->GetPosition().y, pos.z };
-				const float targetAngle = body->GetAngle();
-				const auto& prevTC = mPhysicsReg.get<TransformComponent>(entityID);
+				let targetPos = glm::vec3{ body->GetPosition().x, body->GetPosition().y, pos.z };
+				let targetAngle = body->GetAngle();
+				let& prevTC = mPhysicsReg.get<TransformComponent>(entityID);
 				pos = glm::lerp(prevTC.Position, targetPos, deltaTime);
 				rotation.z = glm::lerp(prevTC.Rotation.z, targetAngle, deltaTime);
 			}
 			else
 			{
-				const glm::vec2 g = gravity * rb.GravityFactor;
+				let g = gravity * rb.GravityFactor;
 				if (rb.Type == BodyType::Dynamic)
 					rb.Velocity += g * dt;
 				pos += glm::vec3(rb.Velocity.x, rb.Velocity.y, 0.0f) * dt;
@@ -1578,9 +1604,9 @@ namespace gte {
 			//Update local positions
 			if (auto* rc = mReg.try_get<RelationshipComponent>(entityID); rc->Parent != entt::null)
 			{
-				const glm::mat4& pTransform = mReg.get<TransformationComponent>(rc->Parent);
-				const glm::mat4& world = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f });
-				const glm::mat4& local = glm::inverse(pTransform) * world;
+				let& pTransform = mReg.get<TransformationComponent>(rc->Parent);
+				let world = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f });
+				let local = glm::inverse(pTransform.Transform) * world;
 				glm::vec3 lpos, lscale, lrotation;
 				math::DecomposeTransform(local, lpos, lscale, lrotation);
 				tc.Position = { lpos.x, lpos.y, tc.Position.z };
@@ -1600,11 +1626,11 @@ namespace gte {
 
 	void Scene::SetupUserComponents(entt::entity entityID, const UserDefinedComponents& udc)
 	{
-		for (const auto& uc : udc)
+		for (let& uc : udc)
 		{
 			void* buffer = internal::GetContext()->DynamicLoader.AddComponent(uc.GetName(), { entityID, this });
 			const void* srcBuffer = uc.GetBuffer();
-			for (const auto& spec : uc.GetFieldsSpecification())
+			for (let& spec : uc.GetFieldsSpecification())
 			{
 				void* ptr = (byte*)buffer + spec.Offset;
 				const void* src = (byte*)srcBuffer + spec.BufferOffset;
@@ -1674,7 +1700,7 @@ namespace gte {
 
 			if (mReg.all_of<Rigidbody2DComponent>(entityID))
 			{
-				const auto& rb = mReg.get<Rigidbody2DComponent>(entityID);
+				let& rb = mReg.get<Rigidbody2DComponent>(entityID);
 				speaker.Source.SetVelocity(rb.Velocity);
 			}
 			else
@@ -1685,7 +1711,7 @@ namespace gte {
 	void Scene::InformEngine(entt::entity entityID, Rigidbody2DComponent& rb, TransformationComponent& tc)
 	{
 		auto& prevTC = mPhysicsReg.get<TransformComponent>(entityID);
-		const auto& relc = mReg.get<RelationshipComponent>(entityID);
+		let& relc = mReg.get<RelationshipComponent>(entityID);
 		
 		b2Body* body = (b2Body*)rb.Body;
 		prevTC.Rotation.z = body->GetAngle();
@@ -1693,10 +1719,10 @@ namespace gte {
 		bool World = relc.Parent != entt::null;
 		if (World)
 		{
-			const glm::mat4& pTransform = mReg.get<TransformationComponent>(relc.Parent);
+			let& pTransform = mReg.get<TransformationComponent>(relc.Parent);
 			glm::mat4 world = glm::translate(glm::mat4(1.0f), { body->GetPosition().x, body->GetPosition().y, tc.Transform[3].z }) *
 				glm::rotate(glm::mat4(1.0f), body->GetAngle(), { 0.0f, 0.0f, 1.0f });
-			world = glm::inverse(pTransform) * world;
+			world = glm::inverse(pTransform.Transform) * world;
 			glm::vec3 pos, scale, rotation;
 			math::DecomposeTransform(world, pos, scale, rotation);
 			auto& transform = mReg.get<TransformComponent>(entityID);
@@ -1735,13 +1761,13 @@ namespace gte {
 	void Scene::OnPhysicsStart(void)
 	{
 		Entity me = FindEntityWithUUID({});
-		const auto& settings = me.GetComponent<Settings>();
+		let& settings = me.GetComponent<Settings>();
 		mPhysicsWorld = new b2World({ settings.Gravity.x, settings.Gravity.y });
 		mPhysicsWorld->SetContactListener(CollisionDispatcher::Get());
 
 		SetupPhysics();
 
-		const float tickRate = 1.0f / settings.Rate;
+		let tickRate = 1.0f / settings.Rate;
 		mPhysicsWorld->Step(tickRate, settings.VelocityIterations, settings.PositionIterations);
 	}
 
@@ -1834,13 +1860,13 @@ namespace gte {
 			}
 		}
 
-		const auto components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
+		let components = internal::GetContext()->AssetWatcher.GetAssets({ ".gtcomp" });
 		auto udcs = mReg.view<UserDefinedComponents>();
 		for (auto&& [entityID, udc] : udcs.each())
 		{
 			for (auto& uc : udc)
 			{
-				for (const auto& id : components)
+				for (let& id : components)
 				{
 					Ref<Asset> component = internal::GetContext()->AssetManager.RequestAsset(id);
 					const NativeScript* script = (NativeScript*)component->Data;
@@ -1858,11 +1884,11 @@ namespace gte {
 			}
 		}
 
-		const auto systems = internal::GetContext()->AssetWatcher.GetAssets({ ".gtsystem" });
+		let systems = internal::GetContext()->AssetWatcher.GetAssets({ ".gtsystem" });
 		auto& uds = mReg.get<UserDefinedSystems>(FindEntityWithUUID({}));
 		for (auto& us : uds)
 		{
-			for (const auto& id : systems)
+			for (let& id : systems)
 			{
 				Ref<Asset> system = internal::GetContext()->AssetManager.RequestAsset(id);
 				const NativeScript* script = (NativeScript*)system->Data;
@@ -1879,7 +1905,7 @@ namespace gte {
 
 void CreateTransform(entt::registry& reg, entt::entity entityID)
 {
-	const auto& tc = reg.get<gte::TransformComponent>(entityID);
+	let& tc = reg.get<gte::TransformComponent>(entityID);
 	auto& transform = reg.emplace<gte::TransformationComponent>(entityID);
 
 	glm::mat4 transformation = glm::translate(glm::mat4(1.0f), tc.Position) *
@@ -1900,12 +1926,18 @@ void DestroyTransform(entt::registry& reg, entt::entity entityID)
 		reg.remove<gte::TransformationComponent>(entityID);
 }
 
-void CreateCamera(entt::registry& reg, entt::entity entityID) { reg.emplace<gte::OrthographicCameraComponent>(entityID); }
+void CreateCamera(entt::registry& reg, entt::entity entityID)
+{
+	reg.emplace<gte::OrthographicCameraComponent>(entityID);
+	reg.emplace<gte::PerspectiveCameraComponent>(entityID);
+}
 
 void DestroyCamera(entt::registry& reg, entt::entity entityID)
 {
-	if (reg.all_of<gte::OrthographicCameraComponent>(entityID))
+	if (reg.any_of<gte::OrthographicCameraComponent>(entityID))
 		reg.remove<gte::OrthographicCameraComponent>(entityID);
+	if (reg.any_of<gte::PerspectiveCameraComponent>(entityID))
+		reg.remove<gte::PerspectiveCameraComponent>(entityID);
 }
 
 void CreateParticleSystem(entt::registry& reg, entt::entity entityID)
@@ -1981,7 +2013,7 @@ b2BodyDef CreateBody(const gte::Rigidbody2DComponent& rb, const glm::vec3& pos, 
 
 void SetListener(entt::registry& reg, entt::entity entity)
 {
-	const auto& cam = reg.get<gte::CameraComponent>(entity);
+	let& cam = reg.get<gte::CameraComponent>(entity);
 	alListenerf(AL_GAIN, cam.MasterVolume);
 	switch(cam.Model)
 	{
@@ -2021,10 +2053,10 @@ void SetListener(entt::registry& reg, entt::entity entity)
 void PatchFields(void* oldBuffer, void* buffer, const std::vector<gte::internal::FieldSpecification>& oldSpecs, const std::vector<gte::internal::FieldSpecification>& specs)
 {
 	using namespace gte::internal;
-	for (const auto& oldspec : oldSpecs)
+	for (let& oldspec : oldSpecs)
 	{
 		void* srcPtr = (byte*)oldBuffer + oldspec.BufferOffset;
-		for (const auto& spec : specs)
+		for (let& spec : specs)
 		{
 			void* dstPtr = (byte*)buffer + spec.BufferOffset;
 			if (spec.Name.compare(oldspec.Name) == 0 && oldspec.Type == spec.Type)

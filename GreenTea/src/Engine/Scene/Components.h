@@ -159,7 +159,7 @@ namespace gte {
 
 	struct ENGINE_API OrthographicCameraComponent {
 		float ZoomLevel = 1.0f;
-		float VerticalBoundary = 4.5f;
+		float VerticalBoundary = 5.0f;
 
 		OrthographicCameraComponent(void) = default;
 		OrthographicCameraComponent(const OrthographicCameraComponent&) = default;
@@ -168,6 +168,22 @@ namespace gte {
 
 
 		OrthographicCameraComponent& operator=(const OrthographicCameraComponent&) = default;
+	};
+
+	struct ENGINE_API PerspectiveCameraComponent {
+		float FoV = 60.0f;
+		float Near = 0.1f;
+		float Far = 1000.0f;
+
+		PerspectiveCameraComponent(void) = default;
+		PerspectiveCameraComponent(const PerspectiveCameraComponent&) = default;
+		
+		PerspectiveCameraComponent(float fov)
+			: FoV(fov) {}
+		PerspectiveCameraComponent(float fov, float _near, float _far)
+			: FoV(fov), Near(_near), Far(_far) {}
+
+		PerspectiveCameraComponent& operator=(const PerspectiveCameraComponent&) = default;
 	};
 
 	enum class ENGINE_API DistanceModel : byte {
@@ -180,7 +196,13 @@ namespace gte {
 		ExponentClamp
 	};
 
+	enum class ENGINE_API CameraType : byte {
+		Orthographic = 0,
+		Perpsective
+	};
+
 	struct ENGINE_API CameraComponent {
+		CameraType Type = CameraType::Perpsective;
 		float AspectRatio = 1.0f;
 
 		bool Primary = false;
@@ -284,7 +306,7 @@ namespace gte {
 		int32 VelocityIterations = 6;
 		int32 PositionIterations = 2;
 
-		glm::vec2 CameraVelocity = {9.0f, 9.0f};
+		float CameraVelocity = 9.0f;
 		
 		Settings(void) = default;
 		Settings(const Settings&) = default;
@@ -352,7 +374,7 @@ namespace gte {
 
 	using AllComponents = ComponentGroup <TransformComponent,
 		SpriteRendererComponent, CircleRendererComponent, TextRendererComponent,
-		CameraComponent, OrthographicCameraComponent,
+		CameraComponent, OrthographicCameraComponent, PerspectiveCameraComponent,
 		NativeScriptComponent, UserDefinedComponents,
 		Rigidbody2DComponent, BoxColliderComponent, CircleColliderComponent,
 		SpeakerComponent,
