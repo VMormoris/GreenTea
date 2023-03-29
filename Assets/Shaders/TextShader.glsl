@@ -11,8 +11,8 @@ uniform mat4 u_eyeMatrix;
 
 out vec4 v_Color;
 out vec2 v_textCoords;
-out float v_textID;
-out float v_ScreenPxRange;
+flat out float v_textID;
+flat out float v_ScreenPxRange;
 
 void main(void)
 {
@@ -31,8 +31,8 @@ layout(location = 0) out vec4 o_color;
 
 in vec4 v_Color;
 in vec2 v_textCoords;
-in float v_textID;
-in float v_ScreenPxRange;
+flat in float v_textID;
+flat in float v_ScreenPxRange;
 
 uniform sampler2D u_Textures[32];
 

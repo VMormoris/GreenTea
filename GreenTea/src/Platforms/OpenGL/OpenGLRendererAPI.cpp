@@ -35,6 +35,8 @@ namespace gte::GPU::OpenGL {
 	
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_MULTISAMPLE);
 	}
@@ -59,7 +61,7 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLRendererAPI::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height) noexcept { glViewport(x, y, width, height); }
 	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color) noexcept { glClearColor(color.r, color.g, color.b, color.a); }
-	void OpenGLRendererAPI::Clear(void) noexcept { glClear(GL_COLOR_BUFFER_BIT); }
+	void OpenGLRendererAPI::Clear(void) noexcept { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
 
 	void OpenGLRendererAPI::SetLineThickness(float thickness) noexcept { glLineWidth(thickness); }
 }

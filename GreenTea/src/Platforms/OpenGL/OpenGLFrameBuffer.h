@@ -29,6 +29,7 @@ namespace gte::GPU::OpenGL {
 
 		uint32 mID = 0;
 		uint32* mColorAttachmentID = nullptr;
+		uint32 mDepthAttachmentID = 0;
 		FrameBufferSpecification mSpecification;
 
 	};

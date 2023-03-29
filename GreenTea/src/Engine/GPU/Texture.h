@@ -37,6 +37,14 @@ namespace gte {
 			UInt8,
 			UInt16,
 			UInt32,
+
+			DEPTH24,
+			DEPTH24STENCIL8,
+
+			Shadomap,
+
+			Depth = DEPTH24,
+			DepthStencil = DEPTH24STENCIL8
 		};
 
 		/**

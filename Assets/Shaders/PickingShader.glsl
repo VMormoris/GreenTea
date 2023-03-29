@@ -13,8 +13,8 @@ uniform mat4 u_eyeMatrix;
 
 out vec4 v_Color;
 out vec2 v_textCoordsOrLocalPosition;
-out float v_textIDOrThickness;
-out float v_TilingFactorOrFade;
+flat out float v_textIDOrThickness;
+flat out float v_TilingFactorOrFade;
 flat out uint v_ObjectID;
 flat out float v_isCircle;
 
@@ -37,8 +37,8 @@ layout(location = 0) out uint o_ObjectID;
 
 in vec4 v_Color;
 in vec2 v_textCoordsOrLocalPosition;
-in float v_textIDOrThickness;
-in float v_TilingFactorOrFade;
+flat in float v_textIDOrThickness;
+flat in float v_TilingFactorOrFade;
 flat in uint v_ObjectID;
 flat in float v_isCircle;
 
