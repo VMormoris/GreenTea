@@ -101,7 +101,7 @@ namespace gte::GPU::OpenGL {
 			texture_format = GL_RGB;
 			mInternalFormat = GL_RGB;
 			break;
-		case 1://Grey image
+		case 1:// Grey image
 			texture_format = GL_RED;
 			mInternalFormat = GL_RED;
 		default:

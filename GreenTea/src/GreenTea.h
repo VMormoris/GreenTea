@@ -11,6 +11,7 @@
 #include <Engine/Events/Input.h>
 
 #include <Engine/GPU/FrameBuffer.h>
+#include <Engine/GPU/Mesh.h>
 
 #if !defined(GAME_DLL) && !defined(REFLECTION) && !defined(GT_DIST)
 	#include <Engine/ImGui/ImGuiLayer.h>

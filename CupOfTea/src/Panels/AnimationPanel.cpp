@@ -13,7 +13,7 @@ void AnimationPanel::Draw(bool& show)
 	if (!mHasBeenLoaded && mAnimationID.IsValid())
 	{
 		gte::Ref<gte::Asset> asset = gte::internal::GetContext()->AssetManager.RequestAsset(mAnimationID);
-		if (asset->Type == gte::AssetType::ANIMATION)
+		if (asset->Type == gte::AssetType::SPRITE_ANIMATION)
 		{
 			mAnimation = *((gte::internal::Animation*)asset->Data);
 			mHasBeenLoaded = true;

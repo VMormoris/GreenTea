@@ -1,14 +1,18 @@
 #include "Asset.h"
+#include "Animation.h"
+#include "Font.h"
 #include "Image.h"
+#include "Material.h"
 #include "NativeScript.h"
 #include "Prefab.h"
 
-#include <Engine/Assets/Font.h>
-#include <Engine/Assets/Animation.h>
 #include <Engine/Audio/AudioBuffer.h>
+#include <Engine/Core/Math.h>
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+
+static gte::Material* LoadMaterial(const YAML::Node& data);
 
 namespace gte::internal {
 
@@ -116,7 +120,7 @@ namespace gte::internal {
 			asset.Data = font;
 			break;
 		}
-		case AssetType::ANIMATION:
+		case AssetType::SPRITE_ANIMATION:
 		{
 			if (!asset.Size) { asset.Data = new Animation(); break; }
 			
@@ -138,6 +142,22 @@ namespace gte::internal {
 
 			break;
 		}
+		case AssetType::MATERIAL:
+		{
+			YAML::Node data;
+			try { data = YAML::Load(buffer); }
+			catch (YAML::ParserException e)
+			{
+				GTE_ERROR_LOG(false, "Failed to load file: ", filepath, "\n\t", e.what());
+				asset.Type = AssetType::INVALID;
+				asset.Size = 0;
+				asset.ID = {};
+				delete[] buffer;
+				return asset;
+			}
+
+			break;
+		}
 		case AssetType::TEXTURE:
 		case AssetType::LOADING:
 		case AssetType::INVALID:
@@ -149,4 +169,29 @@ namespace gte::internal {
 		return asset;
 	}
 
+}
+
+gte::Material* LoadMaterial(const YAML::Node& data)
+{
+	using namespace gte::math;
+	gte::Material* material = new gte::Material();
+	material->Name = data["Name"].as<std::string>();
+
+	material->Albedo->ID = data["Albedo"].as<std::string>();
+	material->Metallic->ID = data["Metallic"].as<std::string>();
+	material->Normal->ID = data["Normal"].as<std::string>();
+	material->AmbientOclussion->ID = data["AmbientOclussion"].as<std::string>();
+	material->Opacity->ID = data["Opacity"].as<std::string>();
+	material->Emission->ID = data["Emission"].as<std::string>();
+
+	material->Diffuse = data["Diffuse"].as<glm::vec4>();
+	material->EmitColor = data["EmitColor"].as<glm::vec4>();
+	material->AmbientColor = data["AmbientColor"].as<glm::vec4>();
+	material->Metallicness = data["Metallicness"].as<float>();
+	material->Shininess = data["Shininess"].as<float>();
+	material->Alpha = data["Alpha"].as<float>();
+	material->IlluminationModel = data["IlluminationModel"].as<int32>();
+	material->IsEmissive = data["IsEmissive"].as<bool>();
+
+	return material;
 }

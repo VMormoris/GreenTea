@@ -19,14 +19,15 @@ public:
 
 private:
 	
-	void CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const;
+	gte::uuid CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const;
 	
 	void CreateFolder(const std::string& _template);
-	void CreateAnimation(const std::string& _template);
+	gte::uuid CreateAnimation(const std::string& _template);
 
-	void CreateTextureAsset(const std::filesystem::path& filepath) const;
-	void CreateAudioAsset(const std::filesystem::path& filepath) const;
-	void CreateFontAsset(const std::filesystem::path& filepath) const;
+	gte::uuid CreateTextureAsset(const std::filesystem::path& filepath) const;
+	gte::uuid CreateAudioAsset(const std::filesystem::path& filepath) const;
+	gte::uuid CreateFontAsset(const std::filesystem::path& filepath) const;
+	gte::uuid CreateMeshAsset(const std::filesystem::path& filepath) const;
 
 private:
 	std::vector<std::filesystem::path> mHistory;

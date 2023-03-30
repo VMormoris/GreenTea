@@ -131,7 +131,7 @@ namespace gte {
 		for (auto&& [entityID, ac, sprite] : animations.each())
 		{
 			ac.Animation = internal::GetContext()->AssetManager.RequestAsset(ac.Animation->ID);
-			if (ac.Animation->Type != AssetType::ANIMATION)
+			if (ac.Animation->Type != AssetType::SPRITE_ANIMATION)
 				continue;
 
 			internal::Animation& animation = *(internal::Animation*)ac.Animation->Data;

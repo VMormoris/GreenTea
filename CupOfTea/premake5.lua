@@ -17,7 +17,6 @@ project "CupOfTea"
         "src/**.h",
         "src/**.hpp",
         "src/**.cpp",
-        "%{wks.location}/3rdParty/ImGuizmo/ImGuizmo.h",
 		"%{wks.location}/3rdParty/ImGuizmo/ImGuizmo.cpp",
         "CupOfTea.rc",
     }

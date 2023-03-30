@@ -30,13 +30,16 @@ namespace gte {
 		AUDIO = 8,
 
 		//An animation asset
-		ANIMATION = 9,
+		SPRITE_ANIMATION = 9,
 
 		//Scene Description
 		SCENE = 10,
 
 		PREFAB = 11,
-		SHADER = 12
+		SHADER = 12,
+
+		MATERIAL = 13,
+		MESH = 14
 	};
 
 	struct ENGINE_API Asset {
