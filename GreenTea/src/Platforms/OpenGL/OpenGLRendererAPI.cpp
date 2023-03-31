@@ -53,6 +53,12 @@ namespace gte::GPU::OpenGL {
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices);
 	}
 
+	void OpenGLRendererAPI::DrawArrays(const VertexArray* va, uint32 offset, uint32 count) noexcept
+	{
+		va->Bind();
+		glDrawArrays(GL_TRIANGLES, offset, count);
+	}
+
 	void OpenGLRendererAPI::DrawLines(const VertexArray* va, uint32 lines) noexcept
 	{
 		va->Bind();

@@ -8,6 +8,7 @@
 
 #include <Engine/Audio/AudioBuffer.h>
 #include <Engine/Core/Math.h>
+#include <Engine/GPU/Mesh.h>
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -155,7 +156,23 @@ namespace gte::internal {
 				delete[] buffer;
 				return asset;
 			}
-
+			asset.Data = LoadMaterial(data);
+			break;
+		}
+		case AssetType::MESH:
+		{
+			YAML::Node data;
+			try { data = YAML::Load(buffer); }
+			catch (YAML::ParserException e)
+			{
+				GTE_ERROR_LOG(false, "Failed to load file: ", filepath, "\n\t", e.what());
+				asset.Type = AssetType::INVALID;
+				asset.Size = 0;
+				asset.ID = {};
+				delete[] buffer;
+				return asset;
+			}
+			asset.Data = new GPU::Mesh(data, is);
 			break;
 		}
 		case AssetType::TEXTURE:

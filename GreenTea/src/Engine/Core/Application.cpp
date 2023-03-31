@@ -3,6 +3,7 @@
 
 #include <Engine/Renderer/RenderCommand.h>
 #include <Engine/Renderer/Renderer2D.h>
+#include <Engine/Renderer/Renderer3D.h>
 
 #include <chrono>
 
@@ -37,12 +38,14 @@ namespace gte {
 
 		RenderCommand::Init();
 		Renderer2D::Init();
+		Renderer3D::Init();
 
 		auto* device = audio::AudioDevice::Get();//Create audio device
 	}
 
 	Application::~Application(void)
 	{
+		Renderer3D::Shutdown();
 		Renderer2D::Shutdown();
 		UNREGISTER(this);
 	}

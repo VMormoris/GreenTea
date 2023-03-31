@@ -43,6 +43,8 @@ namespace gte {
 
 		static void DrawArrays(const GPU::VertexArray* va, uint32 vertices);
 
+		static void DrawArrays(const GPU::VertexArray* va, uint32 offset, uint32 count);
+
 		static void DrawLines(const GPU::VertexArray* va, uint32 lines);
 
 		static void SetLineThickness(float thickness);

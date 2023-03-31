@@ -19,6 +19,9 @@ namespace gte {
 		if (filepath.extension() == ".gtfont")
 			return RequestFont(id, enforceRAM);
 
+		if (filepath.extension() == ".gtmesh")
+			return RequestMesh(id);
+
 		Ref<Asset> asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
 		mMapMutex.lock();
 		if (mRAM.find(id) != mRAM.end())//Already record on map (might still loading)
@@ -33,6 +36,25 @@ namespace gte {
 		return asset;
 	}
 
+	[[nodiscard]] Ref<Asset> AssetManager::RequestMesh(const uuid& id)
+	{
+		Ref<Asset> asset = CreateRef<Asset>(nullptr, id, AssetType::INVALID);
+		mMapMutex.lock();
+		if (mVRAM.find(id) != mVRAM.end())
+		{
+			if (mVRAM.at(id)->Type == AssetType::MESH)
+				asset = mVRAM.at(id);
+		}
+		else
+		{
+			let filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
+			Asset raw = internal::Load(filepath);
+			asset = CreateRef<Asset>(raw);
+			mVRAM.insert({ id, asset });
+		}
+		mMapMutex.unlock();
+		return asset;
+	}
 
 	[[nodiscard]] Ref<Asset> AssetManager::RequestTexture(const uuid& id)
 	{
@@ -58,7 +80,7 @@ namespace gte {
 		else//Must load from disk first
 		{
 			mRAM.insert({ id, CreateRef<Asset>(nullptr, id, AssetType::LOADING) });
-			std::string filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
+			let filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
 			LoadFromDisk(id, filepath);
 			asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
 		}
@@ -92,7 +114,7 @@ namespace gte {
 		else
 		{
 			mRAM.insert({ id, CreateRef<Asset>(nullptr, id, AssetType::LOADING) });
-			std::string filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
+			let filepath = internal::GetContext()->AssetWatcher.GetFilepath(id);
 			LoadFromDisk(id, filepath);
 			asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
 		}

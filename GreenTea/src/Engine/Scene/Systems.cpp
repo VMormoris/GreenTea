@@ -3,11 +3,42 @@
 
 #include <Engine/Core/Context.h>
 #include <Engine/Renderer/Renderer2D.h>
+#include <Engine/Renderer/Renderer3D.h>
+
+#include <gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
+
+static float sAccumulator = 0.0f;
 
 namespace gte::internal {
 
 	void RenderScene(entt::registry* reg, const glm::mat4& eyeMatrix)
 	{
+		let meshID = uuid{ "680D341A-E188-4612-B945-5DD5E0A07D78" };
+		Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(meshID);
+		if (asset->Type != AssetType::MESH) return;
+
+		SceneData data;		
+		auto view = reg->view<TransformComponent, CameraComponent>(entt::exclude<RelationshipComponent>);
+		for (auto&& [entityID, tc, cam] : view.each())
+		{
+			data.CameraPos = tc.Position;
+			let orientation = glm::quat(glm::radians(tc.Rotation));
+			data.CameraDir = glm::rotate(orientation, { 0.0f, 0.0f, -1.0f });
+			data.EyeMatrix = eyeMatrix;
+			data.ProjectionMatrix = cam.ProjectionMatrix;
+			data.ViewMatrix = cam.ViewMatrix;
+			data.Target = internal::GetContext()->ViewportFBO;
+		}
+
+		sAccumulator += 1.0f / 60.0f * glm::pi<float>() * 12.5f;
+		let matrix = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ 0.0f }) 
+			* glm::toMat4(glm::quat(glm::radians(glm::vec3{0.0f, sAccumulator, 0.0f})));
+		Renderer3D::BeginScene(data);
+		Renderer3D::SubmitMesh(matrix, (GPU::Mesh*)asset->Data, 0);
+		Renderer3D::EndScene();
+		/*
 		entt::insertion_sort algo;
 		reg->sort<TransformationComponent>([](const auto& lhs, const auto& rhs) { return lhs.Transform[3].z < rhs.Transform[3].z; }, algo);
 		
@@ -71,6 +102,7 @@ namespace gte::internal {
 		//});
 
 		Renderer2D::EndScene();
+		*/
 	}
 
 }

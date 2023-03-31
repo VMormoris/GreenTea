@@ -25,7 +25,7 @@ namespace gte::GPU {
 			mParts.emplace_back(meshpart);
 		}
 
-		let& abb = data["AAB"];
+		let& abb = data["ABB"];
 		mABB[0] = abb[0].as<glm::vec3>();
 		mABB[1] = abb[1].as<glm::vec3>();
 
@@ -72,6 +72,7 @@ namespace gte::GPU {
 			ifs.read((char*)buffer, bitanBuffSize);
 			mBitangentsVBO = VertexBuffer::Create(buffer, bitanBuffSize);
 			mBitangentsVBO->SetLayout({ {GPU::ShaderDataType::Vec3, "_bitangents"} });
+			mVAO->AddVertexBuffer(mBitangentsVBO);
 		}
 
 		delete[] buffer;

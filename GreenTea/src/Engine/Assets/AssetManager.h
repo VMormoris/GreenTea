@@ -37,6 +37,7 @@ namespace gte {
 
 		[[nodiscard]] Ref<Asset> RequestTexture(const uuid& id);
 		[[nodiscard]] Ref<Asset> RequestFont(const uuid& id, bool enforceRAM);
+		[[nodiscard]] Ref<Asset> RequestMesh(const uuid& id);
 		void LoadFromDisk(const uuid& id, const std::string& filepath);
 
 	private:

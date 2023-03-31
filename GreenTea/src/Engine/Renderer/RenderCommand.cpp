@@ -15,6 +15,7 @@ namespace gte {
 	void RenderCommand::Clear(void) { internal::GetContext()->Renderer->Clear(); }
 	void RenderCommand::DrawIndexed(const GPU::VertexArray* va, uint32 indices) { internal::GetContext()->Renderer->DrawIndexed(va, indices); }
 	void RenderCommand::DrawArrays(const GPU::VertexArray* va, uint32 vertices) { internal::GetContext()->Renderer->DrawArrays(va, vertices); }
+	void RenderCommand::DrawArrays(const GPU::VertexArray* va, uint32 offset, uint32 count) { internal::GetContext()->Renderer->DrawArrays(va, offset, count); }
 	void RenderCommand::DrawLines(const GPU::VertexArray* va, uint32 lines) { internal::GetContext()->Renderer->DrawLines(va, lines); }
 
 	void RenderCommand::SetLineThickness(float thickness) { internal::GetContext()->Renderer->SetLineThickness(thickness); }
