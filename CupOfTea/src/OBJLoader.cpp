@@ -71,8 +71,8 @@ gte::Geometry* OBJLoader::Load(const char* filepath)
 	
 	if (mMesh->Normals.empty())// Creating normal if they don't exist
 		CalculateAverageNormals();
-	if (std::find_if(mMesh->Materials.begin(), mMesh->Materials.end(), [](let& mat) { return mat.Normal.size() > 0; }) != mMesh->Materials.end())
-		CalculateTangents();
+	//if (std::find_if(mMesh->Materials.begin(), mMesh->Materials.end(), [](let& mat) { return mat.Normal.size() > 0; }) != mMesh->Materials.end())
+	CalculateTangents();
 
 	return mMesh;
 }
@@ -598,7 +598,7 @@ void OBJLoader::ParseMTL(const char* filepath)
 	ifs.close();
 }
 
-OBJLoader::~OBJLoader(void) { if (mMesh) delete mMesh; }
+OBJLoader::~OBJLoader(void) { }
 
 
 static bool CompareIngoreCase(const std::string& lhs, const std::string& rhs)

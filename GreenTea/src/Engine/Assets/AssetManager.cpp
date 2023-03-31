@@ -3,15 +3,16 @@
 
 #include <Engine/Core/Context.h>
 #include <Engine/GPU/Texture.h>
+#include <Engine/GPU/Mesh.h>
 
 namespace gte {
 
 	[[nodiscard]] Ref<Asset> AssetManager::RequestAsset(const uuid& id, bool enforceRAM)
 	{
 		if (!internal::GetContext()->AssetWatcher.Exists(id))//No asset with such ID exists
-			return CreateRef<Asset>();
+			return CreateRef<Asset>(nullptr, id, AssetType::INVALID);
 
-		auto filepath = std::filesystem::path(internal::GetContext()->AssetWatcher.GetFilepath(id));
+		let filepath = std::filesystem::path(internal::GetContext()->AssetWatcher.GetFilepath(id));
 
 		if (filepath.extension() == ".gtimg")//GPU Assets
 			return RequestTexture(id);
@@ -51,6 +52,12 @@ namespace gte {
 			Asset raw = internal::Load(filepath);
 			asset = CreateRef<Asset>(raw);
 			mVRAM.insert({ id, asset });
+#ifndef GT_DIST
+			GPU::Mesh* geometry = (GPU::Mesh*)raw.Data;
+			let& img = geometry->GetThumbnail();
+			GPU::Texture2D* texture = GPU::Texture2D::Create(img);
+			mThumbnails.insert({ id, CreateRef<Asset>(texture, id, AssetType::TEXTURE, img.Size()) });
+#endif
 		}
 		mMapMutex.unlock();
 		return asset;
@@ -175,4 +182,47 @@ namespace gte {
 		}
 	}
 
+#ifndef GT_DIST
+	Ref<Asset> AssetManager::RequestThumbnail(const uuid& id)
+	{
+		if (!internal::GetContext()->AssetWatcher.Exists(id))//No asset with such ID exists
+			return CreateRef<Asset>(nullptr, id, AssetType::INVALID);
+		
+		let filepath = std::filesystem::path(internal::GetContext()->AssetWatcher.GetFilepath(id));
+		if (filepath.extension() != ".gtmesh" && filepath.extension() != ".gtmat")
+			return CreateRef<Asset>(nullptr, id, AssetType::INVALID);
+
+
+		Ref<Asset> asset = CreateRef<Asset>(nullptr, id, AssetType::LOADING);
+		mMapMutex.lock();
+		if (mThumbnails.find(id) != mThumbnails.end())
+			asset = mThumbnails.at(id);
+		else if (filepath.extension() == ".gtmat")
+		{
+			mMapMutex.unlock();
+			Ref<Asset> mat = RequestAsset(id);
+			if (mat->Type == AssetType::MATERIAL)
+			{
+				gte::Material* material = (gte::Material*)mat->Data;
+				CreateThumbnail(id, material->img);
+			}
+			mMapMutex.lock();
+		}
+		else
+		{
+			mMapMutex.unlock();
+			auto ignore = RequestAsset(id);
+			mMapMutex.lock();
+		}
+		mMapMutex.unlock();
+		return asset;
+	}
+
+	void AssetManager::CreateThumbnail(const uuid& id, const Image& img)
+	{
+		std::unique_lock lock(mMapMutex);
+		GPU::Texture2D* texture = GPU::Texture2D::Create(img);
+		mThumbnails.insert({ id, CreateRef<Asset>(texture, id, AssetType::TEXTURE, img.Size()) });
+	}
+#endif
 }

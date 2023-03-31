@@ -32,6 +32,8 @@ namespace gte::GPU {
 		
 		virtual void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept = 0;
 
+		virtual void ReadPixels(uint32 attachment, void* data) const noexcept = 0;
+
 		[[nodiscard]] static FrameBuffer* Create(const FrameBufferSpecification& specification) noexcept;
 
 

@@ -151,11 +151,20 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLFrameBuffer::GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept
 	{
-		const TextureFormat format = mSpecification.Attachments[attachment];
-		const auto Format = GetNativeTextureFormat(format);
+		let format = mSpecification.Attachments[attachment];
+		let Format = GetNativeTextureFormat(format);
 		Bind();
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 		glReadPixels(x, y, 1, 1, Format.second, GetTextureInternalType(format), data);
+	}
+
+	void OpenGLFrameBuffer::ReadPixels(uint32 attachment, void* data) const noexcept
+	{
+		let format = mSpecification.Attachments[attachment];
+		let Format = GetNativeTextureFormat(format);
+		Bind();
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
+		glReadPixels(0, 0, mSpecification.Width, mSpecification.Height, Format.second, GetTextureInternalType(format), data);
 	}
 
 	[[nodiscard]] uint64 OpenGLFrameBuffer::GetColorAttachmentID(uint32 attachement) const noexcept { return mColorAttachmentID[attachement]; }

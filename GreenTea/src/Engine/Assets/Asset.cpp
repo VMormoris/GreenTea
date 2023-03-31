@@ -13,7 +13,7 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
-static gte::Material* LoadMaterial(const YAML::Node& data);
+static gte::Material* LoadMaterial(const YAML::Node& data, std::ifstream& is);
 
 namespace gte::internal {
 
@@ -156,7 +156,7 @@ namespace gte::internal {
 				delete[] buffer;
 				return asset;
 			}
-			asset.Data = LoadMaterial(data);
+			asset.Data = LoadMaterial(data, is);
 			break;
 		}
 		case AssetType::MESH:
@@ -188,7 +188,7 @@ namespace gte::internal {
 
 }
 
-gte::Material* LoadMaterial(const YAML::Node& data)
+gte::Material* LoadMaterial(const YAML::Node& data, std::ifstream& ifs)
 {
 	using namespace gte::math;
 	gte::Material* material = new gte::Material();
@@ -210,5 +210,14 @@ gte::Material* LoadMaterial(const YAML::Node& data)
 	material->IlluminationModel = data["IlluminationModel"].as<int32>();
 	material->IsEmissive = data["IsEmissive"].as<bool>();
 
+#ifndef GT_DIST
+	uint32 width, height;
+	int32 bpp;
+	ifs.read((char*)&width, 4);
+	ifs.read((char*)&height, 4);
+	ifs.read((char*)&bpp, 4);
+	material->img = gte::Image(width, height, bpp);
+	ifs.read((char*)material->img.Data(), material->img.Size());
+#endif
 	return material;
 }

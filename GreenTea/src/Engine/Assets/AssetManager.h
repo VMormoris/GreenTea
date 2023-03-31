@@ -1,5 +1,6 @@
 #pragma once
 #include "Asset.h"
+#include "Image.h"
 #include <Engine/Core/Ref.h>
 
 #include <unordered_map>
@@ -33,6 +34,14 @@ namespace gte {
 		*/
 		void RemoveAsset(const uuid& id);
 
+#ifndef GT_DIST
+		/**
+		* @brief Request asset's thumbnail
+		* @param id Identifier for the Asset
+		*/
+		[[nodiscard]] Ref<Asset> RequestThumbnail(const uuid& id);
+		void CreateThumbnail(const uuid& id, const Image& img);
+#endif
 	private:
 
 		[[nodiscard]] Ref<Asset> RequestTexture(const uuid& id);
@@ -41,7 +50,9 @@ namespace gte {
 		void LoadFromDisk(const uuid& id, const std::string& filepath);
 
 	private:
-		//std::unordered_map<uuid, 
+#ifndef GT_DIST
+		std::unordered_map<uuid, Ref<Asset>> mThumbnails;
+#endif
 		std::unordered_map<uuid, Ref<Asset>> mRAM;
 		std::unordered_map<uuid, Ref<Asset>> mVRAM;
 		std::mutex mMapMutex;

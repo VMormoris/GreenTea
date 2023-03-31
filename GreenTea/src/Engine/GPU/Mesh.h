@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VertexArray.h"
+#include <Engine/Assets/Image.h>
 #include <Engine/Assets/Material.h>
 #include <Engine/Assets/Geometry.h>
 
@@ -29,6 +30,10 @@ namespace gte::GPU {
 		std::array<glm::vec3, 2>& GetABB(void) { return mABB; }
 		const std::array<glm::vec3, 2>& GetABB(void) const { return mABB; }
 
+#ifndef GT_DIST
+		const Image& GetThumbnail(void) const { return mThumbnail; }
+#endif
+
 		Mesh(const YAML::Node& data, std::ifstream& ifs);
 
 	private:
@@ -44,6 +49,9 @@ namespace gte::GPU {
 		VertexBuffer* mBitangentsVBO = nullptr;
 
 		std::array<glm::vec3, 2> mABB = { glm::vec3(999999.0f), glm::vec3(-999999.0f) };
+#ifndef GT_DIST
+		Image mThumbnail;
+#endif
 	};
 
 }

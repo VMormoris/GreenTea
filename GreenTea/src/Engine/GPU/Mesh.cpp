@@ -76,6 +76,16 @@ namespace gte::GPU {
 		}
 
 		delete[] buffer;
+
+#ifndef GT_DIST
+		uint32 width, height;
+		int32 bpp;
+		ifs.read((char*)&width, 4);
+		ifs.read((char*)&height, 4);
+		ifs.read((char*)&bpp, 4);
+		mThumbnail = Image(width, height, bpp);
+		ifs.read((char*)mThumbnail.Data(), mThumbnail.Size());
+#endif
 	}
 
 	Mesh::~Mesh(void)
@@ -90,4 +100,5 @@ namespace gte::GPU {
 
 	void Mesh::Bind(void) const { mVAO->Bind(); }
 	void Mesh::Unbind(void) const { mVAO->Unbind(); }
+
 }

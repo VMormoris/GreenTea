@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Asset.h"
-
+#ifndef GT_DIST
+	#include "Image.h"
+#endif
 #include <Engine/Core/Ref.h>
 
 #include <string>
@@ -27,6 +29,9 @@ namespace gte {
 		float Alpha = 1.0f;
 		int32 IlluminationModel = 1;
 		bool IsEmissive = false;
+#ifndef GT_DIST
+		Image img;
+#endif
 	};
 
 }

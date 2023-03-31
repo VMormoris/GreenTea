@@ -35,7 +35,7 @@ layout(location = 0) out vec4 o_Color;
 const float _PI_ = 3.14159;
 const vec3 LightDir = vec3(0.0, 0.0, -1.0);
 const vec3 LightPos = vec3(0.0, 0.0, 100.0);
-const vec3 LightColor = vec3(1.0, 1.0, 1.0);
+const vec3 LightColor = vec3(3.0, 3.0, 3.0);
 
 uniform vec4 u_Diffuse;
 uniform vec4 u_EmitColor;

@@ -10,10 +10,11 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <IconsForkAwesome.h>
-#include <fstream>
+#include "OBJLoader.h"
 #include <sndfile.h>
 #include <msdf-atlas-gen/msdf-atlas-gen.h>
-#include "OBJLoader.h"
+
+#include <fstream>
 
 static gte::GPU::Texture* sFolder = nullptr;
 static gte::GPU::Texture* sScriptFile = nullptr;
@@ -24,8 +25,11 @@ static gte::GPU::Texture* sFontFile = nullptr;
 static gte::GPU::Texture* sAnimationFile = nullptr;
 static gte::GPU::Texture* sTransparentTexture = nullptr;
 
+static gte::Geometry* sSphereGeometry = nullptr;
+
 static void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive = false);
 static void UpdatePrefab(gte::Entity entity, const std::filesystem::path& filepath);
+static gte::uuid WriteMaterial(const gte::Material& material, const std::filesystem::path& folder);
 
 ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 	: mParent(directory), mCurrentPath("Assets")
@@ -55,6 +59,9 @@ ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 	sTransparentTexture = gte::GPU::Texture2D::Create(1, 1);
 	uint32 TransparentTexture = 0x00000000;
 	sTransparentTexture->SetData(&TransparentTexture, sizeof(uint32));
+	
+	OBJLoader loader{};
+	sSphereGeometry = loader.Load("../Assets/Shapes/Sphere.obj");
 }
 
 void ContentBrowserPanel::Draw(void)
@@ -301,7 +308,7 @@ void ContentBrowserPanel::Draw(void)
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_ITEM"))
 					{
-						gte::uuid id = *(gte::uuid*)payload->Data;
+						let id = *(gte::uuid*)payload->Data;
 						gte::Entity entity = gte::internal::GetContext()->ActiveScene->FindEntityWithUUID(id);
 						UpdatePrefab(entity, entry.path());
 					}
@@ -310,7 +317,7 @@ void ContentBrowserPanel::Draw(void)
 			}
 			else if (extension == ".gtimg")
 			{
-				gte::uuid id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
+				let id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 				gte::Ref<gte::Asset> asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
 				if (asset->Type != gte::AssetType::TEXTURE)
 					ImGui::ImageButton(sTransparentTexture->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
@@ -320,9 +327,17 @@ void ContentBrowserPanel::Draw(void)
 					ImGui::ImageButton(texture->GetID(), { 120.0f, 120.0f }, { 0, 1 }, { 1, 0 }, 2);
 				}
 			}
-			else if (extension == ".gtmat")
+			else if (extension == ".gtmesh" || extension == ".gtmat")
 			{
-				ImGui::ImageButton(sTransparentTexture->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
+				let id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
+				gte::Ref<gte::Asset> asset = gte::internal::GetContext()->AssetManager.RequestThumbnail(id);
+				if (asset->Type != gte::AssetType::TEXTURE)
+					ImGui::ImageButton(sTransparentTexture->GetID(), { 64.0f, 64.0f }, { 0, 1 }, { 1, 0 }, padding);
+				else
+				{
+					gte::GPU::Texture* texture = (gte::GPU::Texture*)asset->Data;
+					ImGui::ImageButton(texture->GetID(), { 120.0f, 120.0f }, { 0, 1 }, { 1, 0 }, 2);
+				}
 			}
 		}
 		else
@@ -837,39 +852,37 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 		if (!mat.Emission.empty())
 			emission = CreateTextureAsset(mat.Emission);
 	
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "Name" << YAML::Value << mat.Name;
-		out << YAML::Key << "Albedo" << YAML::Value << albedo.str();
-		out << YAML::Key << "Metallic" << YAML::Value << metallic.str();
-		out << YAML::Key << "Normal" << YAML::Value << normal.str();
-		out << YAML::Key << "AmbientOclussion" << YAML::Value << ao.str();
-		out << YAML::Key << "Opacity" << YAML::Value << opacity.str();
-		out << YAML::Key << "Emission" << YAML::Value << emission.str();
+		gte::Material material;
+		material.Name = mat.Name;
+		material.Albedo->ID = albedo;
+		material.Metallic->ID = metallic;
+		material.Normal->ID = normal;
+		material.AmbientOclussion->ID = ao;
+		material.Opacity->ID = opacity;
+		material.Emission->ID = emission;
 
-		out << YAML::Key << "Diffuse" << YAML::Value << mat.Diffuse;
-		out << YAML::Key << "EmitColor" << YAML::Value << mat.EmitColor;
-		out << YAML::Key << "AmbientColor" << YAML::Value << mat.AmbientColor;
-		out << YAML::Key << "Metallicness" << YAML::Value << mat.Metallicness;
-		out << YAML::Key << "Shininess" << YAML::Value << mat.Shininess;
-		out << YAML::Key << "Alpha" << YAML::Value << mat.Alpha;
-		out << YAML::Key << "IlluminationModel" << YAML::Value << mat.IlluminationModel;
-		out << YAML::Key << "IsEmissive" << YAML::Value << mat.IsEmissive;
-		out << YAML::EndMap;
+		material.Diffuse = mat.Diffuse;
+		material.EmitColor = mat.EmitColor;
+		material.AmbientColor = mat.AmbientColor;
+		material.Metallicness = mat.Metallicness;
+		material.Shininess = mat.Shininess;
+		material.Alpha = mat.Alpha;
+		material.IlluminationModel = mat.IlluminationModel;
+		material.IsEmissive = mat.IsEmissive;
 
-		auto path = (mCurrentPath / mat.Name).string() + ".gtmat";
-		size_t i = 0;
-		while (std::filesystem::exists(path))
-			path = (mCurrentPath / mat.Name).string() + "(" + std::to_string(i++) + ").gtmat";
-		
-		std::time_t result = std::time(nullptr);
-		std::ofstream os(path, std::ios::binary);
-		gte::uuid id = gte::uuid::Create();
-		materials.push_back(id);
-		os << "# Material for Green Tea Engine\n# Auto generated by Green Tea at " << std::asctime(std::localtime(&result)) << 13 << '\n' << id << '\n' << out.size() << "\n\n";
-		os << out.c_str();
-		os.close();
+		materials.emplace_back(WriteMaterial(material, mCurrentPath));
 	}
+
+	// Create thumbnail
+	gte::internal::GetContext()->AssetWatcher.FindFiles();//Need to update Project Manager to find the new materials
+	gte::ThumbnailRenderer::Render(geometry, materials);
+	gte::GPU::FrameBuffer* fbo = gte::ThumbnailRenderer::GetThumbnail();
+	
+	constexpr uint32 width = 128;
+	constexpr uint32 height = 128;
+	constexpr int32 bpp = 4;
+	gte::Image img(128, 128, 4);
+	fbo->ReadPixels(0, img.Data());
 
 	YAML::Emitter out;
 	out << YAML::BeginMap;
@@ -899,6 +912,7 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 	out << YAML::Key << "UVs" << YAML::Value << geometry->UVs.size() * sizeof(glm::vec2);
 	out << YAML::Key << "Tangents" << YAML::Value << geometry->Tangents.size() * sizeof(glm::vec3);
 	out << YAML::Key << "Bitangents" << YAML::Value << geometry->Bitangents.size() * sizeof(glm::vec3);
+	out << YAML::Key << "Thumbnail" << YAML::Value << img.Size();
 	out << YAML::EndMap;
 
 	auto path = (mCurrentPath / filepath.stem()).string() + ".gtmesh";
@@ -918,7 +932,12 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 		os.write((char*)geometry->Tangents.data(), geometry->Tangents.size() * sizeof(glm::vec3));
 	if (geometry->Bitangents.size() > 0)
 		os.write((char*)geometry->Bitangents.data(), geometry->Bitangents.size() * sizeof(glm::vec3));
-	return {};
+	os.write((char*)&width, 4);
+	os.write((char*)&height, 4);
+	os.write((char*)&bpp, 4);
+	os.write((char*)img.Data(), img.Size());
+	delete geometry;
+	return id;
 }
 
 void CreatePrefab(gte::Entity entity, const std::filesystem::path& dir)
@@ -1342,4 +1361,60 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		auto nextID = child.GetComponent<RelationshipComponent>().Next;
 		child = { nextID, scene };
 	}
+}
+
+gte::uuid WriteMaterial(const gte::Material& material, const std::filesystem::path& folder)
+{
+	using namespace gte::math;
+
+	// Create thumbnail
+	gte::internal::GetContext()->AssetWatcher.FindFiles();//Need to update Project Manager to find the new materials
+	gte::ThumbnailRenderer::Render(sSphereGeometry, material);
+	gte::GPU::FrameBuffer* fbo = gte::ThumbnailRenderer::GetThumbnail();
+
+	constexpr uint32 width = 128;
+	constexpr uint32 height = 128;
+	constexpr int32 bpp = 4;
+	gte::Image img(128, 128, 4);
+	fbo->ReadPixels(0, img.Data());
+
+	YAML::Emitter out;
+	out << YAML::BeginMap;
+	out << YAML::Key << "Name" << YAML::Value << material.Name;
+	out << YAML::Key << "Albedo" << YAML::Value << material.Albedo->ID.str();
+	out << YAML::Key << "Metallic" << YAML::Value << material.Metallic->ID.str();
+	out << YAML::Key << "Normal" << YAML::Value << material.Normal->ID.str();
+	out << YAML::Key << "AmbientOclussion" << YAML::Value << material.AmbientOclussion->ID.str();
+	out << YAML::Key << "Opacity" << YAML::Value << material.Opacity->ID.str();
+	out << YAML::Key << "Emission" << YAML::Value << material.Emission->ID.str();
+
+	out << YAML::Key << "Diffuse" << YAML::Value << material.Diffuse;
+	out << YAML::Key << "EmitColor" << YAML::Value << material.EmitColor;
+	out << YAML::Key << "AmbientColor" << YAML::Value << material.AmbientColor;
+	out << YAML::Key << "Metallicness" << YAML::Value << material.Metallicness;
+	out << YAML::Key << "Shininess" << YAML::Value << material.Shininess;
+	out << YAML::Key << "Alpha" << YAML::Value << material.Alpha;
+	out << YAML::Key << "IlluminationModel" << YAML::Value << material.IlluminationModel;
+	out << YAML::Key << "IsEmissive" << YAML::Value << material.IsEmissive;
+	out << YAML::Key << "Thumbnail" << YAML::Value << img.Size();
+	out << YAML::EndMap;
+
+	auto path = (folder / material.Name).string() + ".gtmat";
+	size_t i = 0;
+	while (std::filesystem::exists(path))
+		path = (folder / material.Name).string() + "(" + std::to_string(i++) + ").gtmat";
+
+	std::time_t result = std::time(nullptr);
+	std::ofstream os(path, std::ios::binary);
+	gte::uuid id = gte::uuid::Create();
+	os << "# Material for Green Tea Engine\n# Auto generated by Green Tea at " << std::asctime(std::localtime(&result)) << 13 << '\n' << id << '\n' << out.size() << "\n\n";
+	os << out.c_str();
+	os.write((char*)&width, 4);
+	os.write((char*)&height, 4);
+	os.write((char*)&bpp, 4);
+	os.write((char*)img.Data(), img.Size());
+	os.close();
+
+	gte::internal::GetContext()->AssetManager.CreateThumbnail(id, img);
+	return id;
 }

@@ -23,6 +23,8 @@ namespace gte::GPU::OpenGL {
 
 		void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept override;
 
+		void ReadPixels(uint32 attachment, void* data) const noexcept override;
+
 	private:
 
 		void Invalidate(void) noexcept;

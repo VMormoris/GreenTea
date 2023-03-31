@@ -23,6 +23,8 @@
 
 #include <Engine/Renderer/RenderCommand.h>
 #include <Engine/Renderer/Renderer2D.h>
+#include <Engine/Renderer/ThumbnailRenderer.h>
+#include <Engine/Renderer/Renderer3D.h>
 
 #include <Engine/Scene/Components.h>
 #include <Engine/Scene/Entity.h>
