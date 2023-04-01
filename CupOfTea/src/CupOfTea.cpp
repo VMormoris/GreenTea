@@ -1,4 +1,5 @@
 #include "CupOfTea.h"
+#include "EditorContext.h"
 #include "vs.h"
 
 #include <Engine/Renderer/Renderer2D.h>
@@ -463,6 +464,7 @@ void CupOfTea::RenderGUI(void)
 	}
 
 	gte::uuid animation;
+	gte::uuid material;
 	if (mPanels[1])
 	{
 		if (ImGui::Begin("Content Broswer", &mPanels[1], ImGuiWindowFlags_NoCollapse))
@@ -471,9 +473,15 @@ void CupOfTea::RenderGUI(void)
 			if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
 				mBrowserPanel.DeleteSelected();
 			animation = mBrowserPanel.GetAnimation();
+			material = mBrowserPanel.GetMaterial();
 		}
 		ImGui::End();
 	}
+
+	if (material.IsValid())
+		mMaterialPanel.SetMaterial(material);
+
+	mMaterialPanel.Draw();
 
 	if (mPanels[5])
 	{
@@ -637,6 +645,7 @@ void CupOfTea::RenderGUI(void)
 CupOfTea::CupOfTea(const std::string& filepath)
 	: Application({"CupOfTea (Green Tea editor)", 0, 0, 1080, 720, false, true, true}), mBrowserPanel("Assets")
 {
+	CreateEditorContext();
     gte::Window* window = gte::internal::GetContext()->GlobalWindow;
     gui = gte::gui::ImGuiLayer::Create();
     gui->Init(window->GetPlatformWindow(), window->GetContext());

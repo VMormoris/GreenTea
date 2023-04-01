@@ -15,7 +15,7 @@ namespace gte::internal {
 
 	void RenderScene(entt::registry* reg, const glm::mat4& eyeMatrix)
 	{
-		let meshID = uuid{ "DAA8A297-FBDF-4863-9B08-A75F455580A1" };
+		let meshID = uuid{ "34D15D68-F7CF-4275-8DDE-F8F01F0B7361" };
 		Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(meshID);
 		if (asset->Type != AssetType::MESH) return;
 

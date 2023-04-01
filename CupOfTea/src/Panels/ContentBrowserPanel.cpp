@@ -1,4 +1,5 @@
 #include "ContentBrowserPanel.h"
+#include "EditorContext.h"
 #include "vs.h"
 
 #include <Engine/Core/FileDialog.h>
@@ -24,8 +25,6 @@ static gte::GPU::Texture* sPrefabFile = nullptr;
 static gte::GPU::Texture* sFontFile = nullptr;
 static gte::GPU::Texture* sAnimationFile = nullptr;
 static gte::GPU::Texture* sTransparentTexture = nullptr;
-
-static gte::Geometry* sSphereGeometry = nullptr;
 
 static void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive = false);
 static void UpdatePrefab(gte::Entity entity, const std::filesystem::path& filepath);
@@ -60,8 +59,6 @@ ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 	uint32 TransparentTexture = 0x00000000;
 	sTransparentTexture->SetData(&TransparentTexture, sizeof(uint32));
 	
-	OBJLoader loader{};
-	sSphereGeometry = loader.Load("../Assets/Shapes/Sphere.obj");
 }
 
 void ContentBrowserPanel::Draw(void)
@@ -69,6 +66,7 @@ void ContentBrowserPanel::Draw(void)
 	ImGuiIO& io = ImGui::GetIO();
 	auto IconsFont = io.Fonts->Fonts[3];
 	mAnimation = {};
+	mMaterial = {};
 
 	ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - 42.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
@@ -395,7 +393,7 @@ void ContentBrowserPanel::Draw(void)
 
 				mCurrentIndex = mHistory.size() - 1;
 			}
-			else if(extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
+			else if (extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
 			{
 				gte::uuid id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 				auto asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
@@ -405,10 +403,9 @@ void ContentBrowserPanel::Draw(void)
 				system(command.c_str());
 			}
 			else if (extension == ".gtanimation")
-			{
-				gte::uuid id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
-				mAnimation = id;
-			}
+				mAnimation = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
+			else if (extension == ".gtmat")
+				mMaterial = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 			mSelected = "";
 		}
 		else if (ImGui::IsItemClicked())
@@ -876,7 +873,7 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 	// Create thumbnail
 	gte::internal::GetContext()->AssetWatcher.FindFiles();//Need to update Project Manager to find the new materials
 	gte::ThumbnailRenderer::Render(geometry, materials);
-	gte::GPU::FrameBuffer* fbo = gte::ThumbnailRenderer::GetThumbnail();
+	let* fbo = gte::ThumbnailRenderer::GetThumbnail();
 	
 	constexpr uint32 width = 128;
 	constexpr uint32 height = 128;
@@ -1369,8 +1366,8 @@ gte::uuid WriteMaterial(const gte::Material& material, const std::filesystem::pa
 
 	// Create thumbnail
 	gte::internal::GetContext()->AssetWatcher.FindFiles();//Need to update Project Manager to find the new materials
-	gte::ThumbnailRenderer::Render(sSphereGeometry, material);
-	gte::GPU::FrameBuffer* fbo = gte::ThumbnailRenderer::GetThumbnail();
+	gte::ThumbnailRenderer::Render(GetEditorContext()->SphereGeometry, material);
+	let* fbo = gte::ThumbnailRenderer::GetThumbnail();
 
 	constexpr uint32 width = 128;
 	constexpr uint32 height = 128;

@@ -5,6 +5,7 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ConsoleLogPanel.h"
 #include "Panels/AnimationPanel.h"
+#include "Panels/MaterialPanel.h"
 
 class CupOfTea : public gte::Application {
 public:
@@ -40,6 +41,7 @@ private:
 	ContentBrowserPanel mBrowserPanel;
 	ConsoleLogPanel mConsolePanel;
 	AnimationPanel mAnimationPanel;
+	MaterialPanel mMaterialPanel;
 
 	//gte::GPU::FrameBuffer* mViewportFBO = nullptr;
 

@@ -6,6 +6,8 @@
 #include <Engine/GPU/Shader.h>
 
 #include <gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 
 namespace gte {
 
@@ -58,7 +60,7 @@ namespace gte {
 		sRendererData.ThumbnailFBO = GPU::FrameBuffer::Create(spec);
 	}
 
-	void ThumbnailRenderer::Render(Geometry* mesh, const std::vector<uuid>& materials)
+	void ThumbnailRenderer::Render(Geometry* mesh, const std::vector<uuid>& materials, const glm::ivec2& size)
 	{
 		constexpr float FoV = glm::radians(75.0f);
 		constexpr glm::vec3 CameraDir = { 0.0f, 0.0f, -1.0f };
@@ -122,11 +124,14 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 5);
 		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 6);
 
+		if (let& spec = sRendererData.ThumbnailFBO->GetSpecification();
+			spec.Width != size.x || spec.Height != size.y)
+			sRendererData.ThumbnailFBO->Resize(size.x, size.y);
 		sRendererData.ThumbnailFBO->Bind();
-		RenderCommand::SetViewport(0, 0, 128, 128);
+		RenderCommand::SetViewport(0, 0, size.x, size.y);
 		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 0.0f });
 		RenderCommand::Clear();
-		sRendererData.ThumbnailShader->SetUniform("u_ViewportSize", glm::vec2(128.0f, 128.0f));
+		sRendererData.ThumbnailShader->SetUniform("u_ViewportSize", glm::vec2(size.x, size.y));
 
 		let transform = glm::translate(glm::mat4{ 1.0f }, { 0.0f, 0.0f, 0.0f });
 		let normalMatrix = glm::mat4(glm::transpose(glm::inverse(transform)));
@@ -196,10 +201,12 @@ namespace gte {
 		delete vao;
 	}
 
-	void ThumbnailRenderer::Render(Geometry* mesh, const Material& mat)
+	void ThumbnailRenderer::Render(Geometry* mesh, const Material& mat, const glm::ivec2& size, const glm::vec3& rotation)
 	{
 		constexpr float FoV = glm::radians(75.0f);
 		constexpr glm::vec3 CameraDir = { 0.0f, 0.0f, -1.0f };
+		constexpr glm::vec3 CameraPos = { 0.0f, 0.0f, 1.7f };
+		constexpr float Far = 2.8f;
 
 		GPU::VertexArray* vao = GPU::VertexArray::Create();
 		GPU::VertexBuffer* verticesVBO = GPU::VertexBuffer::Create(mesh->Vertices.data(), mesh->Vertices.size() * sizeof(glm::vec3));
@@ -234,14 +241,6 @@ namespace gte {
 			vao->AddVertexBuffer(bitanVBO);
 		}
 
-		let& abb = mesh->ABB;
-		const float minVal = glm::min(glm::min(abb[0].x, abb[0].y), abb[0].z);
-		const float maxVal = glm::max(glm::max(abb[1].x, abb[1].y), abb[1].z);
-		let abblength = maxVal - minVal;
-
-		let z = abblength / glm::tan(FoV / 2);
-		let CameraPos = glm::vec3{ 0.0f, 0.0, z };
-		let Far = z - abb[0].z + 1.0f;
 		let projection = glm::perspective(FoV, 1.0f, 0.0001f, Far);
 		let view = glm::lookAt(CameraPos, CameraDir, { 0.0f, 1.0f, 0.0f });
 		let eye = projection * view;
@@ -260,13 +259,17 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 5);
 		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 6);
 
+		if (let& spec = sRendererData.ThumbnailFBO->GetSpecification();
+			spec.Width != size.x || spec.Height != size.y)
+			sRendererData.ThumbnailFBO->Resize(size.x, size.y);
 		sRendererData.ThumbnailFBO->Bind();
-		RenderCommand::SetViewport(0, 0, 128, 128);
+		RenderCommand::SetViewport(0, 0, size.x, size.y);
 		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 0.0f });
 		RenderCommand::Clear();
-		sRendererData.ThumbnailShader->SetUniform("u_ViewportSize", glm::vec2(128.0f, 128.0f));
+		sRendererData.ThumbnailShader->SetUniform("u_ViewportSize", glm::vec2(size.x, size.y));
 
-		let transform = glm::translate(glm::mat4{ 1.0f }, { 0.0f, 0.0f, 0.0f });
+		let transform = glm::translate(glm::mat4{ 1.0f }, { 0.0f, 0.0f, 0.0f })
+			* glm::toMat4(glm::quat(glm::radians(rotation)));
 		let normalMatrix = glm::mat4(glm::transpose(glm::inverse(transform)));
 		sRendererData.ThumbnailShader->SetUniform("u_ModelMatrix", transform);
 		sRendererData.ThumbnailShader->SetUniform("u_NormalMatrix", normalMatrix);

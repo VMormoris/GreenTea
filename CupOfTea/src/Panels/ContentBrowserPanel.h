@@ -16,6 +16,7 @@ public:
 
 	const std::filesystem::path& GetCurrentPath(void) const { return mCurrentPath; }
 	const gte::uuid& GetAnimation(void) const { return mAnimation; }
+	const gte::uuid& GetMaterial(void) const { return mMaterial; }
 
 private:
 	
@@ -30,6 +31,7 @@ private:
 	gte::uuid CreateMeshAsset(const std::filesystem::path& filepath) const;
 
 private:
+
 	std::vector<std::filesystem::path> mHistory;
 	size_t mCurrentIndex = 0;
 	std::filesystem::path mParent;
@@ -39,6 +41,7 @@ private:
 	std::string mTempName;
 	std::string mFilter;
 	gte::uuid mAnimation;
+	gte::uuid mMaterial;
 
 	bool mShouldFocus = false;
 };
