@@ -296,7 +296,7 @@ void ContentBrowserPanel::Draw(void)
 		else
 			ImGui::PushStyleColor(ImGuiCol_Button, selectionColor);
 
-		if (clipboard.GetOperation() == Clipboard::Operation::Cut)
+		if (clipboard.GetOperation() == Clipboard::Operation::Cut && clipboard.IsStored(entry.path().string()))
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 
 		ImGui::PushID(entry.path().filename().string().c_str());
@@ -376,7 +376,7 @@ void ContentBrowserPanel::Draw(void)
 		}
 		ImGui::PopID();
 		ImGui::PopStyleColor();
-		if (clipboard.GetOperation() == Clipboard::Operation::Cut)
+		if (clipboard.GetOperation() == Clipboard::Operation::Cut && clipboard.IsStored(entry.path().string()))
 			ImGui::PopStyleVar();
 		if (ImGui::BeginPopupContextItem())
 		{
