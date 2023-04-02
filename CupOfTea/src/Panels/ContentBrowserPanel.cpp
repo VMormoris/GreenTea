@@ -626,7 +626,10 @@ void ContentBrowserPanel::PasteTo(const std::filesystem::path& source, const std
 			CopyAsset(source, dst);
 	}
 	else
+	{
 		std::filesystem::rename(source, dst);
+		gte::internal::GetContext()->AssetWatcher.FindFiles();
+	}
 }
 
 gte::uuid ContentBrowserPanel::CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const
