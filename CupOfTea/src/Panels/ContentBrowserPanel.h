@@ -18,6 +18,8 @@ public:
 	const gte::uuid& GetAnimation(void) const { return mAnimation; }
 	const gte::uuid& GetMaterial(void) const { return mMaterial; }
 
+	void PasteTo(const std::filesystem::path& source, const std::filesystem::path& target = "");
+
 private:
 	
 	gte::uuid CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const;

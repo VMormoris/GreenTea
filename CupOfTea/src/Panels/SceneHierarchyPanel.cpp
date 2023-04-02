@@ -11,17 +11,18 @@
 #include <gtx/quaternion.hpp>
 
 #include "ContentBrowserPanel.h"
+#include "Clipboard.h"
 
 template<typename Func>
 void DragDropTargetWindow(const char* payloadtype, const char* id, Func&& func);
 
 namespace gte {
 
-
 	void SceneHierarchyPanel::Draw(void)
 	{		
 		const float PanelWidth = ImGui::GetContentRegionAvail().x;
 		Scene* scene = gte::internal::GetContext()->ActiveScene;
+		Clipboard& clipboard = Clipboard::Get();
 
 		gte::gui::DrawSearchbar("Entity search", mFilter, 64, PanelWidth - 66.0f);
 		ImGui::SameLine();
@@ -32,7 +33,7 @@ namespace gte {
 		
 		if (ImGui::BeginPopup("Add Entity"))
 		{
-			if (ImGui::MenuItem("Add empty Entity"))
+			if (ImGui::MenuItem("Empty Entity"))
 				mSelectionContext = scene->CreateEntity("Unnamed Entity");
 			if (ImGui::MenuItem("Camera Entity"))
 			{
@@ -59,13 +60,24 @@ namespace gte {
 
 		if (ImGui::BeginPopupContextWindow())
 		{
-			if (ImGui::MenuItem("Add empty Entity"))
-				mSelectionContext = scene->CreateEntity("Unnamed Entity");
-			if (ImGui::MenuItem("Camera Entity"))
+			if (ImGui::BeginMenu("Add Entity"))
 			{
-				Entity entity = scene->CreateEntity("Camera");
-				entity.AddComponent<CameraComponent>();
-				mSelectionContext = entity;
+				if (ImGui::MenuItem("Empty Entity"))
+					mSelectionContext = scene->CreateEntity("Unnamed Entity");
+				if (ImGui::MenuItem("Camera Entity"))
+				{
+					Entity entity = scene->CreateEntity("Camera");
+					entity.AddComponent<CameraComponent>();
+					mSelectionContext = entity;
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::Separator();
+			if (gte::gui::DrawMenuItem(ICON_FK_CLIPBOARD, "Paste", "Ctrl+V", "Add Entity    ", clipboard.GetOperation() != Clipboard::Operation::None && clipboard.GetStorageType() == PayloadType::Entities))
+			{
+				for (let selID : clipboard.GetStorage())
+					PasteTo(scene->FindEntityWithUUID(selID), {});
+				clipboard.SetStorageOperation(Clipboard::Operation::Copy);
 			}
 			ImGui::EndPopup();
 		}
@@ -98,19 +110,24 @@ namespace gte {
 			}
 		}
 
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+		{
 			mSelectionContext = {};
+			clipboard.Clear();
+		}
 		ImGui::EndChild();
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
 		Scene* scene = gte::internal::GetContext()->ActiveScene;
+		Clipboard& clipboard = Clipboard::Get();
 		const auto& tag = entity.GetComponent<TagComponent>().Tag;
 		const auto& relc = entity.GetComponent<RelationshipComponent>();
+		let id = entity.GetID().str();
 
 		//Set flag and styles
-		ImGuiTreeNodeFlags flags = ((mSelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = (clipboard.IsSelected(id) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		if (relc.Childrens == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
@@ -118,7 +135,9 @@ namespace gte {
 		bool shouldDestroy = false;
 		
 		if (entity.HasComponent<filters::Disabled>()) ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		if (clipboard.IsStored(id) && clipboard.GetOperation() == Clipboard::Operation::Cut) ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.25f);
 		const bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)entity, flags, tag.c_str());
+		if (clipboard.IsStored(id) && clipboard.GetOperation() == Clipboard::Operation::Cut) ImGui::PopStyleVar();
 		if (entity.HasComponent<filters::Disabled>()) ImGui::PopStyleVar();
 
 		if (ImGui::BeginDragDropTarget())
@@ -149,19 +168,87 @@ namespace gte {
 			ImGui::EndDragDropSource();
 		}
 		else if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-			mSelectionContext = entity;
+		{
+			if (clipboard.GetPayloadType() != PayloadType::Entities)
+			{
+				clipboard.Clear();
+				clipboard.SetPayloadType(PayloadType::Entities);
+			}
+			if (Input::IsKeyPressed(KeyCode::LEFT_CONTROL) || Input::IsKeyPressed(KeyCode::RIGHT_CONTROL))
+			{
+				if (!clipboard.IsSelected(id))
+				{
+					clipboard.AddPayload(id);
+					mSelectionContext = entity;
+				}
+				else
+				{
+					clipboard.RemovePayload(id);
+					mSelectionContext = {};
+					if (clipboard.GetSelectedNumber() > 0)
+					{
+						let lastSelected = clipboard.GetSelection().back();
+						mSelectionContext = scene->FindEntityWithUUID(lastSelected);
+					}
+				}
+			}
+			else
+			{
+				clipboard.ResetPayload(id);
+				mSelectionContext = entity;
+			}
+		}
 
 		if (ImGui::BeginPopupContextItem())
 		{
 			constexpr char biggest[] = "Delete Entity Delete";
-			if (ImGui::MenuItem("Add Child Entity"))
-				mSelectionContext = scene->CreateChildEntity(entity);
-			if (gte::gui::DrawMenuItem(ICON_FK_TRASH, "Delete Entity", "Delete", biggest))
-				shouldDestroy = true;			
+			if (ImGui::BeginMenu("Add Child Entity"))
+			{
+				if(ImGui::MenuItem("Empty Entity"))
+					mSelectionContext = scene->CreateChildEntity(entity);
+				if (ImGui::MenuItem("Camera Entity"))
+				{
+					mSelectionContext = scene->CreateChildEntity(entity);
+					mSelectionContext.AddComponent<CameraComponent>();
+				}
+				ImGui::EndMenu();
+			}
 			if (gte::gui::DrawMenuItem(ICON_FK_CLONE, "Clone Entity", nullptr, biggest))
 				mSelectionContext = scene->Clone(entity);
 			if (gte::gui::DrawMenuItem(ICON_FK_CUBE, "Create Prefab", nullptr, biggest))
 				CreatePrefab(entity, mDirectory);
+			ImGui::Separator();
+			if (gte::gui::DrawMenuItem(ICON_FK_SCISSORS, "Cut", "Ctrl+X", biggest, clipboard.IsSelected(id)))
+				clipboard.StoreSelection(Clipboard::Operation::Cut);
+			if (gte::gui::DrawMenuItem(ICON_FK_FILES_O, "Copy", "Ctrl+C", biggest, clipboard.IsSelected(id)))
+				clipboard.StoreSelection(Clipboard::Operation::Copy);
+			if (gte::gui::DrawMenuItem(ICON_FK_CLIPBOARD, "Paste", "Ctrl+V", biggest, clipboard.GetOperation() != Clipboard::Operation::None && clipboard.GetStorageType() == PayloadType::Entities))
+			{
+				for (let selID : clipboard.GetStorage())
+					PasteTo(scene->FindEntityWithUUID(selID), entity);
+				clipboard.SetStorageOperation(Clipboard::Operation::Copy);
+			}
+			ImGui::Separator();
+			if (gte::gui::DrawMenuItem(ICON_FK_TRASH, "Delete Entity", "Delete", biggest))
+			{
+				for (let selID : clipboard.GetSelection())
+				{
+					if (selID.compare(id) == 0)
+						continue;
+
+					Entity sel = scene->FindEntityWithUUID(selID);
+					bool found = false;
+					while (Entity parent = sel.GetParent())
+					{
+						if (id.compare(parent.GetID().str()) == 0) { found = true; break; }
+						sel = parent;
+					}
+					if (found)
+						continue;
+					scene->DestroyEntity(scene->FindEntityWithUUID(selID));
+				}
+				shouldDestroy = true;
+			}
 			ImGui::EndPopup();
 		}
 		
@@ -186,7 +273,6 @@ namespace gte {
 			if(!mSelectionContext)
 				mSelectionContext = {};
 		}
-
 	}
 
 	void SceneHierarchyPanel::DrawSystemsNode(void)
@@ -869,10 +955,34 @@ namespace gte {
 
 	void SceneHierarchyPanel::DeleteSelected(void)
 	{
-		if (!mSelectionContext)
-			return;
-		gte::internal::GetContext()->ActiveScene->DestroyEntity(mSelectionContext);
+		Clipboard& clipboard = Clipboard::Get();
+		Scene* scene = gte::internal::GetContext()->ActiveScene;
+		for (let selID : clipboard.GetSelection())
+			scene->DestroyEntity(scene->FindEntityWithUUID(selID));
 		mSelectionContext = {};
+		clipboard.Clear();
+	}
+
+	void SceneHierarchyPanel::PasteTo(Entity source, Entity target)
+	{
+		Clipboard& clipboard = Clipboard::Get();
+		if (source == target)
+			return;
+		Scene* scene = internal::GetContext()->ActiveScene;
+		bool found = false;
+		Entity sel = source;
+		while (Entity parent = sel.GetParent())
+		{
+			if (source == parent) { found = true; break; }
+			sel = parent;
+		}
+		if (found)
+			return;
+
+		if (clipboard.GetOperation() == Clipboard::Operation::Cut)
+			scene->MoveEntity(target, source);
+		else
+			scene->Copy(source, target);
 	}
 
 }

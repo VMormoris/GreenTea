@@ -188,7 +188,7 @@ namespace gte::gui {
 		return edited;
 	}
 
-	bool DrawMenuItem(const char* icon, const char* item, const char* shortcut, const char* biggest)
+	bool DrawMenuItem(const char* icon, const char* item, const char* shortcut, const char* biggest, bool enabled)
 	{
 		constexpr float IconOffset = 34.0f;
 		const float Width = ImGui::CalcTextSize(biggest).x + IconOffset + 4.0f;
@@ -197,6 +197,11 @@ namespace gte::gui {
 		ImGuiIO& io = ImGui::GetIO();
 
 		auto IconsFont = io.Fonts->Fonts[3];
+		if (!enabled)
+		{
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
 		ImGui::PushFont(IconsFont);
 		bool pressed = false;
 		ImGui::Selectable(icon, &pressed, ImGuiSelectableFlags_SelectOnRelease | ImGuiSelectableFlags_SetNavIdOnHover);
@@ -212,7 +217,11 @@ namespace gte::gui {
 			ImGui::Text(shortcut);
 			ImGui::PopStyleColor();
 		}
-
+		if (!enabled)
+		{
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
 		return pressed;
 	}
 

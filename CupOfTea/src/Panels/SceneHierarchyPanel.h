@@ -17,6 +17,8 @@ namespace gte {
 
 		void SetDirectory(const std::filesystem::path& dir) noexcept { mDirectory = dir; }
 
+		void PasteTo(Entity source, Entity target = {});
+
 	private:
 
 		void DrawEntityNode(Entity entity);
