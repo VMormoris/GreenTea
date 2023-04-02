@@ -36,6 +36,7 @@ namespace gte {
 		Entity CreateChildEntity(Entity parent);
 		Entity CreateEntityFromPrefab(Ref<Asset> prefab, Entity parent);
 		void MoveEntity(Entity parent, Entity toMove);
+		Entity Copy(Entity toCopy, Entity parent);
 		Entity Clone(Entity toClone, bool recursive = false);
 		void DestroyEntity(Entity entity);
 

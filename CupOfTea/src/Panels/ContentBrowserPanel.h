@@ -17,6 +17,8 @@ public:
 	const std::filesystem::path& GetCurrentPath(void) const { return mCurrentPath; }
 	const gte::uuid& GetAnimation(void) const { return mAnimation; }
 
+	void PasteTo(const std::filesystem::path& source, const std::filesystem::path& target = "");
+
 private:
 	
 	void CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const;

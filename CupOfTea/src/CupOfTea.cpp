@@ -1,5 +1,7 @@
 #include "CupOfTea.h"
 #include "vs.h"
+#include "Clipboard.h"
+
 
 #include <Engine/Renderer/Renderer2D.h>
 
@@ -21,6 +23,7 @@ static glm::vec2 sCamViewport;
 static constexpr entt::entity EnttNull = entt::null;
 static bool sGameEvents = true;
 static std::atomic<int> sExportIndex = -1;
+static bool sHierarchyPanelFocused = false, sContentBrowserPanelFocused = false;
 
 static bool VisualizeOperation(void);
 static void DrawExportPopup(void);
@@ -375,7 +378,8 @@ void CupOfTea::RenderGUI(void)
 		{
 			mSceneHierarchyPanel.SetDirectory(mBrowserPanel.GetCurrentPath());
 			mSceneHierarchyPanel.Draw();
-			if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
+			sHierarchyPanelFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+			if (sHierarchyPanelFocused && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
 				mSceneHierarchyPanel.DeleteSelected();
 		}
 		ImGui::End();
@@ -431,7 +435,8 @@ void CupOfTea::RenderGUI(void)
 		if (ImGui::Begin("Content Broswer", &mPanels[1], ImGuiWindowFlags_NoCollapse))
 		{
 			mBrowserPanel.Draw();
-			if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
+			sContentBrowserPanelFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+			if (sContentBrowserPanelFocused && gte::Input::IsKeyPressed(gte::KeyCode::DEL))
 				mBrowserPanel.DeleteSelected();
 			animation = mBrowserPanel.GetAnimation();
 		}
@@ -702,8 +707,9 @@ void CupOfTea::SaveSceneAs(const std::filesystem::path& path)
 bool CupOfTea::OnKeyDown(gte::KeyCode keycode)
 {
 	const bool playing = gte::internal::GetContext()->Playing;
-	const bool ctrl = gte::Input::IsKeyPressed(gte::KeyCode::LEFT_CONTROL);
-	const bool shift = gte::Input::IsKeyPressed(gte::KeyCode::LEFT_SHIFT);
+	const bool ctrl = gte::Input::IsKeyPressed(gte::KeyCode::LEFT_CONTROL) || gte::Input::IsKeyPressed(gte::KeyCode::RIGHT_CONTROL);
+	const bool shift = gte::Input::IsKeyPressed(gte::KeyCode::LEFT_SHIFT) || gte::Input::IsKeyPressed(gte::KeyCode::RIGHT_SHIFT);
+	Clipboard& clipboard = Clipboard::Get();
 	switch (keycode)
 	{
 	case gte::KeyCode::Q:
@@ -724,7 +730,7 @@ bool CupOfTea::OnKeyDown(gte::KeyCode keycode)
 		return true;
 	case gte::KeyCode::N:
 		if (playing) return false;
-		if ( ctrl && shift)//Not implemented yet
+		if (ctrl && shift)//Not implemented yet
 			return false;
 		else if (ctrl)
 		{
@@ -750,9 +756,62 @@ bool CupOfTea::OnKeyDown(gte::KeyCode keycode)
 			return true;
 		}
 		return false;
+	case gte::KeyCode::C:
+	case gte::KeyCode::X:
+		if (playing) return false;
+		if (ctrl)
+		{
+			if (sHierarchyPanelFocused)
+			{
+				if (clipboard.GetPayloadType() != PayloadType::Entities)
+					return false;
+				clipboard.StoreSelection(gte::Input::IsKeyPressed(gte::KeyCode::X) ? Clipboard::Operation::Cut : Clipboard::Operation::Copy);
+				return true;
+			}
+			else if (sContentBrowserPanelFocused)
+			{
+				if (clipboard.GetPayloadType() != PayloadType::BrowserItems)
+					return false;
+				clipboard.StoreSelection(gte::Input::IsKeyPressed(gte::KeyCode::X) ? Clipboard::Operation::Cut : Clipboard::Operation::Copy);
+				return true;
+			}
+			else
+				return false;
+		}
+		else
+			return false;
+	case gte::KeyCode::V:
+		if (playing) return false;
+		if (ctrl)
+		{
+			if (sHierarchyPanelFocused)
+			{
+				if (clipboard.GetStorageType() != PayloadType::Entities)
+					return false;
+				for (let selID : clipboard.GetStorage())
+					mSceneHierarchyPanel.PasteTo(gte::internal::GetContext()->ActiveScene->FindEntityWithUUID(selID), mSceneHierarchyPanel.GetSelectedEntity());
+				clipboard.SetStorageOperation(Clipboard::Operation::Copy);
+				return true;
+			}
+			else if (sContentBrowserPanelFocused)
+			{
+				if (clipboard.GetStorageType() != PayloadType::BrowserItems)
+					return false;
+				for (let selID : clipboard.GetStorage())
+					mBrowserPanel.PasteTo(selID);
+				clipboard.SetStorageOperation(Clipboard::Operation::Copy);
+				return true;
+			}
+			else
+				return false;
+		}
+		else
+			return false;
 	default:
 		return false;
 	}
+
+
 }
 
 bool CupOfTea::OnScroll(float dx, float dy)

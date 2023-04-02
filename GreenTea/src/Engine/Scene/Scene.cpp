@@ -893,10 +893,14 @@ namespace gte {
 
 	void Scene::MoveEntity(Entity parent, Entity toMove)
 	{
-		auto& prel = parent.GetComponent<RelationshipComponent>();
-		auto nextID = prel.FirstChild;
-		prel.FirstChild = toMove;
-		prel.Childrens++;
+		entt::entity nextID = entt::null;
+		if (parent)
+		{
+			auto& prel = parent.GetComponent<RelationshipComponent>();
+			nextID = prel.FirstChild;
+			prel.FirstChild = toMove;
+			prel.Childrens++;
+		}
 
 		auto& relc = toMove.GetComponent<RelationshipComponent>();
 		Entity oldParent = { relc.Parent, this };
@@ -969,6 +973,13 @@ namespace gte {
 
 		UpdateTransform(entity);
 		return entity;
+	}
+
+	Entity Scene::Copy(Entity toCopy, Entity parent)
+	{
+		Entity copy = Clone(toCopy);
+		MoveEntity(parent, copy);
+		return copy;
 	}
 
 	void Scene::DestroyEntity(Entity entity)

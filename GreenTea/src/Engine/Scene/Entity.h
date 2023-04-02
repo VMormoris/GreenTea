@@ -40,8 +40,9 @@ namespace gte {
 
 		void SetActive(bool value);
 
-		std::vector<Entity> GetChildrens(void) noexcept;
-		Entity GetChild(size_t index);
+		[[nodiscard]] Entity GetParent(void) noexcept;
+		[[nodiscard]] std::vector<Entity> GetChildrens(void) noexcept;
+		[[nodiscard]] Entity GetChild(size_t index);
 
 		//TODO(Vasilis): Add [[nodiscard]]
 		operator bool(void) const { return mEntityHandle != entt::null && mOwner != nullptr && mOwner->mReg.valid(mEntityHandle); }

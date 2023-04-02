@@ -24,6 +24,8 @@ namespace gte {
 		}
 	}
 
+	Entity Entity::GetParent(void) noexcept { return { GetComponent<RelationshipComponent>().Parent , mOwner }; }
+
 	std::vector<Entity> Entity::GetChildrens(void) noexcept
 	{
 		const auto& relc = GetComponent<RelationshipComponent>();

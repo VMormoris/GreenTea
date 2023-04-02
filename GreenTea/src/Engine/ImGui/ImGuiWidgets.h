@@ -76,7 +76,7 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawBreadcrumb(const char* label, std::filesystem::path& path);
 
-	ENGINE_API bool DrawMenuItem(const char* icon, const char* item, const char* shortcut, const char* biggest = "");
+	ENGINE_API bool DrawMenuItem(const char* icon, const char* item, const char* shortcut, const char* biggest = "", bool enabled = true);
 
 	ENGINE_API bool DrawButton(const char* icon, const char* text);
 

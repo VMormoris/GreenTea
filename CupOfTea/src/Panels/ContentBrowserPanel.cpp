@@ -1,5 +1,6 @@
 #include "ContentBrowserPanel.h"
 #include "vs.h"
+#include "Clipboard.h"
 
 #include <Engine/Core/FileDialog.h>
 #include <Engine/ImGui/ImGuiWidgets.h>
@@ -25,6 +26,8 @@ static gte::GPU::Texture* sTransparentTexture = nullptr;
 
 static void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive = false);
 static void UpdatePrefab(gte::Entity entity, const std::filesystem::path& filepath);
+
+static void CopyAsset(const std::filesystem::path& src, const std::filesystem::path& dst);
 
 ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 	: mParent(directory), mCurrentPath("Assets")
@@ -58,6 +61,7 @@ ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 
 void ContentBrowserPanel::Draw(void)
 {
+	Clipboard& clipboard = Clipboard::Get();
 	ImGuiIO& io = ImGui::GetIO();
 	auto IconsFont = io.Fonts->Fonts[3];
 	mAnimation = {};
@@ -157,12 +161,12 @@ void ContentBrowserPanel::Draw(void)
 			CreateFolder("New Folder");
 			mShouldFocus = true;
 		}
-		else if (gte::gui::DrawMenuItem(ICON_FK_FILM, "Create Animation", nullptr))
+		if (gte::gui::DrawMenuItem(ICON_FK_FILM, "Create Animation", nullptr))
 		{
 			CreateAnimation("New Animation");
 			mShouldFocus = true;
 		}
-		else if (ImGui::BeginMenu("Native Script"))
+		if (ImGui::BeginMenu("Native Script"))
 		{
 			if (ImGui::MenuItem("Component"))
 			{
@@ -180,6 +184,13 @@ void ContentBrowserPanel::Draw(void)
 				scriptType = gte::internal::ReflectionType::Object;
 			}
 			ImGui::EndMenu();
+		}
+		ImGui::Separator();
+		if (gte::gui::DrawMenuItem(ICON_FK_CLIPBOARD, "Paste", "Ctrl+V", "Create Animation", clipboard.GetOperation() != Clipboard::Operation::None && clipboard.GetStorageType() == PayloadType::BrowserItems))
+		{
+			for (let selID : clipboard.GetStorage())
+				PasteTo(selID);
+			clipboard.SetStorageOperation(Clipboard::Operation::Copy);
 		}
 		ImGui::EndPopup();
 	}
@@ -268,10 +279,13 @@ void ContentBrowserPanel::Draw(void)
 		auto selectionColor = colors[ImGuiCol_ButtonHovered];
 		selectionColor.w *= 0.5f;
 
-		if (entry.path() != mSelected)
+		if (!clipboard.IsSelected(entry.path().string()))
 			ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
 		else
 			ImGui::PushStyleColor(ImGuiCol_Button, selectionColor);
+
+		if (clipboard.GetOperation() == Clipboard::Operation::Cut)
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 
 		ImGui::PushID(entry.path().filename().string().c_str());
 		if (!entry.is_directory())
@@ -338,10 +352,33 @@ void ContentBrowserPanel::Draw(void)
 		}
 		ImGui::PopID();
 		ImGui::PopStyleColor();
+		if (clipboard.GetOperation() == Clipboard::Operation::Cut)
+			ImGui::PopStyleVar();
 		if (ImGui::BeginPopupContextItem())
 		{
+			let filepath = entry.path().string();
+			constexpr char* biggest = "Delete Delete";
+			if (gte::gui::DrawMenuItem(ICON_FK_SCISSORS, "Cut", "Ctrl+X", biggest, clipboard.IsSelected(filepath)))
+				clipboard.StoreSelection(Clipboard::Operation::Cut);
+			if (gte::gui::DrawMenuItem(ICON_FK_FILES_O, "Copy", "Ctrl+C", biggest, clipboard.IsSelected(filepath)))
+				clipboard.StoreSelection(Clipboard::Operation::Copy);
+			if (gte::gui::DrawMenuItem(ICON_FK_CLIPBOARD, "Paste", "Ctrl+V", biggest, clipboard.GetOperation() != Clipboard::Operation::None && clipboard.GetStorageType() == PayloadType::BrowserItems && std::filesystem::is_directory(filepath)))
+			{
+				for (let selID : clipboard.GetStorage())
+					PasteTo(selID, entry.path());
+				clipboard.SetStorageOperation(Clipboard::Operation::Copy);
+			}
+			ImGui::Separator();
 			if (gte::gui::DrawMenuItem(ICON_FK_TRASH, "Delete", "Delete", "Delete Delete"))
-				std::filesystem::remove_all(entry);
+			{
+				for (let selID : clipboard.GetSelection())
+				{
+					if (selID.compare(entry.path().string()) == 0)
+						continue;
+					std::filesystem::remove_all(selID);
+				}
+				std::filesystem::remove_all(entry.path());
+			}
 			if (ImGui::MenuItem("Rename"))
 			{
 				mRenaming = entry.path();
@@ -386,7 +423,37 @@ void ContentBrowserPanel::Draw(void)
 			mSelected = "";
 		}
 		else if (ImGui::IsItemClicked())
-			mSelected = entry.path();
+		{
+			let id = entry.path().string();
+			if (clipboard.GetPayloadType() != PayloadType::BrowserItems)
+			{
+				clipboard.Clear();
+				clipboard.SetPayloadType(PayloadType::BrowserItems);
+			}
+			if (gte::Input::IsKeyPressed(gte::KeyCode::LEFT_CONTROL) || gte::Input::IsKeyPressed(gte::KeyCode::RIGHT_CONTROL))
+			{
+				if (!clipboard.IsSelected(id))
+				{
+					clipboard.AddPayload(id);
+					mSelected = entry.path();
+				}
+				else
+				{
+					clipboard.RemovePayload(id);
+					mSelected = "";
+					if (clipboard.GetSelectedNumber() > 0)
+					{
+						let lastSelected = clipboard.GetSelection().back();
+						mSelected = lastSelected;
+					}
+				}
+			}
+			else
+			{
+				clipboard.ResetPayload(id);
+				mSelected = entry.path();
+			}
+		}
 		else if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right)) && ImGui::IsWindowHovered())
 			mSelected = "";
 
@@ -501,6 +568,42 @@ void ContentBrowserPanel::CreateAnimation(const std::string& _template)
 	os.close();
 }
 
+void ContentBrowserPanel::PasteTo(const std::filesystem::path& source, const std::filesystem::path& target)
+{
+	Clipboard& clipboard = Clipboard::Get();
+	let to = target.empty() ? mCurrentPath : target;
+	if (to == std::filesystem::path(source).parent_path())
+		return;
+	let dst = to / std::filesystem::path(source).filename();
+	if (clipboard.GetOperation() == Clipboard::Operation::Copy)
+	{
+		let extension = std::filesystem::path(source).extension();
+		if (extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
+			return;
+		if (std::filesystem::is_directory(source))
+		{
+			for (let entry : std::filesystem::recursive_directory_iterator(source))
+			{
+				let ext = entry.path().extension();
+				let src = entry.path();
+				let folder = std::filesystem::path(source).filename();
+				let destination = to / folder / std::filesystem::relative(src, source);
+				if (ext == ".gtscript" || ext == ".gtcomp" || ext == ".gtsystem")
+					continue;
+				if (std::filesystem::is_directory(entry.path()))
+					continue;
+				if (!std::filesystem::exists(destination.parent_path()))
+					std::filesystem::create_directories(destination.parent_path());
+				CopyAsset(src, destination);
+			}
+		}
+		else
+			CopyAsset(source, dst);
+	}
+	else
+		std::filesystem::rename(source, dst);
+}
+
 void ContentBrowserPanel::CreateScript(const std::string& name, gte::internal::ReflectionType scriptType) const
 {
 	std::string extension;
@@ -562,10 +665,13 @@ void ContentBrowserPanel::CreateScript(const std::string& name, gte::internal::R
 
 void ContentBrowserPanel::DeleteSelected(void)
 {
-	if (mSelected == "")
+	if (!mRenaming.empty())
 		return;
-	std::filesystem::remove_all(mSelected);
+	Clipboard& clipboard = Clipboard::Get();
+	for (let selID : clipboard.GetSelection())
+		std::filesystem::remove_all(selID);
 	mSelected = "";
+	clipboard.Clear();
 }
 
 void ContentBrowserPanel::CreateTextureAsset(const std::filesystem::path& filepath) const
@@ -1205,4 +1311,49 @@ void SerializeEntity(gte::Entity entity, YAML::Emitter& out, bool recursive)
 		auto nextID = child.GetComponent<RelationshipComponent>().Next;
 		child = { nextID, scene };
 	}
+}
+
+void CopyAsset(const std::filesystem::path& src, const std::filesystem::path& dst)
+{
+	std::string line;
+	std::ifstream ifs(src, std::ios::binary);
+	
+	uint16 loaded = 0;
+	uint32 assetype = 0;
+	size_t writesize = 0;
+	while (getline(ifs, line))
+	{
+		if (line[0] == '#')// Ingore commencts
+			continue;
+		else if (line.empty() || line[0] == '\n' || line[0] == '\r')
+			break;
+		
+		if (loaded == 0) assetype = std::stoul(line);
+		else if (loaded == 2) writesize = std::stoull(line);
+		loaded++;
+	}
+
+	let pos = (size_t)ifs.tellg();
+	ifs.seekg(0, std::ios::end);
+	let toread = (size_t)ifs.tellg();
+	let size = toread - pos;
+	ifs.seekg(pos);
+
+	char* buffer = new char[size];
+	ifs.read(buffer, size);
+	ifs.close();
+	
+	let extension = dst.extension().string();
+	let parent = dst.parent_path();
+	let filename = dst.stem();
+	auto filepath = dst;
+	uint32 i = 0;
+	while (std::filesystem::exists(filepath))
+		filepath = (parent / filename).string() + "(" + std::to_string(i++) + ")" + extension;
+	std::ofstream ofs(filepath, std::ios::binary);
+	time_t result = std::time(nullptr);
+	ofs << "# Auto generated by Green Tea at " << std::asctime(std::localtime(&result)) << assetype << '\n' << gte::uuid::Create() << '\n' << writesize << "\n\n";
+	ofs.write(buffer, size);
+	ofs.close();
+	delete[] buffer;
 }
