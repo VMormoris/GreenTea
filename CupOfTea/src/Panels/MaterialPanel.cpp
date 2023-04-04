@@ -2,6 +2,8 @@
 #include "EditorContext.h"
 
 #include <imgui.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 
 void MaterialPanel::Draw(void)
 {
@@ -198,10 +200,18 @@ void MaterialPanel::Draw(void)
 		ImGui::Image((void*)fbo->GetColorAttachmentID(0), { imgsize, imgsize }, { 0, 1 }, { 1, 0 });
 		if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Right))
 		{
-			constexpr float speed = 0.33f;
-			let delta = io.MouseDelta;
-			mRotation.x += delta.y * speed;
-			mRotation.y += delta.x * speed;
+			constexpr float speed = 0.003f;
+			let delta = glm::vec2{ io.MouseDelta.x, io.MouseDelta.y } * speed;
+			
+			let orientation = glm::quat(glm::radians(mRotation));
+			let angleX = glm::angleAxis(delta.x, glm::vec3{0.0f, 1.0f, 0.0f});
+			let angleY = glm::angleAxis(delta.y, glm::vec3{ 1.0f, 0.0f, 0.0f });
+			let rotation = angleY * angleX * orientation;
+
+			mRotation = glm::degrees(glm::eulerAngles(rotation));
+
+			//mRotation += up * delta.x;
+			//mRotation += right * delta.y;
 		}
 		ImGui::TreePop();
 	}
