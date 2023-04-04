@@ -139,6 +139,8 @@ namespace gte::gui {
 
 	ENGINE_API bool DrawColorPicker(const char* label, glm::vec4& value, const UISettings& settings, const std::string& help = "");
 
+	ENGINE_API bool DrawColorPicker(glm::vec4& value, const UISettings& settings, const std::string& help = "");
+
 	ENGINE_API bool DrawComboControl(const char* label,  int32& index, const char* const* options, int32 size, const UISettings& settings, const std::string& help = "");
 
 	ENGINE_API bool DrawEnumControl(const char* label, const std::string& type_name, internal::Enum::Value& value, internal::FieldType type, const UISettings& settings, const std::string& help = "");

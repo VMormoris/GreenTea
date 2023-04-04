@@ -33,11 +33,12 @@ namespace gte {
 		sRendererData.ThumbnailShader->AddUniform("u_EmitColor");
 		sRendererData.ThumbnailShader->AddUniform("u_AmbientColor");
 		sRendererData.ThumbnailShader->AddUniform("u_Metallicness");
-		sRendererData.ThumbnailShader->AddUniform("u_Shininess");
+		sRendererData.ThumbnailShader->AddUniform("u_Roughness");
 
 		sRendererData.ThumbnailShader->AddUniform("u_HasAlbedo");
 		sRendererData.ThumbnailShader->AddUniform("u_HasNormal");
 		sRendererData.ThumbnailShader->AddUniform("u_HasMetallic");
+		sRendererData.ThumbnailShader->AddUniform("u_HasRough");
 		sRendererData.ThumbnailShader->AddUniform("u_HasEmissive");
 		sRendererData.ThumbnailShader->AddUniform("u_HasOcclusion");
 		sRendererData.ThumbnailShader->AddUniform("u_HasOpacity");
@@ -50,6 +51,7 @@ namespace gte {
 		sRendererData.ThumbnailShader->AddUniform("AlbedoTexture");
 		sRendererData.ThumbnailShader->AddUniform("NormalTexture");
 		sRendererData.ThumbnailShader->AddUniform("MetallicTexture");
+		sRendererData.ThumbnailShader->AddUniform("RoughTexture");
 		sRendererData.ThumbnailShader->AddUniform("OclussionTexture");
 		sRendererData.ThumbnailShader->AddUniform("OpacityTexture");
 		sRendererData.ThumbnailShader->AddUniform("EmissiveTexture");
@@ -103,7 +105,7 @@ namespace gte {
 		const float maxVal = glm::max(glm::max(abb[1].x, abb[1].y), abb[1].z);
 		let abblength = maxVal - minVal;
 
-		let z = abblength / (2.0f * glm::tan(FoV / 2));
+		let z = abblength / (2.0f * glm::tan(FoV / 2)) + 1.0f;
 		let CameraPos = glm::vec3{ 0.0f, 0.0, z };
 		let Far = z - abb[0].z + 1.0f;
 		let projection = glm::perspective(FoV, 1.0f, 0.0001f, Far);
@@ -120,9 +122,10 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("AlbedoTexture", 1);
 		sRendererData.ThumbnailShader->SetUniform("NormalTexture", 2);
 		sRendererData.ThumbnailShader->SetUniform("MetallicTexture", 3);
-		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 4);
-		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 5);
-		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 6);
+		sRendererData.ThumbnailShader->SetUniform("RoughTexture", 4);
+		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 5);
+		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 6);
+		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 7);
 
 		if (let& spec = sRendererData.ThumbnailFBO->GetSpecification();
 			spec.Width != size.x || spec.Height != size.y)
@@ -150,7 +153,7 @@ namespace gte {
 			sRendererData.ThumbnailShader->SetUniform("u_EmitColor", mat->EmitColor);
 			sRendererData.ThumbnailShader->SetUniform("u_AmbientColor", mat->AmbientColor);
 			sRendererData.ThumbnailShader->SetUniform("u_Metallicness", mat->Metallicness);
-			sRendererData.ThumbnailShader->SetUniform("u_Shininess", mat->Shininess);
+			sRendererData.ThumbnailShader->SetUniform("u_Roughness", mat->Roughness);
 
 			Ref<Asset> albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Albedo->ID);
 			while (albedoTexture->Type != AssetType::INVALID && albedoTexture->Type != AssetType::TEXTURE) albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Albedo->ID);
@@ -170,23 +173,29 @@ namespace gte {
 			if (GPU::Texture* metallic = (GPU::Texture*)metallicTexture->Data)
 				metallic->Bind(3);
 
+			Ref<Asset> roughTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Rough->ID);
+			while (roughTexture->Type != AssetType::INVALID && roughTexture->Type != AssetType::TEXTURE) roughTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Rough->ID);
+			sRendererData.ThumbnailShader->SetUniform("u_HasRough", roughTexture->Type == AssetType::TEXTURE);
+			if (GPU::Texture* rough = (GPU::Texture*)roughTexture->Data)
+				rough->Bind(4);
+
 			Ref<Asset> aoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->AmbientOclussion->ID);
 			while (aoTexture->Type != AssetType::INVALID && aoTexture->Type != AssetType::TEXTURE) aoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->AmbientOclussion->ID);
 			sRendererData.ThumbnailShader->SetUniform("u_HasOcclusion", aoTexture->Type == AssetType::TEXTURE);
 			if (GPU::Texture* ao = (GPU::Texture*)aoTexture->Data)
-				ao->Bind(4);
+				ao->Bind(5);
 
 			Ref<Asset> opacityTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Opacity->ID);
 			while (opacityTexture->Type != AssetType::INVALID && opacityTexture->Type != AssetType::TEXTURE) opacityTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Opacity->ID);
 			sRendererData.ThumbnailShader->SetUniform("u_HasOpacity", opacityTexture->Type == AssetType::TEXTURE);
 			if (GPU::Texture* opacity = (GPU::Texture*)opacityTexture->Data)
-				opacity->Bind(5);
+				opacity->Bind(6);
 
 			Ref<Asset> emissiveTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Emission->ID);
 			while (emissiveTexture->Type != AssetType::INVALID && emissiveTexture->Type != AssetType::TEXTURE) emissiveTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Emission->ID);
 			sRendererData.ThumbnailShader->SetUniform("u_HasEmissive", emissiveTexture->Type == AssetType::TEXTURE);
 			if (GPU::Texture* emmisive = (GPU::Texture*)emissiveTexture->Data)
-				emmisive->Bind(6);
+				emmisive->Bind(7);
 
 			let count = part.End - part.Start;
 			RenderCommand::DrawArrays(vao, part.Start, count);
@@ -255,9 +264,10 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("AlbedoTexture", 1);
 		sRendererData.ThumbnailShader->SetUniform("NormalTexture", 2);
 		sRendererData.ThumbnailShader->SetUniform("MetallicTexture", 3);
-		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 4);
-		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 5);
-		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 6);
+		sRendererData.ThumbnailShader->SetUniform("RoughTexture", 4);
+		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 5);
+		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 6);
+		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 7);
 
 		if (let& spec = sRendererData.ThumbnailFBO->GetSpecification();
 			spec.Width != size.x || spec.Height != size.y)
@@ -281,7 +291,7 @@ namespace gte {
 			sRendererData.ThumbnailShader->SetUniform("u_EmitColor", mat.EmitColor);
 			sRendererData.ThumbnailShader->SetUniform("u_AmbientColor", mat.AmbientColor);
 			sRendererData.ThumbnailShader->SetUniform("u_Metallicness", mat.Metallicness);
-			sRendererData.ThumbnailShader->SetUniform("u_Shininess", mat.Shininess);
+			sRendererData.ThumbnailShader->SetUniform("u_Roughness", mat.Roughness);
 
 			Ref<Asset> albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Albedo->ID);
 			while (albedoTexture->Type != AssetType::INVALID && albedoTexture->Type != AssetType::TEXTURE) albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Albedo->ID);
@@ -301,23 +311,29 @@ namespace gte {
 			if (GPU::Texture* metallic = (GPU::Texture*)metallicTexture->Data)
 				metallic->Bind(3);
 
+			Ref<Asset> roughTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Rough->ID);
+			while (roughTexture->Type != AssetType::INVALID && roughTexture->Type != AssetType::TEXTURE) roughTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Rough->ID);
+			sRendererData.ThumbnailShader->SetUniform("u_HasRough", roughTexture->Type == AssetType::TEXTURE);
+			if (GPU::Texture* rough = (GPU::Texture*)roughTexture->Data)
+				rough->Bind(4);
+
 			Ref<Asset> aoTexture = internal::GetContext()->AssetManager.RequestAsset(mat.AmbientOclussion->ID);
 			while (aoTexture->Type != AssetType::INVALID && aoTexture->Type != AssetType::TEXTURE) aoTexture = internal::GetContext()->AssetManager.RequestAsset(mat.AmbientOclussion->ID);
 			sRendererData.ThumbnailShader->SetUniform("u_HasOcclusion", aoTexture->Type == AssetType::TEXTURE);
 			if (GPU::Texture* ao = (GPU::Texture*)aoTexture->Data)
-				ao->Bind(4);
+				ao->Bind(5);
 
 			Ref<Asset> opacityTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Opacity->ID);
 			while (opacityTexture->Type != AssetType::INVALID && opacityTexture->Type != AssetType::TEXTURE) opacityTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Opacity->ID);
 			sRendererData.ThumbnailShader->SetUniform("u_HasOpacity", opacityTexture->Type == AssetType::TEXTURE);
 			if (GPU::Texture* opacity = (GPU::Texture*)opacityTexture->Data)
-				opacity->Bind(5);
+				opacity->Bind(6);
 
 			Ref<Asset> emissiveTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Emission->ID);
 			while (emissiveTexture->Type != AssetType::INVALID && emissiveTexture->Type != AssetType::TEXTURE) emissiveTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Emission->ID);
 			sRendererData.ThumbnailShader->SetUniform("u_HasEmissive", emissiveTexture->Type == AssetType::TEXTURE);
 			if (GPU::Texture* emmisive = (GPU::Texture*)emissiveTexture->Data)
-				emmisive->Bind(6);
+				emmisive->Bind(7);
 
 			let count = part.End - part.Start;
 			RenderCommand::DrawArrays(vao, part.Start, count);

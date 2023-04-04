@@ -90,7 +90,6 @@ namespace gte::GPU::OpenGL {
 	void OpenGLTexture2D::SetData(const Image& image, ImageFormat format) noexcept
 	{
 		uint32 texture_format;
-		mInternalFormat = image.GetBytePerPixel();
 		switch (image.GetBytePerPixel())
 		{
 		case 4: // contains alpha channel
@@ -104,9 +103,10 @@ namespace gte::GPU::OpenGL {
 		case 1:// Grey image
 			texture_format = GL_RED;
 			mInternalFormat = GL_RED;
+			break;
 		default:
-			ENGINE_ASSERT(false, "Not acceptable pixel format: ", (int)mInternalFormat);
-			//GTE_ERROR_LOG("Error Bytes per pixel was: ", (int)surface->format->BytesPerPixel, " at ", utils::strip_path(_filename));
+			ENGINE_ASSERT(false, "Not acceptable pixel format: ", (int32)mInternalFormat);
+			return;
 		}
 
 		mWidth = image.GetWidth();

@@ -33,6 +33,7 @@ namespace gte {
 			std::string Albedo;
 			std::string Normal;
 			std::string Metallic;
+			std::string Rough;
 			std::string AmbientOclussion;
 			std::string Opacity;
 			std::string Emission;
@@ -40,8 +41,8 @@ namespace gte {
 			glm::vec4 Diffuse{ 1.0f, 1.0f, 1.0f, 1.0f };
 			glm::vec4 EmitColor{ 0.0f, 0.0f, 0.0f, 0.0f };
 			glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-			float Metallicness = 1.0f;
-			float Shininess = 0.537f;
+			float Metallicness = 0.333f;
+			float Roughness = 0.537f;
 			float Alpha = 1.0f;
 			int32 IlluminationModel = 1;
 			bool IsEmissive = false;

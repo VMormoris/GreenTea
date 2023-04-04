@@ -178,7 +178,7 @@ void ContentBrowserPanel::Draw(void)
 			CreateAnimation("New Animation");
 			mShouldFocus = true;
 		}
-		if (ImGui::BeginMenu("Native Script"))
+		if (ImGui::BeginMenu("Create Native Script"))
 		{
 			if (ImGui::MenuItem("Component"))
 			{
@@ -196,6 +196,14 @@ void ContentBrowserPanel::Draw(void)
 				scriptType = gte::internal::ReflectionType::Object;
 			}
 			ImGui::EndMenu();
+		}
+		if (ImGui::MenuItem("Create Material"))
+		{
+			gte::Material mat{};
+			mat.Name = "NewMaterial";
+			WriteMaterial(mat, mCurrentPath);
+			gte::internal::GetContext()->AssetWatcher.FindFiles();
+			mShouldFocus = true;
 		}
 		ImGui::Separator();
 		if (gte::gui::DrawMenuItem(ICON_FK_CLIPBOARD, "Paste", "Ctrl+V", "Create Animation", clipboard.GetOperation() != Clipboard::Operation::None && clipboard.GetStorageType() == PayloadType::BrowserItems))
@@ -944,11 +952,13 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 	std::vector<gte::uuid> materials;
 	for (let& mat : geometry->Materials)
 	{
-		gte::uuid albedo, metallic, normal, ao, opacity, emission;
+		gte::uuid albedo, metallic, roughness, normal, ao, opacity, emission;
 		if (!mat.Albedo.empty())
 			albedo = CreateTextureAsset(mat.Albedo);
 		if (!mat.Metallic.empty())
 			metallic = CreateTextureAsset(mat.Metallic);
+		if (!mat.Rough.empty())
+			roughness = CreateTextureAsset(mat.Rough);
 		if (!mat.Normal.empty())
 			normal = CreateTextureAsset(mat.Normal);
 		if (!mat.AmbientOclussion.empty())
@@ -962,6 +972,7 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 		material.Name = mat.Name;
 		material.Albedo->ID = albedo;
 		material.Metallic->ID = metallic;
+		material.Rough->ID = roughness;
 		material.Normal->ID = normal;
 		material.AmbientOclussion->ID = ao;
 		material.Opacity->ID = opacity;
@@ -971,7 +982,7 @@ gte::uuid ContentBrowserPanel::CreateMeshAsset(const std::filesystem::path& file
 		material.EmitColor = mat.EmitColor;
 		material.AmbientColor = mat.AmbientColor;
 		material.Metallicness = mat.Metallicness;
-		material.Shininess = mat.Shininess;
+		material.Roughness = mat.Roughness;
 		material.Alpha = mat.Alpha;
 		material.IlluminationModel = mat.IlluminationModel;
 		material.IsEmissive = mat.IsEmissive;
@@ -1489,6 +1500,7 @@ gte::uuid WriteMaterial(const gte::Material& material, const std::filesystem::pa
 	out << YAML::Key << "Name" << YAML::Value << material.Name;
 	out << YAML::Key << "Albedo" << YAML::Value << material.Albedo->ID.str();
 	out << YAML::Key << "Metallic" << YAML::Value << material.Metallic->ID.str();
+	out << YAML::Key << "Rough" << YAML::Value << material.Rough->ID.str();
 	out << YAML::Key << "Normal" << YAML::Value << material.Normal->ID.str();
 	out << YAML::Key << "AmbientOclussion" << YAML::Value << material.AmbientOclussion->ID.str();
 	out << YAML::Key << "Opacity" << YAML::Value << material.Opacity->ID.str();
@@ -1498,7 +1510,7 @@ gte::uuid WriteMaterial(const gte::Material& material, const std::filesystem::pa
 	out << YAML::Key << "EmitColor" << YAML::Value << material.EmitColor;
 	out << YAML::Key << "AmbientColor" << YAML::Value << material.AmbientColor;
 	out << YAML::Key << "Metallicness" << YAML::Value << material.Metallicness;
-	out << YAML::Key << "Shininess" << YAML::Value << material.Shininess;
+	out << YAML::Key << "Roughness" << YAML::Value << material.Roughness;
 	out << YAML::Key << "Alpha" << YAML::Value << material.Alpha;
 	out << YAML::Key << "IlluminationModel" << YAML::Value << material.IlluminationModel;
 	out << YAML::Key << "IsEmissive" << YAML::Value << material.IsEmissive;

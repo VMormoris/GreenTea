@@ -521,7 +521,7 @@ void OBJLoader::ParseMTL(const char* filepath)
 		{
 			std::istringstream s(line.substr(3));
 			s >> r;
-			mMesh->Materials[materialIndex].Shininess = r;
+			mMesh->Materials[materialIndex].Roughness = 1.0f - r;
 		}
 		else if (line.substr(0, 2).compare("d ") == 0)
 		{
@@ -568,7 +568,7 @@ void OBJLoader::ParseMTL(const char* filepath)
 			s >> filename;
 			mMesh->Materials[materialIndex].Metallic = folder + filename;
 			mMesh->Materials[materialIndex].Metallicness = 1.0f;
-			mMesh->Materials[materialIndex].Shininess = 0.0f;
+			mMesh->Materials[materialIndex].Roughness = 1.0f;
 		}
 		else if (CompareIngoreCase(line.substr(0, 6), "map_d "))
 		{

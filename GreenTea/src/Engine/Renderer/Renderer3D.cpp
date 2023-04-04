@@ -108,7 +108,7 @@ namespace gte {
 				sRendererData.ThumbnailShader->SetUniform("u_AmbientColor", mat->AmbientColor);
 
 				sRendererData.ThumbnailShader->SetUniform("u_Metallicness", mat->Metallicness);
-				sRendererData.ThumbnailShader->SetUniform("u_Shininess", mat->Shininess);
+				sRendererData.ThumbnailShader->SetUniform("u_Roughness", mat->Roughness);
 
 				Ref<Asset> albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Albedo->ID);
 				sRendererData.ThumbnailShader->SetUniform("u_HasAlbedo", albedoTexture->Type == AssetType::TEXTURE);

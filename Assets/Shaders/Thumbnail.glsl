@@ -32,7 +32,7 @@ void main(void)
 
 layout(location = 0) out vec4 o_Color;
 
-const float _PI_ = 3.14159;
+const float _PI_ = 3.14159265359;
 const vec3 LightDir = vec3(0.0, 0.0, -1.0);
 const vec3 LightPos = vec3(0.0, 0.0, 100.0);
 const vec3 LightColor = vec3(3.0, 3.0, 3.0);
@@ -41,11 +41,12 @@ uniform vec4 u_Diffuse;
 uniform vec4 u_EmitColor;
 uniform vec4 u_AmbientColor;
 uniform float u_Metallicness;
-uniform float u_Shininess;
+uniform float u_Roughness;
 
 uniform bool u_HasAlbedo;
 uniform bool u_HasNormal;
 uniform bool u_HasMetallic;
+uniform bool u_HasRough;
 uniform bool u_HasEmissive;
 uniform bool u_HasOcclusion;
 uniform bool u_HasOpacity;
@@ -58,6 +59,7 @@ uniform vec2 u_ViewportSize;
 uniform sampler2D AlbedoTexture;
 uniform sampler2D NormalTexture;
 uniform sampler2D MetallicTexture;
+uniform sampler2D RoughTexture;
 uniform sampler2D OclussionTexture;
 uniform sampler2D OpacityTexture;
 uniform sampler2D EmissiveTexture;
@@ -67,26 +69,39 @@ in vec3 v_Position_WCS;
 in vec3 v_Normal;
 in mat3 v_TBN;
 
-vec3 fresnel
-(
-	const in vec3 diffColor,
-	const in float VdotH,
-	const in float metallic,
-	const in float shininess
-)
+
+vec3 frenselShlick(float cosTheta, vec3 f0) { return f0 + (1.0 - f0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0); }
+
+float distributionGGX(vec3 N, vec3 H, float roughness)
 {
-   const vec3 f0 = mix(diffColor * 0.08, vec3(0.04), metallic);
-   return f0 + (vec3(1.0) - f0) * pow(1.0 - VdotH, 5.0);
+	const float a = roughness * roughness;
+	const float a2 = a * a;
+	const float NdotH = max(dot(N, H), 0.0);
+	const float NdotH2 = NdotH * NdotH;
+	
+
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom = _PI_ * denom * denom;
+
+	return a2 / denom;
 }
 
-float distribution(float NdotH, float a)
+float geometrySchlickGGX(float NdotV, float roughness)
 {
-	float NdotH2 = NdotH * NdotH;
-	float a2 = a * a;
-	float denom = (NdotH2 * (a2 - 1) + 1);
-	denom = _PI_ * denom * denom;
-	float D = a2 / max(denom, 0.001);
-	return D;
+	const float r = roughness + 1.0f;
+	const float k = (r * r) / 8.0;
+
+	const float denom = NdotV * (1.0 - k) + k;
+	return NdotV / denom;
+}
+
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+	const float NdotV = max(dot(N, V), 0.0);
+	const float NdotL = max(dot(N, L), 0.0);
+	const float ggx2 = geometrySchlickGGX(NdotV, roughness);
+	const float ggx1 = geometrySchlickGGX(NdotL, roughness);
+	return ggx1 * ggx2;
 }
 
 float geometric(float NH, float NO, float HO, float NI)
@@ -97,70 +112,73 @@ float geometric(float NH, float NO, float HO, float NI)
 
 vec3 cook_torrance
 (
-	const in vec3 pSurfToEye,
-	const in vec3 pSurfToLight,
-	const in vec3 pPos,
-	const in vec3 pNormal,
-	const in vec3 pAlbedo,
-	const in vec2 pMetallic,
-	const in vec3 pEmission
+	const in vec3 V,
+	const in vec3 N,
+	const in vec3 L,
+	const in vec3 Pos,
+	const in vec3 Albedo,
+	const in vec3 Emission,
+	const in float Metallicness,
+	const in float Roughness
 )
 {
-	vec3 halfVector = normalize(pSurfToEye + pSurfToLight);
+	const vec3 H = normalize(V + L);
+	const vec3 radiance = LightColor;
 
-	float NdotL = clamp(dot(pNormal, pSurfToLight), 0.0, 1.0);
-	float NdotV = clamp(dot(pNormal, pSurfToEye), 0.0, 1.0);
-	float NdotH = clamp(dot(pNormal, halfVector), 0.0, 1.0);
-	float HdotV = clamp(dot(halfVector, pSurfToEye), 0.0, 1.0);
-	float HdotL = clamp(dot(halfVector, pSurfToLight), 0.0, 1.0);
+	const vec3 f0 = mix(vec3(0.04), Albedo, Metallicness);
+	const float NDF = distributionGGX(N, H, Roughness);
+	const float G = geometrySmith(N, V, L, Roughness);
+	vec3 F = frenselShlick(max(dot(H,V), 0.0), f0);
 
-	float metallic = pMetallic.x;
-	float shininess = pMetallic.y;
+	const vec3 ks = F;
+	const vec3 kd = (vec3(1.0) - ks) * (1.0 - Metallicness);
+	
+	const vec3 numerator = NDF * G * F;
+	const float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+	const vec3 specular = numerator / denominator;
 
-	vec3 F = fresnel(pAlbedo, max(dot(halfVector, pSurfToEye), 0.0), metallic, shininess);
-	float D = distribution(NdotH, shininess);
-	float G = geometric(NdotH, NdotV, HdotV, NdotL);
-	vec3 ks = (F * G * D) / max((4.0 * NdotL * NdotV), 0.0001);
-	vec3 kd = (pAlbedo / _PI_) * (1.0 - F) * (1.0 - metallic);
-	float dist = distance(LightPos, pPos);
-
-	return (ks + kd) * LightColor * NdotL + pEmission;
+	const float NdotL = max(dot(N, L), 0.0);
+	return (kd * Albedo / _PI_ + specular) * radiance * NdotL + Emission;
 }
 
 void main()
 {
 	vec3 albedo = u_Diffuse.rgb;
-	if(u_HasAlbedo)
-		albedo = texture(AlbedoTexture, v_TextCoords).rgb;
-
-	vec3 emission = u_EmitColor.rgb;
-	if(u_HasEmissive)
-		emission = texture(EmissiveTexture, v_TextCoords).rgb;
-
-	float gloss = u_Shininess;
-	float metallic = u_Metallicness;
-	//float ao = (u_AmbientColor.r + u_AmbientColor.g + u_AmbientColor.b) / 3;
-	//float reflectance = 0.5;
-
-	if(u_HasMetallic)
-	{
-		vec4 mask = texture(MetallicTexture, v_TextCoords);
-		metallic = mask.r;
-		gloss = 1.0 - mask.a;
-	}
-
 	vec3 normal = v_TBN[2];
+
+	float roughness = u_Roughness;
+	float metallicness = u_Metallicness;
+
+	vec3 ao = u_AmbientColor.rgb;
+	vec3 emission = u_EmitColor.rgb;
+
+	if(u_HasAlbedo)
+		albedo *= texture(AlbedoTexture, v_TextCoords).rgb;
+
 	if(u_HasNormal)
 	{
 		vec3 nmap = texture(NormalTexture, v_TextCoords).rgb;
 		nmap = nmap * 2.0 - 1.0;
 		normal = normalize(v_TBN * nmap);
 	}
+	if(u_HasMetallic)
+		metallicness *= texture(MetallicTexture, v_TextCoords).r;
+	if(u_HasRough)
+		roughness *= texture(RoughTexture, v_TextCoords).r;
+
+	
+	if(u_HasOcclusion)
+		ao *= texture(OclussionTexture, v_TextCoords).rgb;
+	vec3 ambient = vec3(0.03) * albedo * ao;
+
+	if(u_HasEmissive)
+		emission *= texture(EmissiveTexture, v_TextCoords).rgb;
 
 	vec3 surfToEye = normalize(u_CameraPos - v_Position_WCS);
-	vec3 surfToLight = normalize(LightPos - v_Position_WCS);
 
-	vec3 color = cook_torrance(surfToEye, -LightDir, v_Position_WCS, normal,
-			albedo, vec2(metallic, gloss), vec3(emission.r, emission.g, emission.b));
+	vec3 color = cook_torrance(surfToEye, normal, -LightDir, v_Position_WCS,
+			albedo, emission, metallicness, roughness);
+	
+	color += ambient; 
 	o_Color = vec4(color, 1.0);
 }

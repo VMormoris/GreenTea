@@ -196,6 +196,7 @@ gte::Material* LoadMaterial(const YAML::Node& data, std::ifstream& ifs)
 
 	material->Albedo->ID = data["Albedo"].as<std::string>();
 	material->Metallic->ID = data["Metallic"].as<std::string>();
+	material->Rough->ID = data["Roughness"].as<std::string>();
 	material->Normal->ID = data["Normal"].as<std::string>();
 	material->AmbientOclussion->ID = data["AmbientOclussion"].as<std::string>();
 	material->Opacity->ID = data["Opacity"].as<std::string>();
@@ -205,7 +206,7 @@ gte::Material* LoadMaterial(const YAML::Node& data, std::ifstream& ifs)
 	material->EmitColor = data["EmitColor"].as<glm::vec4>();
 	material->AmbientColor = data["AmbientColor"].as<glm::vec4>();
 	material->Metallicness = data["Metallicness"].as<float>();
-	material->Shininess = data["Shininess"].as<float>();
+	material->Roughness = data["Roughness"].as<float>();
 	material->Alpha = data["Alpha"].as<float>();
 	material->IlluminationModel = data["IlluminationModel"].as<int32>();
 	material->IsEmissive = data["IsEmissive"].as<bool>();
