@@ -24,6 +24,8 @@ namespace gte::GPU {
 
 		virtual void Resize(uint32 width, uint32 height) noexcept = 0;
 
+		virtual void SpecifyTarget(uint32 attachment, uint32 target) noexcept = 0;
+
 		[[nodiscard]] virtual const FrameBufferSpecification& GetSpecification(void) const noexcept = 0;
 
 		[[nodiscard]] virtual uint64 GetColorAttachmentID(uint32 attachment) const noexcept = 0;

@@ -43,6 +43,7 @@ namespace gte::internal {
 		GPU::GraphicsAPI G_API = GPU::GraphicsAPI::OpenGL;
 		GPU::RendererAPI* Renderer = nullptr;
 		GPU::FrameBuffer* ViewportFBO = nullptr;
+		GPU::FrameBuffer* EnvironmentFBO = nullptr;
 		GPU::PixelBuffer* PixelBufferObject = nullptr;
 		audio::AudioDevice* AudioDevice = nullptr;
 

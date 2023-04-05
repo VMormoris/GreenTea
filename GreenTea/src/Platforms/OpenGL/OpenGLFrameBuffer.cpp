@@ -39,22 +39,42 @@ namespace gte::GPU::OpenGL {
 		if (ColorAttachments > 0)//Has Color attachments
 		{
 			mColorAttachmentID = new uint32[ColorAttachments];
-			glCreateTextures(GL_TEXTURE_2D, ColorAttachments, mColorAttachmentID);
 			for (int32 i = 0; i < ColorAttachments; i++)
 			{
 				if (i == depthIndex) continue;
 
 				let format = mSpecification.Attachments[i];
-				let NativeFormat = GetNativeTextureFormat(format);
-				glBindTexture(GL_TEXTURE_2D, mColorAttachmentID[i]);
-				glTexImage2D(GL_TEXTURE_2D, 0, NativeFormat.first, mSpecification.Width, mSpecification.Height, 0, NativeFormat.second, GetTextureInternalType(format), NULL);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				if (format == TextureFormat::Cube)
+				{
+					glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &mColorAttachmentID[i]);
+					glBindTexture(GL_TEXTURE_CUBE_MAP, mColorAttachmentID[i]);
+					for (uint32 j = 0; j < 6; j++)
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB16F, mSpecification.Width, mSpecification.Height, 0, GL_RGB, GL_FLOAT, nullptr);
+					
+					
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					
+					// Attaching faces should be done when projecting stuff
+					//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, mColorAttachmentID[i], 0);
+				}
+				else
+				{
+					let NativeFormat = GetNativeTextureFormat(format);
+					glCreateTextures(GL_TEXTURE_2D, 1, &mColorAttachmentID[i]);
+					glBindTexture(GL_TEXTURE_2D, mColorAttachmentID[i]);
+					glTexImage2D(GL_TEXTURE_2D, 0, NativeFormat.first, mSpecification.Width, mSpecification.Height, 0, NativeFormat.second, GetTextureInternalType(format), NULL);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mColorAttachmentID[i], 0);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mColorAttachmentID[i], 0);
+				}
 			}
 
 			GLenum* DrawBuffers = new GLenum[ColorAttachments];
@@ -141,6 +161,20 @@ namespace gte::GPU::OpenGL {
 		mSpecification.Height = height;
 
 		Invalidate();
+	}
+
+	void OpenGLFrameBuffer::SpecifyTarget(uint32 attachment, uint32 target) noexcept
+	{
+		let format = mSpecification.Attachments[attachment];
+		if (format != TextureFormat::Cube)
+			return;
+		
+		let depthIndex = FindDepth(mSpecification.Attachments);
+		let index = depthIndex != -1 && (int32)attachment >= depthIndex ? attachment - 1 : attachment;
+		
+		Bind();
+		glBindTexture(GL_TEXTURE_CUBE_MAP, mColorAttachmentID[attachment]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_CUBE_MAP_POSITIVE_X + target, mColorAttachmentID[attachment], 0);
 	}
 
 	void OpenGLFrameBuffer::Clear(uint32 attachement, const void* data) const noexcept

@@ -21,7 +21,7 @@ namespace gte {
 
 		//Constructor(s) & Destructor
 		Image(void) = default;
-		Image(uint32 width, uint32 height, int32 bpp) noexcept;
+		Image(uint32 width, uint32 height, int32 bpp, bool hdr = false) noexcept;
 		Image(const char* filepath);
 		Image(const Image& other) noexcept;
 		Image(Image&& other) noexcept;
@@ -56,6 +56,11 @@ namespace gte {
 		[[nodiscard]] const void* Data(void) const noexcept;
 
 		/**
+		* @brief Getter for checking if the image is HDR or not
+		*/
+		[[nodiscard]] bool IsHDR(void) const noexcept { return mIsHDR; }
+
+		/**
 		* @brief Getter for a specific pixel of the Image
 		* @details Depending on Image the size of a pixel might varied.
 		* @tparam T Type of the underlying pixel
@@ -77,10 +82,11 @@ namespace gte {
 		*/
 		void Load(const char* filepath);
 		void Load(const byte* buffer);
-		void Load(const byte* buffer, uint32 width, uint32 height, int32 bpp);
+		void Load(const byte* buffer, uint32 width, uint32 height, int32 channels, bool hdr = false);
 
 		void Save(const char* filepath);
 
+		[[nodiscard]] int32 GetChannels(void) const noexcept;
 		[[nodiscard]] int32 GetBytePerPixel(void) const noexcept;
 
 		//Assignement operators
@@ -102,7 +108,12 @@ namespace gte {
 		/**
 		* @brief Bytes for each pixel
 		*/
-		int32 mbpp = 0;
+		int32 mChannels = 0;
+
+		/**
+		* @brief Flag for whether this is image is hdr or not
+		*/
+		bool mIsHDR = false;
 
 		/**
 		* @brief Actual Image buffer

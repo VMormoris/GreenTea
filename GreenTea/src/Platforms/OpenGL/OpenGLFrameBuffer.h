@@ -16,6 +16,8 @@ namespace gte::GPU::OpenGL {
 
 		void Resize(uint32 width, uint32 height) noexcept override;
 
+		void SpecifyTarget(uint32 attachment, uint32 target) noexcept override;
+
 		[[nodiscard]] const FrameBufferSpecification& GetSpecification(void) const noexcept override;
 
 		[[nodiscard]] uint64 GetColorAttachmentID(uint32 attachement) const noexcept override;

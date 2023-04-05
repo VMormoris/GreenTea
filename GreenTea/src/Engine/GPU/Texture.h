@@ -38,6 +38,8 @@ namespace gte {
 			UInt16,
 			UInt32,
 
+			Cube,
+
 			DEPTH24,
 			DEPTH24STENCIL8,
 

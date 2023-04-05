@@ -89,19 +89,18 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLTexture2D::SetData(const Image& image, ImageFormat format) noexcept
 	{
-		uint32 texture_format;
-		switch (image.GetBytePerPixel())
+		switch (image.GetChannels())
 		{
 		case 4: // contains alpha channel
-			texture_format = GL_RGBA;
-			mInternalFormat = GL_RGBA;
+			mDataFormat = GL_RGBA;
+			mInternalFormat = image.IsHDR() ? GL_RGBA16F : GL_RGBA;
 			break;
 		case 3: // no alpha channel
-			texture_format = GL_RGB;
-			mInternalFormat = GL_RGB;
+			mDataFormat = GL_RGB;
+			mInternalFormat = image.IsHDR() ? GL_RGB16F : GL_RGB;
 			break;
 		case 1:// Grey image
-			texture_format = GL_RED;
+			mDataFormat = GL_RED;
 			mInternalFormat = GL_RED;
 			break;
 		default:
@@ -111,28 +110,14 @@ namespace gte::GPU::OpenGL {
 
 		mWidth = image.GetWidth();
 		mHeight = image.GetHeight();
-		mDataFormat = texture_format;
-		//unsigned char* data = new unsigned char[image.Size()];
-		//ENGINE_ASSERT(data != NULL, "Erorr occuried while Allocating memory on the Heap!");
-
-		// flip image
-		/*for (uint32 y = 0; y < mHeight; y++)
-		{
-			size_t row_size = (size_t)mWidth * image.GetBytePerPixel() * sizeof(unsigned char);
-			memcpy
-			(
-				&data[(mHeight - y - 1) * mWidth * image.GetBytePerPixel()],
-				&static_cast<const unsigned char*>(image.Data())[y * mWidth * image.GetBytePerPixel()],
-				row_size
-			);
-		}*/
-		//memcpy(data, image.Data(), image.Size());
+		
 		glGenTextures(1, &mID);
 		glBindTexture(GL_TEXTURE_2D, mID);
-		if (image.GetBytePerPixel() == 3 || image.GetBytePerPixel() == 1)
+		if (image.GetChannels() == 3 || image.GetChannels() == 1)
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, GL_UNSIGNED_BYTE, image.Data());
-		//delete[] data;
+		
+		let type = image.IsHDR() ? GL_FLOAT : GL_UNSIGNED_BYTE;
+		glTexImage2D(GL_TEXTURE_2D, 0, mInternalFormat, mWidth, mHeight, 0, mDataFormat, type, image.Data());
 
 		if (format == ImageFormat::Sprite)
 		{
@@ -148,6 +133,7 @@ namespace gte::GPU::OpenGL {
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
+
 		//if (mhasMipmaps)
 		//{
 		//	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

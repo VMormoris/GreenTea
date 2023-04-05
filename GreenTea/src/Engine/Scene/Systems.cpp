@@ -15,9 +15,17 @@ namespace gte::internal {
 
 	void RenderScene(entt::registry* reg, const glm::mat4& eyeMatrix)
 	{
-		let meshID = uuid{ "2B740B49-0C0C-4C9E-9830-11FC1AAB5524" };
-		Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(meshID);
-		if (asset->Type != AssetType::MESH) return;
+		let skyboxID = uuid{ "AC833E0D-C69C-490B-A90E-B206A9AF417C" };
+		Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(skyboxID);
+		if (asset->Type != AssetType::TEXTURE)
+		{
+			while (asset->Type != AssetType::TEXTURE)
+				asset = internal::GetContext()->AssetManager.RequestAsset(skyboxID);
+			Renderer3D::SetSkybox((GPU::Texture*)asset->Data, { 4096, 4096 });
+		}
+		//let meshID = uuid{ "17A98934-0DFB-4F16-BEB7-ECA11809AFFD" };
+		//Ref<Asset> asset = internal::GetContext()->AssetManager.RequestAsset(meshID);
+		//if (asset->Type != AssetType::MESH) return;
 
 		SceneData data;		
 		auto view = reg->view<TransformComponent, CameraComponent>(entt::exclude<RelationshipComponent>);
@@ -35,8 +43,9 @@ namespace gte::internal {
 		sAccumulator += 1.0f / 60.0f * glm::pi<float>() * 12.5f;
 		let matrix = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ 0.0f }) 
 			* glm::toMat4(glm::quat(glm::radians(glm::vec3{0.0f, sAccumulator, 0.0f})));
+
 		Renderer3D::BeginScene(data);
-		Renderer3D::SubmitMesh(matrix, (GPU::Mesh*)asset->Data, 0);
+		//Renderer3D::SubmitMesh(matrix, (GPU::Mesh*)asset->Data, 0);
 		Renderer3D::EndScene();
 		/*
 		entt::insertion_sort algo;

@@ -891,11 +891,13 @@ bool CupOfTea::OnScroll(float dx, float dy)
 	if (!sGameEvents)
 		return false;
 	gte::Entity EditorCamera = gte::internal::GetContext()->ActiveScene->FindEntityWithUUID({});
+	auto& cam = EditorCamera.GetComponent<gte::CameraComponent>();
+	if (cam.Type == gte::CameraType::Perpsective)
+		return false;
 	auto& ortho = EditorCamera.GetComponent<gte::OrthographicCameraComponent>();
 	ortho.ZoomLevel -= dy * 0.25f;
 	ortho.ZoomLevel = std::max(ortho.ZoomLevel, 0.25f);
 
-	auto& cam = EditorCamera.GetComponent<gte::CameraComponent>();
 	
 	glm::vec2 box = glm::vec2(ortho.VerticalBoundary * ortho.ZoomLevel);
 	box *= glm::vec2(cam.AspectRatio, 1.0f);

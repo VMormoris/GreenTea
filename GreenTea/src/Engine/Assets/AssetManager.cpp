@@ -222,7 +222,7 @@ namespace gte {
 	{
 		std::unique_lock lock(mMapMutex);
 		GPU::Texture2D* texture = GPU::Texture2D::Create(img);
-		mThumbnails.insert({ id, CreateRef<Asset>(texture, id, AssetType::TEXTURE, img.Size()) });
+		mThumbnails[id] = CreateRef<Asset>(texture, id, AssetType::TEXTURE, img.Size());
 	}
 #endif
 }

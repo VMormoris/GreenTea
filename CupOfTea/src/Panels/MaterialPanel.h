@@ -13,6 +13,10 @@ public:
 
 private:
 
+	void SaveMaterial(void);
+
+private:
+
 	gte::uuid mMaterialID;
 	gte::Material mMaterial;
 	glm::vec3 mRotation = { 0.0f, 0.0f, 0.0f };

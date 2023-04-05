@@ -5,6 +5,7 @@
 #include <Engine/GPU/Shader.h>
 
 #include <gtc/matrix_transform.hpp>
+#include <glad/glad.h>
 
 namespace gte {
 
@@ -19,7 +20,12 @@ namespace gte {
 	};
 
 	struct Renderer3DData {
+		GPU::VertexArray* CubeVAO = nullptr;
+		GPU::VertexBuffer* CubeVBO = nullptr;
+		
 		GPU::Shader* ThumbnailShader = nullptr;
+		GPU::Shader* EquirectangularToCubemap = nullptr;
+		GPU::Shader* SkyboxShader = nullptr;
 
 		SceneData Data;
 		std::array<glm::vec3, 2> ABB = { glm::vec3{FLT_MAX}, glm::vec3{FLT_MIN} };
@@ -44,11 +50,12 @@ namespace gte {
 		sRendererData.ThumbnailShader->AddUniform("u_EmitColor");
 		sRendererData.ThumbnailShader->AddUniform("u_AmbientColor");
 		sRendererData.ThumbnailShader->AddUniform("u_Metallicness");
-		sRendererData.ThumbnailShader->AddUniform("u_Shininess");
+		sRendererData.ThumbnailShader->AddUniform("u_Roughness");
 
 		sRendererData.ThumbnailShader->AddUniform("u_HasAlbedo");
 		sRendererData.ThumbnailShader->AddUniform("u_HasNormal");
 		sRendererData.ThumbnailShader->AddUniform("u_HasMetallic");
+		sRendererData.ThumbnailShader->AddUniform("u_HasRough");
 		sRendererData.ThumbnailShader->AddUniform("u_HasEmissive");
 		sRendererData.ThumbnailShader->AddUniform("u_HasOcclusion");
 		sRendererData.ThumbnailShader->AddUniform("u_HasOpacity");
@@ -61,9 +68,81 @@ namespace gte {
 		sRendererData.ThumbnailShader->AddUniform("AlbedoTexture");
 		sRendererData.ThumbnailShader->AddUniform("NormalTexture");
 		sRendererData.ThumbnailShader->AddUniform("MetallicTexture");
+		sRendererData.ThumbnailShader->AddUniform("RoughTexture");
 		sRendererData.ThumbnailShader->AddUniform("OclussionTexture");
 		sRendererData.ThumbnailShader->AddUniform("OpacityTexture");
 		sRendererData.ThumbnailShader->AddUniform("EmissiveTexture");
+
+		sRendererData.EquirectangularToCubemap = GPU::Shader::Create("../Assets/Shaders/EquirectangularToCubemap.glsl");
+		sRendererData.EquirectangularToCubemap->AddUniform("u_EyeMatrix");
+		sRendererData.EquirectangularToCubemap->AddUniform("EquirectangularMap");
+
+		sRendererData.SkyboxShader = GPU::Shader::Create("../Assets/Shaders/Skybox.glsl");
+		sRendererData.SkyboxShader->AddUniform("u_EyeMatrix");
+		sRendererData.SkyboxShader->AddUniform("EnvironmentMap");
+
+		constexpr glm::vec3 cubeVertices[] =
+		{
+			//Front Face
+			{-0.5f, -0.5f, -0.5f},//Left Bottom Corner
+			{ 0.5f, -0.5f, -0.5f},//Right Bottom Corner
+			{ 0.5f,  0.5f, -0.5f},//Right Top Corner
+			{ 0.5f,  0.5f, -0.5f},//Right Top Corner
+			{-0.5f,  0.5f, -0.5f},//Left Top Corner
+			{-0.5f, -0.5f, -0.5f},//Left Bottom Corner
+
+			//Left Face
+			{-0.5f, -0.5f, -0.5f},//Bottom Front Corner
+			{-0.5f, -0.5f,  0.5f},//Bottom Back Corner
+			{-0.5f,  0.5f,  0.5f},//Top Back Corner
+			{-0.5f,  0.5f,  0.5f},//Top Back Corner
+			{-0.5f,  0.5f, -0.5f},//Top Front Corner
+			{-0.5f, -0.5f, -0.5f},//Bottom Front Corner
+
+			//Bottom Face
+			{-0.5f, -0.5f, -0.5f},//Left Front Corner
+			{ 0.5f, -0.5f, -0.5f},//Right Front Corner
+			{ 0.5f, -0.5f, 0.5f},//Right Back Corner
+			{ 0.5f, -0.5f, 0.5f},//Right Back Corner
+			{-0.5f, -0.5f, 0.5f},//Left Back Corner
+			{-0.5f, -0.5f, -0.5f},//Left Front Corner
+
+			//Back Face
+			{-0.5f, -0.5f, 0.5f},//Left Bottom Corner
+			{ 0.5f, -0.5f, 0.5f},//Right Bottom Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Top Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Top Corner
+			{-0.5f,  0.5f, 0.5f},//Left Top Corner
+			{-0.5f, -0.5f, 0.5f},//Left Bottom Corner
+
+			//Right Face
+			{ 0.5f, -0.5f, -0.5f},//Bottom Front Corner
+			{ 0.5f, -0.5f,  0.5f},//Bottom Back Corner
+			{ 0.5f,  0.5f,  0.5f},//Top Back Corner
+			{ 0.5f,  0.5f,  0.5f},//Top Back Corner
+			{ 0.5f,  0.5f, -0.5f},//Top Front Corner
+			{ 0.5f, -0.5f, -0.5f},//Bottom Front Corner
+
+			//Top Face
+			{-0.5f,  0.5f, -0.5f},//Left Front Corner
+			{ 0.5f,  0.5f, -0.5f},//Right Front Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Back Corner
+			{ 0.5f,  0.5f, 0.5f},//Right Back Corner
+			{-0.5f,  0.5f, 0.5f},//Left Back Corner
+			{-0.5f,  0.5f, -0.5f},//Left Front Corner
+		};
+
+		sRendererData.CubeVAO = GPU::VertexArray::Create();
+		sRendererData.CubeVBO = GPU::VertexBuffer::Create(cubeVertices, sizeof(cubeVertices));
+		sRendererData.CubeVBO->SetLayout({ {GPU::ShaderDataType::Vec3, "_position"} });
+		sRendererData.CubeVAO->AddVertexBuffer(sRendererData.CubeVBO);
+
+
+		//TODO(Vasilis): Maybe move to CreateContext
+		GPU::FrameBufferSpecification spec;
+		spec.Width = 512; spec.Height = 512;
+		spec.Attachments = { GPU::TextureFormat::Cube, GPU::TextureFormat::Depth };
+		internal::GetContext()->EnvironmentFBO = GPU::FrameBuffer::Create(spec);
 	}
 
 	void Renderer3D::RenderGeometry(void)
@@ -79,9 +158,10 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("AlbedoTexture", 0);
 		sRendererData.ThumbnailShader->SetUniform("NormalTexture", 1);
 		sRendererData.ThumbnailShader->SetUniform("MetallicTexture", 2);
-		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 3);
-		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 4);
-		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 5);
+		sRendererData.ThumbnailShader->SetUniform("RoughTexture", 3);
+		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 4);
+		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 5);
+		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 6);
 
 		sRendererData.Data.Target->Bind();
 		let& fboSpec = sRendererData.Data.Target->GetSpecification();
@@ -106,7 +186,6 @@ namespace gte {
 				sRendererData.ThumbnailShader->SetUniform("u_Diffuse", mat->Diffuse);
 				sRendererData.ThumbnailShader->SetUniform("u_EmitColor", mat->EmitColor);
 				sRendererData.ThumbnailShader->SetUniform("u_AmbientColor", mat->AmbientColor);
-
 				sRendererData.ThumbnailShader->SetUniform("u_Metallicness", mat->Metallicness);
 				sRendererData.ThumbnailShader->SetUniform("u_Roughness", mat->Roughness);
 
@@ -125,26 +204,32 @@ namespace gte {
 				if (GPU::Texture* metallic = (GPU::Texture*)metallicTexture->Data)
 					metallic->Bind(2);
 
+				Ref<Asset> roughTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Metallic->ID);
+				sRendererData.ThumbnailShader->SetUniform("u_HasRough", roughTexture->Type == AssetType::TEXTURE);
+				if (GPU::Texture* rough = (GPU::Texture*)roughTexture->Data)
+					rough->Bind(3);
+
 				Ref<Asset> aoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->AmbientOclussion->ID);
 				sRendererData.ThumbnailShader->SetUniform("u_HasOcclusion", aoTexture->Type == AssetType::TEXTURE);
 				if (GPU::Texture* ao = (GPU::Texture*)aoTexture->Data)
-					ao->Bind(3);
+					ao->Bind(4);
 
 				Ref<Asset> opacityTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Opacity->ID);
 				sRendererData.ThumbnailShader->SetUniform("u_HasOpacity", opacityTexture->Type == AssetType::TEXTURE);
 				if (GPU::Texture* opacity = (GPU::Texture*)opacityTexture->Data)
-					opacity->Bind(4);
+					opacity->Bind(5);
 
 				Ref<Asset> emmisiveTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Emission->ID);
 				sRendererData.ThumbnailShader->SetUniform("u_HasEmissive", emmisiveTexture->Type == AssetType::TEXTURE);
 				if (GPU::Texture* emmisive = (GPU::Texture*)emmisiveTexture->Data)
-					emmisive->Bind(5);
+					emmisive->Bind(6);
 
 				let count = part.End - part.Start;
 				RenderCommand::DrawArrays(mesh.Geometry->GetVAO(), part.Start, count);
 			}
 		}
 		sRendererData.Data.Target->Unbind();
+		sRendererData.ThumbnailShader->Unbind();
 	}
 
 	void Renderer3D::SubmitMesh(const glm::mat4& transform, GPU::Mesh* mesh, uint32 ID)
@@ -163,6 +248,41 @@ namespace gte {
 		sRendererData.Meshes.emplace_back(node);
 	}
 
+	void Renderer3D::SetSkybox(const GPU::Texture* Equirectangular, glm::ivec2 size)
+	{
+		constexpr glm::vec3 zero = { 0.0f, 0.0f, 0.0f };
+		let projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+		const glm::mat4 views[] =
+		{
+			glm::lookAt(zero, {  1.0f,  0.0f,  0.0f }, {  0.0f, -1.0f,  0.0f }),
+			glm::lookAt(zero, { -1.0f,  0.0f,  0.0f }, {  0.0f, -1.0f,  0.0f }),
+			glm::lookAt(zero, {  0.0f,  1.0f,  0.0f }, {  0.0f,  0.0f,  1.0f }),
+			glm::lookAt(zero, {  0.0f, -1.0f,  0.0f }, {  0.0f,  0.0f, -1.0f }),
+			glm::lookAt(zero, {  0.0f,  0.0f,  1.0f }, {  0.0f, -1.0f,  0.0f }),
+			glm::lookAt(zero, {  0.0f,  0.0f, -1.0f }, {  0.0f, -1.0f,  0.0f })
+		};
+
+		sRendererData.EquirectangularToCubemap->Bind();
+		sRendererData.EquirectangularToCubemap->SetUniform("EquirectangularMap", 0);
+
+		auto* fbo = internal::GetContext()->EnvironmentFBO;
+		fbo->Resize(size.x, size.y);
+		RenderCommand::SetViewport(0, 0, size.x, size.y);
+		fbo->Bind();
+		Equirectangular->Bind(0);
+		for (uint32 i = 0; i <6; i++)
+		{
+			sRendererData.EquirectangularToCubemap->SetUniform("u_EyeMatrix", projection * views[i]);
+			fbo->SpecifyTarget(0, i);
+			RenderCommand::Clear();
+			
+			sRendererData.CubeVAO->Bind();
+			RenderCommand::DrawArrays(sRendererData.CubeVAO, 0, 36);
+		}
+		fbo->Unbind();
+		sRendererData.EquirectangularToCubemap->Unbind();
+	}
+
 	void Renderer3D::BeginScene(const SceneData& data)
 	{
 		sRendererData.Meshes.clear();
@@ -173,9 +293,27 @@ namespace gte {
 
 	void Renderer3D::EndScene(void)
 	{
-		sRendererData.Data.Target->Bind();
 		RenderGeometry();
+		RenderSkybox();
+	}
+
+	void Renderer3D::RenderSkybox(void)
+	{
+		sRendererData.SkyboxShader->Bind();
+		sRendererData.Data.Target->Bind();
+		let view = glm::mat4(glm::mat3(sRendererData.Data.ViewMatrix));
+		let eyematrix = sRendererData.Data.ProjectionMatrix * view;
+		
+		sRendererData.SkyboxShader->SetUniform("u_EyeMatrix", eyematrix);
+		sRendererData.SkyboxShader->SetUniform("EnvironmentMap", 0);
+		
+		let* fbo = internal::GetContext()->EnvironmentFBO;
+		fbo->BindAttachment(0, 0);
+
+		sRendererData.CubeVAO->Bind();
+		RenderCommand::DrawArrays(sRendererData.CubeVAO, 0, 36);
 		sRendererData.Data.Target->Unbind();
+		sRendererData.SkyboxShader->Unbind();
 	}
 
 	void Renderer3D::Shutdown(void)

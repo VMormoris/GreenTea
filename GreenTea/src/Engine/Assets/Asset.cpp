@@ -196,7 +196,7 @@ gte::Material* LoadMaterial(const YAML::Node& data, std::ifstream& ifs)
 
 	material->Albedo->ID = data["Albedo"].as<std::string>();
 	material->Metallic->ID = data["Metallic"].as<std::string>();
-	material->Rough->ID = data["Roughness"].as<std::string>();
+	material->Rough->ID = data["Rough"].as<std::string>();
 	material->Normal->ID = data["Normal"].as<std::string>();
 	material->AmbientOclussion->ID = data["AmbientOclussion"].as<std::string>();
 	material->Opacity->ID = data["Opacity"].as<std::string>();
