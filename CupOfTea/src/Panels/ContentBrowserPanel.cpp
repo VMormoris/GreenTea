@@ -438,6 +438,8 @@ void ContentBrowserPanel::Draw(void)
 				mHistory.emplace_back(mCurrentPath);
 
 				mCurrentIndex = mHistory.size() - 1;
+				mSelected = "";
+				clipboard.Clear();
 			}
 			else if (extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
 			{
@@ -452,7 +454,6 @@ void ContentBrowserPanel::Draw(void)
 				mAnimation = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 			else if (extension == ".gtmat")
 				mMaterial = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
-			mSelected = "";
 		}
 		else if (ImGui::IsItemClicked())
 		{
@@ -518,7 +519,14 @@ void ContentBrowserPanel::Draw(void)
 		{
 			ImGui::Dummy({ 0.0f, 0.0f });
 			ImGui::SameLine(offset);
-			ImGui::TextWrapped(name.c_str());
+			char buffer[15];
+			memcpy(buffer, name.c_str(), std::min(11ull, name.size() + 1));
+			if (name.size() > 11)
+			{
+				buffer[11] = buffer[12] = buffer[13] = '.';
+				buffer[14] = '\0';
+			}
+			ImGui::TextWrapped(buffer);
 			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
 				mRenaming = entry.path();
