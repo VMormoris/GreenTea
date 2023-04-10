@@ -405,6 +405,8 @@ void ContentBrowserPanel::Draw(void)
 				mHistory.emplace_back(mCurrentPath);
 
 				mCurrentIndex = mHistory.size() - 1;
+				mSelected = "";
+				clipboard.Clear();
 			}
 			else if(extension == ".gtscript" || extension == ".gtcomp" || extension == ".gtsystem")
 			{
@@ -420,7 +422,6 @@ void ContentBrowserPanel::Draw(void)
 				gte::uuid id = gte::internal::GetContext()->AssetWatcher.GetID(entry.path().string());
 				mAnimation = id;
 			}
-			mSelected = "";
 		}
 		else if (ImGui::IsItemClicked())
 		{
