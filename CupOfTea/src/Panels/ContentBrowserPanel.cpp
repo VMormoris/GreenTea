@@ -38,25 +38,26 @@ ContentBrowserPanel::ContentBrowserPanel(const std::string& directory)
 {
 	mHistory.emplace_back(directory);
 	gte::Image img("../Assets/Icons/folder.png");
-	sFolder = gte::GPU::Texture2D::Create(img);
+	let spec = gte::GPU::TextureSpecification{ gte::GPU::TextureFormat::RGBA8 };
+	sFolder = gte::GPU::Texture2D::Create(img, spec);
 
 	img.Load("../Assets/Icons/cpp.png");
-	sScriptFile = gte::GPU::Texture2D::Create(img);
+	sScriptFile = gte::GPU::Texture2D::Create(img, spec);
 
 	img.Load("../Assets/Icons/scene.png");
-	sSceneFile = gte::GPU::Texture2D::Create(img);
+	sSceneFile = gte::GPU::Texture2D::Create(img, spec);
 
 	img.Load("../Assets/Icons/audio.png");
-	sAudioFile = gte::GPU::Texture2D::Create(img);
+	sAudioFile = gte::GPU::Texture2D::Create(img, spec);
 
 	img.Load("../Assets/Icons/prefab.png");
-	sPrefabFile = gte::GPU::Texture2D::Create(img);
+	sPrefabFile = gte::GPU::Texture2D::Create(img, spec);
 
 	img.Load("../Assets/Icons/font.png");
-	sFontFile = gte::GPU::Texture2D::Create(img);
+	sFontFile = gte::GPU::Texture2D::Create(img, spec);
 
 	img.Load("../Assets/Icons/animation.png");
-	sAnimationFile = gte::GPU::Texture2D::Create(img);
+	sAnimationFile = gte::GPU::Texture2D::Create(img, spec);
 
 	sTransparentTexture = gte::GPU::Texture2D::Create(1, 1);
 	uint32 TransparentTexture = 0x00000000;
@@ -127,7 +128,7 @@ void ContentBrowserPanel::Draw(void)
 	{
 		if (gte::gui::DrawMenuItem(ICON_FK_FILE_IMAGE_O, "Texture", nullptr, "Texture"))
 		{
-			std::filesystem::path filepath = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "All Images(*.png, *jpg, *.jpeg, *.hdr)\0*.png;*.jpg;*.jpeg;*.hdr\0PNG file (*.png)\0*.png\0JPG file(*.jpg, *.jpeg)\0*.jpg; *.jpeg\0High Dynamic Range image file(*.hdr)\0*.hdr\0");
+			std::filesystem::path filepath = gte::internal::CreateFileDialog(gte::internal::FileDialogType::Open, "All Images(*.png, *jpg, *.jpeg, *.tga, *.hdr)\0*.png;*.jpg;*.jpeg;*.tga;*.hdr\0PNG file (*.png)\0*.png\0JPG file(*.jpg, *.jpeg)\0*.jpg; *.jpeg\0True vision Graphics Adapter file(*.tga)\0*.tga\0High Dynamic Range image file(*.hdr)\0*.hdr\0");
 			if (!filepath.empty())
 				CreateTextureAsset(filepath);
 			ImGui::CloseCurrentPopup();

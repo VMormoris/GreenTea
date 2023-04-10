@@ -5,13 +5,6 @@
 
 namespace gte {
 
-	/// @brief Enumaration for different kind of Images
-	enum class ENGINE_API ImageFormat : byte {
-		Invalid = 0,
-		Sprite,
-		Font
-	};
-
 	/**
 	* @brief Class for an Image representation
 	* @warning Saving an image will always result to a .png format

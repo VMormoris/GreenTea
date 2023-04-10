@@ -55,9 +55,17 @@ namespace gte {
 		sRendererData.ThumbnailShader->AddUniform("OclussionTexture");
 		sRendererData.ThumbnailShader->AddUniform("OpacityTexture");
 		sRendererData.ThumbnailShader->AddUniform("EmissiveTexture");
+		sRendererData.ThumbnailShader->AddUniform("IrradianceTexture");
+		sRendererData.ThumbnailShader->AddUniform("PrefilterTexture");
+		sRendererData.ThumbnailShader->AddUniform("LUTTexture");
+
 		
 		GPU::FrameBufferSpecification spec;
-		spec.Attachments = { gte::GPU::TextureFormat::RGBA8, gte::GPU::TextureFormat::Depth };
+		spec.Attachments =
+		{
+			{ GPU::TextureFormat::RGBA8, GPU::WrapFilter::CLAMP_EDGE, GPU::ResizeFilter::LINEAR },
+			{ GPU::TextureFormat::Depth }
+		};
 		spec.Width = spec.Height = 128;
 		sRendererData.ThumbnailFBO = GPU::FrameBuffer::Create(spec);
 	}
@@ -126,6 +134,9 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 5);
 		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 6);
 		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 7);
+		sRendererData.ThumbnailShader->SetUniform("IrradianceTexture", 8);
+		sRendererData.ThumbnailShader->SetUniform("PrefilterTexture", 9);
+		sRendererData.ThumbnailShader->SetUniform("LUTTexture", 10);
 
 		if (let& spec = sRendererData.ThumbnailFBO->GetSpecification();
 			spec.Width != size.x || spec.Height != size.y)
@@ -140,7 +151,9 @@ namespace gte {
 		let normalMatrix = glm::mat4(glm::transpose(glm::inverse(transform)));
 		sRendererData.ThumbnailShader->SetUniform("u_ModelMatrix", transform);
 		sRendererData.ThumbnailShader->SetUniform("u_NormalMatrix", normalMatrix);
-
+		internal::GetContext()->IrradianceFBO->BindAttachment(0, 8);
+		internal::GetContext()->PrefilterFBO->BindAttachment(0, 9);
+		internal::GetContext()->LUTFBO->BindAttachment(0, 10);
 		let& parts = mesh->Parts;
 		for (let& part : parts)
 		{
@@ -268,6 +281,9 @@ namespace gte {
 		sRendererData.ThumbnailShader->SetUniform("OclussionTexture", 5);
 		sRendererData.ThumbnailShader->SetUniform("OpacityTexture", 6);
 		sRendererData.ThumbnailShader->SetUniform("EmissiveTexture", 7);
+		sRendererData.ThumbnailShader->SetUniform("IrradianceTexture", 8);
+		sRendererData.ThumbnailShader->SetUniform("PrefilterTexture", 9);
+		sRendererData.ThumbnailShader->SetUniform("LUTTexture", 10);
 
 		if (let& spec = sRendererData.ThumbnailFBO->GetSpecification();
 			spec.Width != size.x || spec.Height != size.y)
@@ -283,7 +299,9 @@ namespace gte {
 		let normalMatrix = glm::mat4(glm::transpose(glm::inverse(transform)));
 		sRendererData.ThumbnailShader->SetUniform("u_ModelMatrix", transform);
 		sRendererData.ThumbnailShader->SetUniform("u_NormalMatrix", normalMatrix);
-
+		internal::GetContext()->IrradianceFBO->BindAttachment(0, 8);
+		internal::GetContext()->PrefilterFBO->BindAttachment(0, 9);
+		internal::GetContext()->LUTFBO->BindAttachment(0, 10);
 		let& parts = mesh->Parts;
 		for (let& part : parts)
 		{

@@ -14,6 +14,10 @@ namespace gte::GPU::OpenGL {
 
 	[[nodiscard]] size_t GetPixelSize(TextureFormat format) noexcept;
 
+	[[nodiscard]] GLfloat GetParameter(WrapFilter wrapmode) noexcept;
+
+	[[nodiscard]] GLfloat GetParameter(ResizeFilter sizemode) noexcept;
+
 	/**
 	* @brief Class for representing a 2D Texture on OpenGL API
 	*/
@@ -22,7 +26,7 @@ namespace gte::GPU::OpenGL {
 
 		//Constructor(s) & Destructor
 		OpenGLTexture2D(uint32 width, uint32 height) noexcept;
-		OpenGLTexture2D(const Image& image, ImageFormat format) noexcept;
+		OpenGLTexture2D(const Image& image, const TextureSpecification& spec) noexcept;
 		virtual ~OpenGLTexture2D(void) noexcept;
 
 		[[nodiscard]] uint32 GetHeight(void) const noexcept override { return mHeight; }
@@ -31,7 +35,7 @@ namespace gte::GPU::OpenGL {
 
 		void Bind(uint32 slot = 0) const noexcept;
 		void SetData(void* data, size_t size) noexcept override;
-		void SetData(const Image& image, ImageFormat format) noexcept override;
+		void SetData(const Image& image, const TextureSpecification& spec) noexcept override;
 
 	private:
 

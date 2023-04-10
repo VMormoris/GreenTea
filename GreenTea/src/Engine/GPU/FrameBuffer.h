@@ -9,7 +9,7 @@ namespace gte::GPU {
 	struct ENGINE_API FrameBufferSpecification {
 		uint32 Width = 0;
 		uint32 Height = 0;
-		std::vector<TextureFormat> Attachments;
+		std::vector<TextureSpecification> Attachments;
 		bool SwapChainTarget = false;
 	};
 
@@ -24,7 +24,7 @@ namespace gte::GPU {
 
 		virtual void Resize(uint32 width, uint32 height) noexcept = 0;
 
-		virtual void SpecifyTarget(uint32 attachment, uint32 target) noexcept = 0;
+		virtual void SpecifyTarget(uint32 attachment, uint32 target, uint32 mip = 0) noexcept = 0;
 
 		[[nodiscard]] virtual const FrameBufferSpecification& GetSpecification(void) const noexcept = 0;
 
@@ -35,6 +35,8 @@ namespace gte::GPU {
 		virtual void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept = 0;
 
 		virtual void ReadPixels(uint32 attachment, void* data) const noexcept = 0;
+
+		virtual void CreateMipMaps(uint32 attachment) const noexcept = 0;
 
 		[[nodiscard]] static FrameBuffer* Create(const FrameBufferSpecification& specification) noexcept;
 

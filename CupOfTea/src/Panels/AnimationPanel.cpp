@@ -241,7 +241,7 @@ void AnimationPanel::SetAnimation(const gte::uuid& id)
 AnimationPanel::AnimationPanel(void)
 {
 	gte::GPU::FrameBufferSpecification spec;
-	spec.Attachments = { gte::GPU::TextureFormat::RGB8 };
+	spec.Attachments = { { gte::GPU::TextureFormat::RGB8, gte::GPU::WrapFilter::CLAMP_EDGE, gte::GPU::ResizeFilter::LINEAR } };
 	spec.Width = static_cast<uint32>(mViewportSize.x);
 	spec.Height = static_cast<uint32>(mViewportSize.y);
 	mFBO = gte::GPU::FrameBuffer::Create(spec);

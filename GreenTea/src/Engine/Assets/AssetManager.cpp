@@ -55,7 +55,7 @@ namespace gte {
 #ifndef GT_DIST
 			GPU::Mesh* geometry = (GPU::Mesh*)raw.Data;
 			let& img = geometry->GetThumbnail();
-			GPU::Texture2D* texture = GPU::Texture2D::Create(img);
+			GPU::Texture2D* texture = GPU::Texture2D::Create(img, { GPU::TextureFormat::RGBA8 });
 			mThumbnails.insert({ id, CreateRef<Asset>(texture, id, AssetType::TEXTURE, img.Size()) });
 #endif
 		}
@@ -79,7 +79,11 @@ namespace gte {
 			else if (mRAM.at(id)->Type == AssetType::IMAGE)
 			{
 				Image* img = (Image*)mRAM.at(id)->Data;
-				GPU::Texture2D* texture = GPU::Texture2D::Create(*img);
+				let hdr = img->IsHDR();
+				GPU::TextureFormat format = hdr ? GPU::TextureFormat::RED16 : GPU::TextureFormat::RED8;
+				if (img->GetChannels() == 3) format = hdr ? GPU::TextureFormat::RGB16 : GPU::TextureFormat::RGB8;
+				else if (img->GetChannels() == 4) format = hdr ? GPU::TextureFormat::RGBA16 : GPU::TextureFormat::RGBA8;
+				GPU::Texture2D* texture = GPU::Texture2D::Create(*img, { format, GPU::ResizeFilter::LINEAR_MIPMAP_LINEAR, GPU::ResizeFilter::NEAREAST });
 				asset = CreateRef<Asset>(texture, id, AssetType::TEXTURE, img->Size());
 				mVRAM.insert({ id, asset });
 			}
@@ -113,7 +117,7 @@ namespace gte {
 			else if (mRAM.at(id)->Type == AssetType::FONT)
 			{
 				internal::Font* font = (internal::Font*)mRAM.at(id)->Data;
-				GPU::Texture2D* texture = GPU::Texture2D::Create(font->GetAtlas(), gte::ImageFormat::Font);
+				GPU::Texture2D* texture = GPU::Texture2D::Create(font->GetAtlas(), { GPU::TextureFormat::RGB8, GPU::ResizeFilter::LINEAR, GPU::ResizeFilter::LINEAR });
 				asset = CreateRef<Asset>(texture, id, AssetType::TEXTURE, font->GetAtlas().Size());
 				mVRAM.insert({ id, asset });
 			}
@@ -221,7 +225,7 @@ namespace gte {
 	void AssetManager::CreateThumbnail(const uuid& id, const Image& img)
 	{
 		std::unique_lock lock(mMapMutex);
-		GPU::Texture2D* texture = GPU::Texture2D::Create(img);
+		GPU::Texture2D* texture = GPU::Texture2D::Create(img, { GPU::TextureFormat::RGBA8 });
 		mThumbnails[id] = CreateRef<Asset>(texture, id, AssetType::TEXTURE, img.Size());
 	}
 #endif

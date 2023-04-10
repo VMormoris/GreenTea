@@ -231,7 +231,7 @@ namespace gte {
 		
 		GPU::FrameBufferSpecification spec;
 		spec.Width = 1; spec.Height = 1;
-		spec.Attachments = { GPU::TextureFormat::UInt32 };
+		spec.Attachments = { { GPU::TextureFormat::UInt32, GPU::WrapFilter::CLAMP_EDGE, GPU::ResizeFilter::LINEAR } };
 		sData.PickingFBO = GPU::FrameBuffer::Create(spec);
 		internal::GetContext()->PixelBufferObject = GPU::PixelBuffer::Create(spec.Width, spec.Height, gte::GPU::TextureFormat::UInt32);
 		internal::GetContext()->PixelBufferObject->SetFramebuffer(sData.PickingFBO);

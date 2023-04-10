@@ -8,7 +8,7 @@ EditorContext* CreateEditorContext(void)
 	sContext = new EditorContext();
 
 	gte::Image img("../Assets/Icons/Transparency.png");
-	sContext->TransparencyGrid = gte::GPU::Texture2D::Create(img);
+	sContext->TransparencyGrid = gte::GPU::Texture2D::Create(img, { gte::GPU::TextureFormat::RGB8 });
 	
 	sContext->SphereGeometry = OBJLoader{}.Load("../Assets/Shapes/Sphere.obj");
 	return sContext;

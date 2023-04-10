@@ -316,7 +316,7 @@ ProjectManagment::ProjectManagment(void)
 	gui->Init(window->GetPlatformWindow(), window->GetContext());
 
 	gte::Image img("../Assets/Icons/GreenTeaLogo.png");
-	sIcon = gte::GPU::Texture2D::Create(img);
+	sIcon = gte::GPU::Texture2D::Create(img, { gte::GPU::TextureFormat::RGBA8 });
 
 	std::ifstream is("../resources/projects.cache");
 	std::string line;

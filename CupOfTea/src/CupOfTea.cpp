@@ -656,7 +656,7 @@ CupOfTea::CupOfTea(const std::string& filepath)
     gui->Init(window->GetPlatformWindow(), window->GetContext());
 
 	gte::Image img("../Assets/Icons/Logo.png");
-	sIcon = gte::GPU::Texture2D::Create(img);
+	sIcon = gte::GPU::Texture2D::Create(img, { gte::GPU::TextureFormat::RGBA8 });
 
 	std::filesystem::path prjdir = filepath;
 	prjdir = prjdir.parent_path();
@@ -694,12 +694,14 @@ CupOfTea::CupOfTea(const std::string& filepath)
 	gte::internal::GetContext()->ScriptEngine = new gte::internal::ScriptingEngine();
 
 	gte::GPU::FrameBufferSpecification spec;
-	spec.Attachments = { gte::GPU::TextureFormat::RGB8,gte::GPU::TextureFormat::Depth };
+	spec.Attachments =
+	{
+		{ gte::GPU::TextureFormat::RGB8, gte::GPU::WrapFilter::CLAMP_EDGE, gte::GPU::ResizeFilter::LINEAR },
+		{ gte::GPU::TextureFormat::Depth }
+	};
 	spec.Width = window->GetWidth();
 	spec.Height = window->GetHeight();
 	gte::internal::GetContext()->ViewportFBO = gte::GPU::FrameBuffer::Create(spec);
-
-	spec.Attachments = { gte::GPU::TextureFormat::RGB8, gte::GPU::TextureFormat::Depth };
 	sCamFBO = gte::GPU::FrameBuffer::Create(spec);
 
 	gte::internal::GetContext()->ViewportSize = { static_cast<float>(spec.Width), static_cast<float>(spec.Height) };

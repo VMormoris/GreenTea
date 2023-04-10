@@ -40,6 +40,7 @@ namespace gte::GPU::OpenGL {
 		glDepthFunc(GL_LEQUAL);
 		glClearDepth(1.f);
 
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_MULTISAMPLE);
 	}

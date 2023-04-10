@@ -6,7 +6,7 @@
 
 static constexpr uint32 MaxSize = 8192;
 
-static int32 FindDepth(const std::vector<gte::GPU::TextureFormat> attachments);
+static int32 FindDepth(const std::vector<gte::GPU::TextureSpecification> attachments);
 
 namespace gte::GPU::OpenGL {
 
@@ -43,7 +43,8 @@ namespace gte::GPU::OpenGL {
 			{
 				if (i == depthIndex) continue;
 
-				let format = mSpecification.Attachments[i];
+				let& attachment = mSpecification.Attachments[i];
+				let format = attachment.Format;
 				if (format == TextureFormat::Cube)
 				{
 					glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &mColorAttachmentID[i]);
@@ -52,12 +53,19 @@ namespace gte::GPU::OpenGL {
 						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB16F, mSpecification.Width, mSpecification.Height, 0, GL_RGB, GL_FLOAT, nullptr);
 					
 					
-					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GetParameter(attachment.S));
+					glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GetParameter(attachment.T));
+					glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GetParameter(attachment.R));
+					glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GetParameter(attachment.Min));
+					ENGINE_ASSERT(attachment.Mag == ResizeFilter::LINEAR || attachment.Mag == ResizeFilter::NEAREAST, "Not acceptable for magnification filter.");
+					glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GetParameter(attachment.Mag));
 					
+					if (attachment.PrealocateMipMap &&
+						(attachment.Min == ResizeFilter::NEAREAST_MIPMAP_NEAREST ||
+						attachment.Min == ResizeFilter::NEAREST_MIPMAP_LINEAR ||
+						attachment.Min == ResizeFilter::LINEAR_MIPMAP_LINEAR ||
+						attachment.Min == ResizeFilter::LINEAR_MIPMAP_NEAREST))
+						glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 					// Attaching faces should be done when projecting stuff
 					//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, mColorAttachmentID[i], 0);
 				}
@@ -67,11 +75,19 @@ namespace gte::GPU::OpenGL {
 					glCreateTextures(GL_TEXTURE_2D, 1, &mColorAttachmentID[i]);
 					glBindTexture(GL_TEXTURE_2D, mColorAttachmentID[i]);
 					glTexImage2D(GL_TEXTURE_2D, 0, NativeFormat.first, mSpecification.Width, mSpecification.Height, 0, NativeFormat.second, GetTextureInternalType(format), NULL);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetParameter(attachment.S));
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetParameter(attachment.T));
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GetParameter(attachment.R));
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetParameter(attachment.Min));
+					ENGINE_ASSERT(attachment.Mag == ResizeFilter::LINEAR || attachment.Mag == ResizeFilter::NEAREAST, "Not acceptable for magnification filter.");
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetParameter(attachment.Mag));
+
+					if (attachment.PrealocateMipMap && 
+						(attachment.Min == ResizeFilter::NEAREAST_MIPMAP_NEAREST ||
+						attachment.Min == ResizeFilter::NEAREST_MIPMAP_LINEAR ||
+						attachment.Min == ResizeFilter::LINEAR_MIPMAP_LINEAR ||
+						attachment.Min == ResizeFilter::LINEAR_MIPMAP_NEAREST))
+						glGenerateMipmap(GL_TEXTURE_2D);
 
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mColorAttachmentID[i], 0);
 				}
@@ -86,7 +102,8 @@ namespace gte::GPU::OpenGL {
 
 		if (depthIndex != -1)//Has Depth attachment
 		{
-			let format = mSpecification.Attachments[depthIndex];
+			let& attachment = mSpecification.Attachments[depthIndex];
+			let format = attachment.Format;
 			if (format == GPU::TextureFormat::DEPTH24)
 			{
 				glCreateTextures(GL_TEXTURE_2D, 1, &mDepthAttachmentID);
@@ -100,11 +117,20 @@ namespace gte::GPU::OpenGL {
 				glCreateTextures(GL_TEXTURE_2D, 1, &mDepthAttachmentID);
 				glBindTexture(GL_TEXTURE_2D, mDepthAttachmentID);
 				glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, mSpecification.Width, mSpecification.Height);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetParameter(attachment.S));
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetParameter(attachment.T));
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GetParameter(attachment.R));
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetParameter(attachment.Min));
+				ENGINE_ASSERT(attachment.Mag == ResizeFilter::LINEAR || attachment.Mag == ResizeFilter::NEAREAST, "Not acceptable for magnification filter.");
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetParameter(attachment.Mag));
+
+				if (attachment.PrealocateMipMap && 
+					(attachment.Min == ResizeFilter::NEAREAST_MIPMAP_NEAREST ||
+					attachment.Min == ResizeFilter::NEAREST_MIPMAP_LINEAR ||
+					attachment.Min == ResizeFilter::LINEAR_MIPMAP_LINEAR ||
+					attachment.Min == ResizeFilter::LINEAR_MIPMAP_NEAREST))
+					glGenerateMipmap(GL_TEXTURE_2D);
+
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthAttachmentID, 0);
 				glDrawBuffer(GL_NONE);
 				glReadBuffer(GL_NONE);
@@ -137,7 +163,7 @@ namespace gte::GPU::OpenGL {
 	void OpenGLFrameBuffer::Bind(void) const noexcept { glBindFramebuffer(GL_FRAMEBUFFER, mID); }
 	void OpenGLFrameBuffer::BindAttachment(uint32 attachment, uint32 unit) const noexcept
 	{
-		let format = mSpecification.Attachments[attachment];
+		let format = mSpecification.Attachments[attachment].Format;
 		if(format == GPU::TextureFormat::DEPTH24 || format == GPU::TextureFormat::DEPTH24STENCIL8 || format == GPU::TextureFormat::Shadomap)
 			glBindTextureUnit(unit, mDepthAttachmentID);
 		else
@@ -163,9 +189,9 @@ namespace gte::GPU::OpenGL {
 		Invalidate();
 	}
 
-	void OpenGLFrameBuffer::SpecifyTarget(uint32 attachment, uint32 target) noexcept
+	void OpenGLFrameBuffer::SpecifyTarget(uint32 attachment, uint32 target, uint32 mip) noexcept
 	{
-		let format = mSpecification.Attachments[attachment];
+		let format = mSpecification.Attachments[attachment].Format;
 		if (format != TextureFormat::Cube)
 			return;
 		
@@ -173,8 +199,8 @@ namespace gte::GPU::OpenGL {
 		let index = depthIndex != -1 && (int32)attachment >= depthIndex ? attachment - 1 : attachment;
 		
 		Bind();
-		glBindTexture(GL_TEXTURE_CUBE_MAP, mColorAttachmentID[attachment]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_CUBE_MAP_POSITIVE_X + target, mColorAttachmentID[attachment], 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, mColorAttachmentID[index]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_CUBE_MAP_POSITIVE_X + target, mColorAttachmentID[index], mip);
 	}
 
 	void OpenGLFrameBuffer::Clear(uint32 attachement, const void* data) const noexcept
@@ -185,7 +211,7 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLFrameBuffer::GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept
 	{
-		let format = mSpecification.Attachments[attachment];
+		let format = mSpecification.Attachments[attachment].Format;
 		let Format = GetNativeTextureFormat(format);
 		Bind();
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
@@ -194,11 +220,20 @@ namespace gte::GPU::OpenGL {
 
 	void OpenGLFrameBuffer::ReadPixels(uint32 attachment, void* data) const noexcept
 	{
-		let format = mSpecification.Attachments[attachment];
+		let format = mSpecification.Attachments[attachment].Format;
 		let Format = GetNativeTextureFormat(format);
 		Bind();
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 		glReadPixels(0, 0, mSpecification.Width, mSpecification.Height, Format.second, GetTextureInternalType(format), data);
+	}
+
+	void OpenGLFrameBuffer::CreateMipMaps(uint32 attachment) const noexcept
+	{
+		let format = mSpecification.Attachments[attachment].Format;
+		let depthIndex = FindDepth(mSpecification.Attachments);
+		let index = depthIndex != -1 && (int32)attachment >= depthIndex ? attachment - 1 : attachment;
+		glBindTexture(format == GPU::TextureFormat::Cube ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, mColorAttachmentID[index]);
+		glGenerateMipmap(format == GPU::TextureFormat::Cube ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D);
 	}
 
 	[[nodiscard]] uint64 OpenGLFrameBuffer::GetColorAttachmentID(uint32 attachement) const noexcept { return mColorAttachmentID[attachement]; }
@@ -206,11 +241,11 @@ namespace gte::GPU::OpenGL {
 
 }
 
-int32 FindDepth(const std::vector<gte::GPU::TextureFormat> attachments)
+int32 FindDepth(const std::vector<gte::GPU::TextureSpecification> attachments)
 {
 	for (int32 i = 0; i < attachments.size(); i++)
 	{
-		let format = attachments[i];
+		let format = attachments[i].Format;
 		switch (format)
 		{
 		using namespace gte::GPU;

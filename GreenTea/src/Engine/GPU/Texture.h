@@ -18,7 +18,7 @@ namespace gte {
 
 	namespace GPU {
 
-		enum class TextureFormat : byte {
+		enum class ENGINE_API TextureFormat : byte {
 			INVALID = 0,
 
 			RED8,
@@ -27,8 +27,16 @@ namespace gte {
 			RGB8,
 			RGB16,
 
+			RG8,
+			RG16,
+
 			RGBA8,
 			RGBA16,
+
+			RED16F,
+			RG16F,
+			RGB16F,
+			RGBA16F,
 
 			Int8,
 			Int16,
@@ -47,6 +55,41 @@ namespace gte {
 
 			Depth = DEPTH24,
 			DepthStencil = DEPTH24STENCIL8
+		};
+
+		enum class ENGINE_API WrapFilter : byte {
+			REPEAT = 0,
+			MIRRORED_REPEAT,
+			CLAMP_EDGE,
+			CLAMP_BORDER,
+			MIRROR_CLAMP_EDGE
+		};
+
+		enum class ENGINE_API ResizeFilter : byte {
+			NEAREAST = 0,
+			LINEAR,
+			NEAREAST_MIPMAP_NEAREST,
+			NEAREST_MIPMAP_LINEAR,
+			LINEAR_MIPMAP_LINEAR,
+			LINEAR_MIPMAP_NEAREST
+		};
+
+		struct ENGINE_API TextureSpecification {
+			TextureFormat Format;
+			WrapFilter S = WrapFilter::REPEAT, T = WrapFilter::REPEAT, R = WrapFilter::REPEAT;
+			ResizeFilter Min = ResizeFilter::NEAREAST, Mag = ResizeFilter::NEAREAST;
+			bool PrealocateMipMap = true;
+
+			TextureSpecification(TextureFormat format)
+				: Format(format) {}
+			TextureSpecification(TextureFormat format, ResizeFilter filter)
+				: Format(format), Min(filter), Mag(filter) {}
+			TextureSpecification(TextureFormat format, ResizeFilter min, ResizeFilter mag)
+				: Format(format), Min(min), Mag(mag) {}
+			TextureSpecification(TextureFormat format, WrapFilter wrapmode, ResizeFilter resizemode)
+				: Format(format), S(wrapmode), T(wrapmode), R(wrapmode), Min(resizemode), Mag(resizemode) {}
+			TextureSpecification(TextureFormat format, WrapFilter wrapmode, ResizeFilter min, ResizeFilter mag)
+				: Format(format), S(wrapmode), T(wrapmode), R(wrapmode), Min(min), Mag(mag) {}
 		};
 
 		/**
@@ -86,7 +129,7 @@ namespace gte {
 			* @brief Loads the GPU with the data for the Image
 			* @param image Image containing the information for the texture
 			*/
-			virtual void SetData(const Image& image, ImageFormat format = ImageFormat::Sprite) noexcept = 0;
+			virtual void SetData(const Image& image, const TextureSpecification& spec) noexcept = 0;
 
 			/**
 			* @brief Binds texture to the specified texture slot
@@ -115,7 +158,7 @@ namespace gte {
 			* @param image Image containing the information for the texture
 			* @return A pointer to a Texture Object
 			*/
-			[[nodiscard]] static Texture2D* Create(const Image& image, ImageFormat format = ImageFormat::Sprite) noexcept;
+			[[nodiscard]] static Texture2D* Create(const Image& image, const TextureSpecification& spec) noexcept;
 
 			/**
 			* @brief Create a 2D Texture while loading it's content from a file

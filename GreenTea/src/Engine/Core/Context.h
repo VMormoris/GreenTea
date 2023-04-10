@@ -44,6 +44,9 @@ namespace gte::internal {
 		GPU::RendererAPI* Renderer = nullptr;
 		GPU::FrameBuffer* ViewportFBO = nullptr;
 		GPU::FrameBuffer* EnvironmentFBO = nullptr;
+		GPU::FrameBuffer* IrradianceFBO = nullptr;
+		GPU::FrameBuffer* PrefilterFBO = nullptr;
+		GPU::FrameBuffer* LUTFBO = nullptr;
 		GPU::PixelBuffer* PixelBufferObject = nullptr;
 		audio::AudioDevice* AudioDevice = nullptr;
 

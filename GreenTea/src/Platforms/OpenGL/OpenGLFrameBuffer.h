@@ -16,7 +16,7 @@ namespace gte::GPU::OpenGL {
 
 		void Resize(uint32 width, uint32 height) noexcept override;
 
-		void SpecifyTarget(uint32 attachment, uint32 target) noexcept override;
+		void SpecifyTarget(uint32 attachment, uint32 target, uint32 mip = 0) noexcept override;
 
 		[[nodiscard]] const FrameBufferSpecification& GetSpecification(void) const noexcept override;
 
@@ -26,6 +26,8 @@ namespace gte::GPU::OpenGL {
 		void GetPixel(uint32 attachment, int32 x, int32 y, void* data) const noexcept override;
 
 		void ReadPixels(uint32 attachment, void* data) const noexcept override;
+
+		void CreateMipMaps(uint32 attachment) const noexcept override;
 
 	private:
 
