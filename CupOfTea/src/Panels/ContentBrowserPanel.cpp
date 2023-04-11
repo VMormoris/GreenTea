@@ -487,13 +487,16 @@ void ContentBrowserPanel::Draw(void)
 		{
 			ImGui::Dummy({ 0.0f, 0.0f });
 			ImGui::SameLine(offset);
+			constexpr float MAX_WIDTH = 106.0f;
 			char buffer[15];
-			memcpy(buffer, name.c_str(), std::min(11ull, name.size() + 1));
-			if (name.size() > 11)
+			size_t i = 0;
+			float width = 0.0f;
+			while (i < 14 && i < name.size() && width < MAX_WIDTH)
 			{
-				buffer[11] = buffer[12] = buffer[13] = '.';
-				buffer[14] = '\0';
+				buffer[i] = name[i]; buffer[++i] = '\0';
+				width = ImGui::CalcTextSize(buffer).x;
 			}
+			if (width >= MAX_WIDTH) { buffer[i - 3] = buffer[i - 2] = buffer[i - 1] = '.'; }
 			ImGui::TextWrapped(buffer);
 			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
