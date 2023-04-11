@@ -20,174 +20,14 @@ void MaterialPanel::Draw(void)
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 	gte::gui::UISettings settings;
 	settings.ResetValue = 1.0f;
-	ImGui::PushID("Albedo");
-	ImGui::SetCursorPosX(6.0f);
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.Albedo = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.Albedo->ID);
-	if (let albedo = mMaterial.Albedo->Data)
-		imgid = ((gte::GPU::Texture*)albedo)->GetID();
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-		{
-			mMaterial.Albedo->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-			mMaterial.Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
-		}
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	float y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Color:");
-	ImGui::SameLine();
-	ImGui::SetCursorPos({ 139.5f, y });
-	gte::gui::DrawColorPicker(mMaterial.Diffuse, settings, "Define the base color of the Material, which tints or recolors the Material.\nUse the color picker to set the base color of the rendered Material.");
-	ImGui::PopID();
-
-	ImGui::PushID("Normal");
-	ImGui::SetCursorPos({ 6.0f, ImGui::GetCursorPosY() + 3.0f });
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.Normal = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.Normal->ID);
-	if (let normal = mMaterial.Normal->Data)
-		imgid = ((gte::GPU::Texture*)normal)->GetID();
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-			mMaterial.Normal->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Normal");
-	ImGui::SetCursorPosY(y);
-	ImGui::Dummy({ 26.0f, 26.0f });
-	ImGui::PopID();
-
-	ImGui::PushID("Metallic");
-	ImGui::SetCursorPosX(6.0f);
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.Metallic = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.Metallic->ID);
-	if (let metallic = mMaterial.Metallic->Data)
-		imgid = ((gte::GPU::Texture*)metallic)->GetID();
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-		{
-			mMaterial.Metallic->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-			mMaterial.Metallicness = 1.0f;
-		}
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Matallicness:");
-	ImGui::SameLine();
-	ImGui::SetCursorPos({ 139.0f, y });
-	ImGui::SliderFloat("##", &mMaterial.Metallicness, 0.0f, 1.0f);
-	ImGui::PopID();
-
-	ImGui::PushID("Rough");
-	ImGui::SetCursorPosX(6.0f);
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.Rough = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.Rough->ID);
-	if (let rougness = mMaterial.Rough->Data)
-		imgid = ((gte::GPU::Texture*)rougness)->GetID();
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-		{
-			mMaterial.Rough->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-			mMaterial.Roughness = 1.0f;
-		}
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Roughness:");
-	ImGui::SameLine();
-	ImGui::SetCursorPos({ 139.0f, y });
-	ImGui::SliderFloat("##", &mMaterial.Roughness, 0.0f, 1.0f);
-	ImGui::PopID();
-
-	ImGui::PushID("Ambient");
-	ImGui::SetCursorPosX(6.0f);
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.AmbientOclussion = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.AmbientOclussion->ID);
-	if (let occlusion = mMaterial.AmbientOclussion->Data)
-		imgid = ((gte::GPU::Texture*)occlusion)->GetID();
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-		{
-			mMaterial.AmbientOclussion->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-			mMaterial.AmbientColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-		}
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Occlusion:");
-	ImGui::SameLine();
-	ImGui::SetCursorPos({ 139.5f, y });
-	gte::gui::DrawColorPicker(mMaterial.AmbientColor, settings, "Define the ambient color of the Material, which tints or recolors the Material.\nUse the color picker to set the ambient color of the rendered Material.");
-	ImGui::PopID();
-
-	ImGui::PushID("Opacity");
-	ImGui::SetCursorPos({ 6.0f, ImGui::GetCursorPosY() + 3.0f });
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.Opacity = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.Opacity->ID);
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-		{
-			mMaterial.Opacity->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-			mMaterial.Alpha = 1.0f;
-		}
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Opacity:");
-	ImGui::SameLine();
-	ImGui::SetCursorPos({ 139.0f, y });
-	ImGui::SliderFloat("##", &mMaterial.Alpha, 0.0f, 1.0f);
-	ImGui::PopID();
-
-	ImGui::PushID("Emission");
-	ImGui::SetCursorPosX(6.0f);
-	imgid = GetEditorContext()->TransparencyGrid->GetID();
-	mMaterial.Emission = gte::internal::GetContext()->AssetManager.RequestAsset(mMaterial.Emission->ID);
-	if (let emissive = mMaterial.Emission->Data)
-		imgid = ((gte::GPU::Texture*)emissive)->GetID();
-	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-		{
-			mMaterial.Emission->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
-			mMaterial.EmitColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-		}
-		ImGui::EndDragDropTarget();
-	}
-	ImGui::SameLine();
-	y = ImGui::GetCursorPosY();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-	ImGui::Text("Emission:");
-	ImGui::SameLine();
-	ImGui::SetCursorPos({ 139.5f, y });
-	gte::gui::DrawColorPicker(mMaterial.EmitColor, settings, "Define the emissive color of the Material, which tints or recolors the Material.\nUse the color picker to set the emissive color of the rendered Material.");
-	ImGui::PopID();
+	
+	DrawProperty("Albedo", mMaterial.Albedo, mMaterial.Diffuse, "Define the base color of the Material, which tints or recolors the Material.\nUse the color picker to set the base color of the rendered Material.");
+	DrawProperty("Normal", mMaterial.Normal);
+	DrawProperty("Metallicness", mMaterial.Metallic, mMaterial.Metallicness);
+	DrawProperty("Roughness", mMaterial.Rough, mMaterial.Roughness);
+	DrawProperty("Occlusion", mMaterial.AmbientOclussion, mMaterial.AmbientColor, "Define the ambient color of the Material, which tints or recolors the Material.\nUse the color picker to set the ambient color of the rendered Material.");
+	DrawProperty("Opacity", mMaterial.Opacity, mMaterial.Alpha);
+	DrawProperty("Emission", mMaterial.Emission, mMaterial.EmitColor, "Define the emissive color of the Material, which tints or recolors the Material.\nUse the color picker to set the emissive color of the rendered Material.", 0.0f);
 
 	ImGui::Dummy({ 1.0f, 3.0f });
 
@@ -253,6 +93,79 @@ void MaterialPanel::SetMaterial(const gte::uuid& id)
 	while(asset->Type == gte::AssetType::LOADING)
 		asset = gte::internal::GetContext()->AssetManager.RequestAsset(id);
 	mMaterial = *(gte::Material*)asset->Data;
+}
+
+void MaterialPanel::DrawImageControl(gte::Ref<gte::Asset>& asset)
+{
+	ImGui::SetCursorPos({ 6.0f, ImGui::GetCursorPosY() + 3.0f });
+	void* imgid = GetEditorContext()->TransparencyGrid->GetID();
+	asset = gte::internal::GetContext()->AssetManager.RequestAsset(asset->ID);
+	if (let text = asset->Data)
+		imgid = ((gte::GPU::Texture*)text)->GetID();
+	ImGui::Image(imgid, { 26.0f, 26.0f }, { 0, 1 }, { 1, 0 });
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (let* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			asset->ID = gte::internal::GetContext()->AssetWatcher.GetID((const char*)payload->Data);
+		ImGui::EndDragDropTarget();
+	}
+	if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		ImGui::OpenPopup("##Texture Control");
+	if (ImGui::BeginPopup("##Texture Control"))
+	{
+		if (ImGui::MenuItem("Remove", nullptr, nullptr, imgid))
+			asset->ID = {};
+		ImGui::EndPopup();
+	}
+}
+
+void MaterialPanel::DrawProperty(const char* label, gte::Ref<gte::Asset>& asset)
+{
+	ImGui::PushID(label);
+	DrawImageControl(asset);
+	ImGui::SameLine();
+	let y = ImGui::GetCursorPosY();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
+	ImGui::Text(label);
+	ImGui::SetCursorPosY(y);
+	ImGui::Dummy({ 26.0f, 26.0f });
+	ImGui::PopID();
+}
+
+void MaterialPanel::DrawProperty(const char* label, gte::Ref<gte::Asset>& asset, float& value, const char* help)
+{
+	ImGui::PushID(label);
+	DrawImageControl(asset);
+	ImGui::SameLine();
+	let y = ImGui::GetCursorPosY();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 0.0f });
+	ImGui::Text(label); ImGui::SameLine(); ImGui::Text(":");
+	ImGui::PopStyleVar();
+	ImGui::SameLine();
+	ImGui::SetCursorPos({ 139.0f, y });
+	ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + 3.0f);
+	ImGui::SliderFloat("##", &value, 0.0f, 1.0f);
+	ImGui::PopItemWidth();
+	ImGui::PopID();
+}
+
+void MaterialPanel::DrawProperty(const char* label, gte::Ref<gte::Asset>& asset, glm::vec3& color, const char* help, float resetVal)
+{
+	gte::gui::UISettings settings;
+	settings.ResetValue = resetVal;
+	ImGui::PushID(label);
+	DrawImageControl(asset);
+	ImGui::SameLine();
+	let y = ImGui::GetCursorPosY();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 0.0f });
+	ImGui::Text(label); ImGui::SameLine(); ImGui::Text(":");
+	ImGui::PopStyleVar();
+	ImGui::SameLine();
+	ImGui::SetCursorPos({ 139.5f, y });
+	gte::gui::DrawColorPicker(color, settings, help);
+	ImGui::PopID();
 }
 
 void MaterialPanel::SaveMaterial(void)

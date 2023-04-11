@@ -860,7 +860,7 @@ namespace gte::gui {
 		return changed;
 	}
 
-	ENGINE_API bool DrawColorPicker(glm::vec4& value, const UISettings& settings, const std::string& help)
+	ENGINE_API bool DrawColorPicker(glm::vec3& value, const UISettings& settings, const std::string& help)
 	{
 		bool changed = false;
 		ImGuiIO& io = ImGui::GetIO();
@@ -869,12 +869,12 @@ namespace gte::gui {
 		const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize(lineHeight + 3.0f, lineHeight);
 
-		const float width = ImGui::GetContentRegionAvail().x - 5.0f * buttonSize.x + 23.0f;
+		const float width = ImGui::GetContentRegionAvail().x - 4.0f * buttonSize.x + 15.0f;
 
-		ImGui::PushMultiItemsWidths(4, width);
+		ImGui::PushMultiItemsWidths(3, width);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 1.0f));
 
-		int32 Color[4] = { static_cast<int32>(value.r * 255.0f), static_cast<int32>(value.g * 255.0f), static_cast<int32>(value.b * 255.0f), static_cast<int32>(value.a * 255.0f) };
+		int32 Color[3] = { static_cast<int32>(value.r * 255.0f), static_cast<int32>(value.g * 255.0f), static_cast<int32>(value.b * 255.0f) };
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0.15f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
@@ -939,28 +939,7 @@ namespace gte::gui {
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-		ImGui::PushFont(boldFont);
-		if (ImGui::Button("A", { buttonSize.y, buttonSize.y }))
-		{
-			value.a = settings.ResetValue;
-			Color[3] = static_cast<int32>(value.a * 255.0f);
-			changed = true;
-		}
-		ImGui::PopFont();
-		ImGui::PopStyleColor(3);
-		ImGui::SameLine();
-		if (ImGui::DragInt("##A", &Color[3], 1.0f, 0, 255))
-		{
-			value.a = Color[3] / 255.0f;
-			changed = true;
-		}
-		ImGui::PopItemWidth();
-		ImGui::SameLine();
-
-		ImGui::ColorEdit4("##", &value[0], ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit3("##", &value[0], ImGuiColorEditFlags_NoInputs);
 
 		ImGui::PopStyleVar();
 		return changed;

@@ -509,13 +509,13 @@ void OBJLoader::ParseMTL(const char* filepath)
 		{
 			std::istringstream s(line.substr(3));
 			s >> r; s >> g; s >> b;
-			mMesh->Materials[materialIndex].AmbientColor = { r, g, b, 1.0f };
+			mMesh->Materials[materialIndex].AmbientColor = { r, g, b };
 		}
 		else if (line.substr(0, 3).compare("Kd ") == 0)
 		{
 			std::istringstream s(line.substr(3));
 			s >> r; s >> g; s >> b;
-			mMesh->Materials[materialIndex].Diffuse = { r, g, b, 1.0f };
+			mMesh->Materials[materialIndex].Diffuse = { r, g, b };
 		}
 		else if (line.substr(0, 3).compare("Ns ") == 0)
 		{
@@ -542,7 +542,7 @@ void OBJLoader::ParseMTL(const char* filepath)
 			std::string filename;
 			s >> filename;
 			mMesh->Materials[materialIndex].Albedo = folder + filename;
-			mMesh->Materials[materialIndex].Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+			mMesh->Materials[materialIndex].Diffuse = { 1.0f, 1.0f, 1.0f };
 		}
 		else if (CompareIngoreCase(line.substr(0, 13), "map_emissive "))
 		{
@@ -550,7 +550,7 @@ void OBJLoader::ParseMTL(const char* filepath)
 			std::string filename;
 			s >> filename;
 			mMesh->Materials[materialIndex].Emission = folder + filename;
-			mMesh->Materials[materialIndex].EmitColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+			mMesh->Materials[materialIndex].EmitColor = { 1.0f, 1.0f, 1.0f };
 			mMesh->Materials[materialIndex].IsEmissive = true;
 		}
 		else if (CompareIngoreCase(line.substr(0, 7), "map_ka "))
@@ -559,7 +559,7 @@ void OBJLoader::ParseMTL(const char* filepath)
 			std::string filename;
 			s >> filename;
 			mMesh->Materials[materialIndex].AmbientOclussion = folder + filename;
-			mMesh->Materials[materialIndex].AmbientColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+			mMesh->Materials[materialIndex].AmbientColor = { 1.0f, 1.0f, 1.0f };
 		}
 		else if (CompareIngoreCase(line.substr(0, 7), "map_ks "))
 		{

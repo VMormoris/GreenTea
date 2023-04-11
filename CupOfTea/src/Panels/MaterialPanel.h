@@ -13,6 +13,10 @@ public:
 
 private:
 
+	void DrawProperty(const char* label, gte::Ref<gte::Asset>& asset);
+	void DrawProperty(const char* label, gte::Ref<gte::Asset>& asset, float& value, const char* help = "");
+	void DrawProperty(const char* label, gte::Ref<gte::Asset>& asset, glm::vec3& color, const char* help = "", float resetVal = 1.0f);
+	void DrawImageControl(gte::Ref<gte::Asset>& asset);
 	void SaveMaterial(void);
 
 private:

@@ -202,9 +202,9 @@ gte::Material* LoadMaterial(const YAML::Node& data, std::ifstream& ifs)
 	material->Opacity->ID = data["Opacity"].as<std::string>();
 	material->Emission->ID = data["Emission"].as<std::string>();
 
-	material->Diffuse = data["Diffuse"].as<glm::vec4>();
-	material->EmitColor = data["EmitColor"].as<glm::vec4>();
-	material->AmbientColor = data["AmbientColor"].as<glm::vec4>();
+	material->Diffuse = data["Diffuse"].as<glm::vec3>();
+	material->EmitColor = data["EmitColor"].as<glm::vec3>();
+	material->AmbientColor = data["AmbientColor"].as<glm::vec3>();
 	material->Metallicness = data["Metallicness"].as<float>();
 	material->Roughness = data["Roughness"].as<float>();
 	material->Alpha = data["Alpha"].as<float>();

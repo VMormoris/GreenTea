@@ -36,11 +36,12 @@ const float _PI_ = 3.14159265359;
 const vec3 u_LightPos = vec3(10.0,  10.0, 10.0);
 const vec3 u_LightColor = vec3(1.0);
 
-uniform vec4 u_Diffuse;
-uniform vec4 u_EmitColor;
-uniform vec4 u_AmbientColor;
+uniform vec3 u_Diffuse;
+uniform vec3 u_EmitColor;
+uniform vec3 u_AmbientColor;
 uniform float u_Metallicness;
 uniform float u_Roughness;
+uniform float u_Alpha;
 
 uniform bool u_HasAlbedo;
 uniform bool u_HasNormal;
@@ -57,6 +58,8 @@ uniform sampler2D NormalTexture;
 uniform sampler2D MetallicTexture;
 uniform sampler2D RoughTexture;
 uniform sampler2D OclussionTexture;
+uniform sampler2D OpacityTexture;
+uniform sampler2D EmissiveTexture;
 
 // IBL
 uniform samplerCube IrradianceTexture;
@@ -128,7 +131,9 @@ void main()
 
 	float metallicness = u_Metallicness;
 	float roughness = u_Roughness;
+	float alpha = u_Alpha;
 	vec3 ao = u_AmbientColor.rgb;
+	vec3 emission = u_EmitColor.rgb;
 	
 	if (u_HasMetallic)
 		metallicness *= texture(MetallicTexture, v_TextCoords).r;
@@ -136,6 +141,10 @@ void main()
 		roughness *= texture(RoughTexture, v_TextCoords).r;
 	if (u_HasOcclusion)
 		ao *= texture(OclussionTexture, v_TextCoords).rgb;
+	if (u_HasOpacity)
+		alpha *= texture(OpacityTexture, v_TextCoords).r;
+	if (u_HasEmissive)
+		emission *= texture(EmissiveTexture, v_TextCoords).rgb;
 
 	const vec3 N = v_TBN[2];
 	const vec3 V = normalize(u_CameraPos - v_WorldPos);
@@ -195,11 +204,11 @@ void main()
 
     const vec3 ambient = (kD * diffuse + specular) * ao;
     
-    vec3 color = ambient + Lo;
+    vec3 color = ambient + Lo + emission;
 
 	// HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
     color = pow(color, vec3(1.0/2.2));
-	o_Color = vec4(color, 1.0);
+	o_Color = vec4(color, alpha);
 }

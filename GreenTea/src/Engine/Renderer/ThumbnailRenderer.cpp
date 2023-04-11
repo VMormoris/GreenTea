@@ -34,6 +34,7 @@ namespace gte {
 		sRendererData.ThumbnailShader->AddUniform("u_AmbientColor");
 		sRendererData.ThumbnailShader->AddUniform("u_Metallicness");
 		sRendererData.ThumbnailShader->AddUniform("u_Roughness");
+		sRendererData.ThumbnailShader->AddUniform("u_Alpha");
 
 		sRendererData.ThumbnailShader->AddUniform("u_HasAlbedo");
 		sRendererData.ThumbnailShader->AddUniform("u_HasNormal");
@@ -167,6 +168,7 @@ namespace gte {
 			sRendererData.ThumbnailShader->SetUniform("u_AmbientColor", mat->AmbientColor);
 			sRendererData.ThumbnailShader->SetUniform("u_Metallicness", mat->Metallicness);
 			sRendererData.ThumbnailShader->SetUniform("u_Roughness", mat->Roughness);
+			sRendererData.ThumbnailShader->SetUniform("u_Alpha", mat->Alpha);
 
 			Ref<Asset> albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Albedo->ID);
 			while (albedoTexture->Type != AssetType::INVALID && albedoTexture->Type != AssetType::TEXTURE) albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat->Albedo->ID);
@@ -310,6 +312,7 @@ namespace gte {
 			sRendererData.ThumbnailShader->SetUniform("u_AmbientColor", mat.AmbientColor);
 			sRendererData.ThumbnailShader->SetUniform("u_Metallicness", mat.Metallicness);
 			sRendererData.ThumbnailShader->SetUniform("u_Roughness", mat.Roughness);
+			sRendererData.ThumbnailShader->SetUniform("u_Alpha", mat.Alpha);
 
 			Ref<Asset> albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Albedo->ID);
 			while (albedoTexture->Type != AssetType::INVALID && albedoTexture->Type != AssetType::TEXTURE) albedoTexture = internal::GetContext()->AssetManager.RequestAsset(mat.Albedo->ID);

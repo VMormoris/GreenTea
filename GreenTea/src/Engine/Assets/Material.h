@@ -22,9 +22,9 @@ namespace gte {
 		Ref<Asset> Opacity = CreateRef<Asset>();
 		Ref<Asset> Emission = CreateRef<Asset>();
 
-		glm::vec4 Diffuse{ 1.0f, 1.0f, 1.0f, 1.0f };
-		glm::vec4 EmitColor{ 0.0f, 0.0f, 0.0f, 0.0f };
-		glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec3 Diffuse{ 1.0f, 1.0f, 1.0f };
+		glm::vec3 EmitColor{ 0.0f, 0.0f, 0.0f };
+		glm::vec3 AmbientColor{ 1.0f, 1.0f, 1.0f };
 		float Metallicness = 0.33f;
 		float Roughness = 0.537f;
 		float Alpha = 1.0f;
