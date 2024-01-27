@@ -74,5 +74,35 @@ namespace YAML {
 			return true;
 		}
 	};
+}
+
+namespace gte::math {
+
+	template<>
+	inline float SquareDistance<>(const glm::vec2& lhs, const glm::vec2& rhs) noexcept
+	{
+		let x = lhs.x - rhs.x;
+		let y = lhs.y - rhs.y;
+		return x * x + y * y;
+	}
+
+	template<>
+	inline float SquareDistance<>(const glm::vec3& lhs, const glm::vec3& rhs) noexcept
+	{
+		let x = lhs.x - rhs.x;
+		let y = lhs.y - rhs.y;
+		let z = lhs.z - rhs.z;
+		return x * x + y * y + z * z;
+	}
+
+	template<>
+	inline float SquareDistance<>(const glm::vec4& lhs, const glm::vec4& rhs) noexcept
+	{
+		let x = lhs.x - rhs.x;
+		let y = lhs.y - rhs.y;
+		let z = lhs.z - rhs.z;
+		let w = lhs.w - rhs.w;
+		return x * x + y * y + z * z + w * w;
+	}
 
 }

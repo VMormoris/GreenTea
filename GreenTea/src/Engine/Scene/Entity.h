@@ -17,7 +17,7 @@ namespace gte {
 		template<typename T>
 		[[nodiscard]] T& GetComponent(void)
 		{
-			ASSERT(HasComponent<T>(), "Requested component doesn't exist.");
+			ASSERT(HasComponent<T>(), "Requested component: '", typeid(T).name(), "' doesn't exist.");
 			return mOwner->mReg.get<T>(mEntityHandle);
 		}
 		
@@ -34,7 +34,7 @@ namespace gte {
 		template<typename T>
 		void RemoveComponent(void)
 		{
-			ASSERT(HasComponent<T>(), "Requested component doesn't exist.");
+			ASSERT(HasComponent<T>(), "Requested component: '", typeid(T).name(), "' doesn't exist.");
 			mOwner->mReg.remove<T>(mEntityHandle);
 		}
 

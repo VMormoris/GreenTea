@@ -72,7 +72,8 @@ namespace gte::GLFW {
 			WindowProps& props = *static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
 			props.x = x;
 			props.y = y;
-			internal::GetContext()->Dispatcher.Dispatch<EventType::WindowMove>(x, y);
+			auto* context = internal::GetContext();
+			context->Dispatcher.Dispatch<EventType::WindowMove>(x, y);
 		});
 		
 		glfwSetWindowFocusCallback(mWindow, [](GLFWwindow* window, int focus) {

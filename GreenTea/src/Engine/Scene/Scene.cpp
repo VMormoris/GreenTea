@@ -343,7 +343,11 @@ namespace gte {
 				psc.Props.MaxParticles = particleSystem["MaxParticles"].as<uint32>();
 				psc.Props.Looping = particleSystem["Looping"].as<bool>();
 				if (const auto& play = particleSystem["PlayOnStart"])
+				{
 					psc.PlayOnStart = play.as<bool>();
+					if (internal::GetContext()->Playing)
+						psc.System->Start();
+				}
 			}
 
 			const auto& animation = entityNode["AnimationComponent"];
@@ -854,7 +858,12 @@ namespace gte {
 				fixtureDef.restitution = cc.Restitution;
 				fixtureDef.restitutionThreshold = cc.RestitutionThreshold;
 				fixtureDef.isSensor = cc.Sensor;
-				cc.Fixure = body->CreateFixture(&fixtureDef);
+				b2Fixture* fixture = body->CreateFixture(&fixtureDef);
+				b2Filter filter;
+				filter.categoryBits = cc.Category;
+				filter.maskBits = cc.Mask;
+				fixture->SetFilterData(filter);
+				cc.Fixure = fixture;
 			}
 
 			auto boxes = mReg.group<BoxColliderComponent>(entt::get<Rigidbody2DComponent, TransformationComponent>);
@@ -885,7 +894,12 @@ namespace gte {
 				fixtureDef.restitution = bc.Restitution;
 				fixtureDef.restitutionThreshold = bc.RestitutionThreshold;
 				fixtureDef.isSensor = bc.Sensor;
-				bc.Fixure = body->CreateFixture(&fixtureDef);
+				b2Fixture* fixture = body->CreateFixture(&fixtureDef);
+				b2Filter filter;
+				filter.categoryBits = bc.Category;
+				filter.maskBits = bc.Mask;
+				fixture->SetFilterData(filter);
+				bc.Fixure = fixture;
 			}
 		}
 		return toReturn;
@@ -1790,7 +1804,12 @@ namespace gte {
 				fixtureDef.restitution = cc.Restitution;
 				fixtureDef.restitutionThreshold = cc.RestitutionThreshold;
 				fixtureDef.isSensor = cc.Sensor;
-				cc.Fixure = body->CreateFixture(&fixtureDef);
+				b2Fixture* fixture = body->CreateFixture(&fixtureDef);
+				b2Filter filter;
+				filter.categoryBits = cc.Category;
+				filter.maskBits = cc.Mask;
+				fixture->SetFilterData(filter);
+				cc.Fixure = fixture;
 			}
 		}
 
@@ -1821,7 +1840,12 @@ namespace gte {
 				fixtureDef.restitution = bc.Restitution;
 				fixtureDef.restitutionThreshold = bc.RestitutionThreshold;
 				fixtureDef.isSensor = bc.Sensor;
-				bc.Fixure = body->CreateFixture(&fixtureDef);
+				b2Fixture* fixture = body->CreateFixture(&fixtureDef);
+				b2Filter filter;
+				filter.categoryBits = bc.Category;
+				filter.maskBits = bc.Mask;
+				fixture->SetFilterData(filter);
+				bc.Fixure = fixture;
 			}
 		}
 	}

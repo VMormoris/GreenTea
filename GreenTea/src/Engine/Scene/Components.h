@@ -254,6 +254,10 @@ namespace gte {
 		float Restitution = 0.0f;
 		float RestitutionThreshold = 0.5f;
 		bool Sensor = false;
+		
+		uint16 Category = 0x0001;
+		uint16 Mask = 0xFFFF;
+
 		Collider(void) = default;
 		Collider(const Collider&) = default;
 	
