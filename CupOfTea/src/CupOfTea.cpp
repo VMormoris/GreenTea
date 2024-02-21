@@ -806,8 +806,8 @@ CupOfTea::CupOfTea(const std::string& filepath)
 		OpenScene("Assets/" + scenename);
 	}
 	
-	auto solutionFile = prjdir.filename().string() + ".sln";
-	ShellExecuteA(0, 0, solutionFile.c_str(), 0, 0, SW_SHOW);
+	//auto solutionFile = prjdir.filename().string() + ".sln";
+	//ShellExecuteA(0, 0, solutionFile.c_str(), 0, 0, SW_SHOW);
 	gte::internal::GetContext()->ActiveScene->OnViewportResize(mWindow->GetWidth(), mWindow->GetHeight());
 	gte::internal::GetContext()->ScriptEngine = new gte::internal::ScriptingEngine();
 
