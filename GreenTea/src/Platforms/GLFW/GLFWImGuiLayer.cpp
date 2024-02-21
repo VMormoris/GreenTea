@@ -33,6 +33,7 @@ namespace gte::GLFW {
         io.FontDefault = io.Fonts->AddFontFromFileTTF("../Assets/Fonts/Roboto/Roboto-Regular.ttf", 18);
         io.Fonts->AddFontFromFileTTF("../Assets/Fonts/Icons/ForkAwesome/" FONT_ICON_FILE_NAME_FK, 18.0f, NULL, icon_ranges);
         io.Fonts->AddFontFromFileTTF("../Assets/Fonts/Roboto/Roboto-Regular.ttf", 32);
+        io.Fonts->AddFontFromFileTTF("../Assets/Fonts/Play/Play-Regular.ttf", 18.0f);
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();

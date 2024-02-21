@@ -77,6 +77,7 @@ namespace gte {
 		*/
 		void Load(const char* filepath);
 		void Load(const byte* buffer);
+		void Load(const byte* buffer, int32 length);
 		void Load(const byte* buffer, uint32 width, uint32 height, int32 bpp);
 
 		void Save(const char* filepath);

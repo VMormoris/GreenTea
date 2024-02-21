@@ -50,6 +50,7 @@ project "GreenTea"
 		"_CRT_SECURE_NO_WARNINGS",
 		"GLFW_INCLUDE_NONE",
 		"AL_LIBTYPE_STATIC",
+		"IMGUI_DEFINE_MATH_OPERATORS",
 	}
 
     postbuildcommands

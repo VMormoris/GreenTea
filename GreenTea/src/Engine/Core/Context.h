@@ -48,6 +48,7 @@ namespace gte::internal {
 
 		CollisionDispatcher* CDispatcher = nullptr;
 		bool Playing = false;
+		bool Paused = false;
 		float GlobalTime = 0.0f;
 	};
 

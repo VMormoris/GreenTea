@@ -43,6 +43,9 @@ namespace gte {
 
 	void Scene::Update(float dt)
 	{
+		if (internal::GetContext()->Paused)
+			return;
+
 		internal::GetContext()->GlobalTime += dt;
 		Entity me = FindEntityWithUUID({});
 		const float STEP = 1.0f / me.GetComponent<Settings>().Rate;

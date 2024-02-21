@@ -16,6 +16,11 @@
 #include <shellapi.h>
 
 static gte::GPU::Texture* sIcon = nullptr;
+static gte::GPU::Texture* sMinimize = nullptr;
+static gte::GPU::Texture* sMaximize = nullptr;
+static gte::GPU::Texture* sClose = nullptr;
+static gte::GPU::Texture* sRestore = nullptr;
+
 static bool sLoaded = false;
 static ImGuizmo::OPERATION sGuizmoOP = ImGuizmo::OPERATION::BOUNDS;
 static gte::GPU::FrameBuffer* sCamFBO = nullptr;
@@ -67,7 +72,6 @@ void CupOfTea::Update(float dt)
 	}
 
     Application::Update(dt);
-    gte::Window* window = gte::internal::GetContext()->GlobalWindow;
 	glm::vec2& viewportSize = gte::internal::GetContext()->ViewportSize;
 	if (gte::GPU::FrameBufferSpecification spec = viewportFBO->GetSpecification();
 		(viewportSize.x > 0.0f) && (viewportSize.y > 0.0f) &&
@@ -132,7 +136,7 @@ void CupOfTea::Update(float dt)
 	}
 
 	mAnimationPanel.Update(dt);
-	RenderGUI();
+	RenderMainWindow();
 }
 
 void CupOfTea::OnOverlayRenderer(void)
@@ -194,110 +198,9 @@ void CupOfTea::OnOverlayRenderer(void)
 
 void CupOfTea::RenderGUI(void)
 {
-    gui->Begin();
-    ImGui::SetCurrentContext(gui->GetContext());
-	ImGuizmo::BeginFrame();
 	ImGuiIO& io = ImGui::GetIO();
 	auto IconsFont = io.Fonts->Fonts[3];
 	auto BoldFont = io.Fonts->Fonts[1];
-
-	//DockSpace From ImGui Demo
-	// Note: Switch this to true to enable dockspace
-	static bool dockspaceOpen = true;
-	static bool opt_fullscreen_persistant = true;
-	bool opt_fullscreen = opt_fullscreen_persistant;
-	static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-	// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-	// because it would be confusing to have two docking targets within each others.
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-	if (opt_fullscreen)
-	{
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-	}
-
-	// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
-	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-		window_flags |= ImGuiWindowFlags_NoBackground;
-
-	// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-	// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive, 
-	// all active windows docked into it will lose their parent and become undocked.
-	// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
-	// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-	ImGui::PopStyleVar();
-
-	if (opt_fullscreen)
-		ImGui::PopStyleVar(2);
-
-	// DockSpace
-	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-	{
-		ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		ImGuiDockNode* Node = ImGui::DockBuilderGetNode(dockspace_id);
-		Node->SharedFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
-	}
-
-	bool exportgame = false;
-	if (ImGui::BeginMainMenuBar())
-	{
-		//ImGui::Image(sIcon->GetID(), { 64.0f, 51.0f }, { 0, 1 }, { 1, 0 });
-		if (ImGui::BeginMenu("File"))
-		{
-			const char biggest[] = "Save Scene As...Ctrl+Shift+N";
-			if (gte::gui::DrawMenuItem(ICON_FK_CUBES, "New Scene", "Ctrl+N", biggest))
-				NewScene();
-			//if (gte::gui::DrawMenuItem(ICON_FK_BOOK, "New Project", "Ctrl+Shift+N", biggest))
-			//{
-			//}
-			//if (gte::gui::DrawMenuItem(ICON_FK_FOLDER_OPEN, "Open Project...", "Ctrl+O", biggest))
-			//{
-			//	
-			//}
-			if (gte::gui::DrawMenuItem(ICON_FK_FLOPPY_O, "Save Scene", "Ctrl+S", biggest))
-				SaveScene();
-			if (gte::gui::DrawMenuItem(ICON_FK_FILE, "Save Scene As...", "Ctrl+Shift+S", biggest))
-				SaveSceneAs(gte::internal::CreateFileDialog(gte::internal::FileDialogType::Save, "Green Tea Scene (*.gtscene)\0*.gtscene\0"));
-			ImGui::Separator();
-			if (gte::gui::DrawMenuItem(ICON_FK_GAMEPAD, "Export Game", nullptr, biggest))
-				exportgame = true;
-			ImGui::Separator();
-			if (gte::gui::DrawMenuItem(ICON_FK_POWER_OFF, "Exit", "Alt+F4", biggest))
-				Close();
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("View"))
-		{
-			ImGui::MenuItem("Viewport", nullptr, &mPanels[0]);
-			ImGui::MenuItem("Content Browser", nullptr, &mPanels[1]);
-			ImGui::MenuItem("Hierarchy", nullptr, &mPanels[2]);
-			ImGui::MenuItem("Properties", nullptr, &mPanels[3]);
-			ImGui::MenuItem("Console Log", nullptr, &mPanels[4]);
-			ImGui::EndMenu();
-		}
-
-		ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
-		if (ImGui::Button("About"))
-			mPanels[5] = !mPanels[5];
-		ImGui::PopStyleColor();
-
-		ImGui::EndMainMenuBar();
-	}
-	if (exportgame)
-		ImGui::OpenPopup("Export Game##Popup");
-	DrawExportPopup();
-	DrawExportProgress();
-	ImGui::End();//End Dockspace
 	
 	if (mPanels[0] && !mPanels[7])
 	{
@@ -339,37 +242,6 @@ void CupOfTea::RenderGUI(void)
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();
-
-		{//Tools Panel
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-			ImGui::Begin("##Tools", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			auto& colors = ImGui::GetStyle().Colors;
-			const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
-			const auto& buttonActive = colors[ImGuiCol_ButtonActive];
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
-			const float btnSize = ImGui::GetWindowHeight() - 4.0f;
-			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x - btnSize) / 2.0f);
-			ImGui::PushFont(IconsFont);
-			const bool building = gte::internal::GetContext()->AssetWatcher.IsBuilding();
-			if (building)
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			if (ImGui::Button(gte::internal::GetContext()->Playing ? ICON_FK_STOP : ICON_FK_PLAY, { btnSize, btnSize }))
-			{
-				if (gte::internal::GetContext()->Playing)//Stop
-					Stop();
-				else//Start
-					Start();
-			}
-			if (building)
-				ImGui::PopItemFlag();
-			ImGui::PopFont();
-			ImGui::PopStyleColor(3);
-			ImGui::End();
-			ImGui::PopStyleVar(2);
-		}
 	}
 
 	if (mPanels[2])
@@ -568,7 +440,6 @@ void CupOfTea::RenderGUI(void)
 	}
 
 	//ImGui::ShowDemoWindow();
-    gui->End();
 	if (animation.IsValid())
 	{
 		mPanels[7] = true;
@@ -576,16 +447,335 @@ void CupOfTea::RenderGUI(void)
 	}
 }
 
+void CupOfTea::RenderMainWindow(void)
+{
+	gui->Begin();
+	ImGui::SetCurrentContext(gui->GetContext());
+	ImGuizmo::BeginFrame();
+	ImGuiIO& io = ImGui::GetIO();
+	auto TitleFont = io.Fonts->Fonts[5];
+	auto IconFont = io.Fonts->Fonts[3];
+	//DockSpace From ImGui Demo
+	// Note: Switch this to true to enable dockspace
+	static bool dockspaceOpen = true;
+	static bool opt_fullscreen_persistant = true;
+	bool opt_fullscreen = opt_fullscreen_persistant;
+	static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+	// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+	// because it would be confusing to have two docking targets within each others.
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar;
+	if (opt_fullscreen)
+	{
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		window_flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	}
+
+	// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+	if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+		window_flags |= ImGuiWindowFlags_NoBackground;
+
+
+	let isMaximized = mWindow->IsMaximized();
+	// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+	// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive, 
+	// all active windows docked into it will lose their parent and become undocked.
+	// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
+	// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, isMaximized ? ImVec2 { 6.0f, 6.0f } : ImVec2{ 0.0f, 0.0f });
+	ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{ 0.054901960784313725f, 0.054901960784313725f, 0.06274509803921569f, 1.0f });
+	ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+	ImGui::PopStyleColor(2);
+	ImGui::PopStyleVar();
+
+	if (opt_fullscreen)
+		ImGui::PopStyleVar(2);
+	
+	auto* window = ImGui::GetCurrentWindow();
+	ImVec2 size, pos;
+	gte::gui::UpdateWindowManualResize(window, size, pos);
+	let windowPadding = window->WindowPadding;
+	constexpr float titlebarHeight = 64.0f;
+	let titlebarOffset = isMaximized ? -6.0f : 0.0f;
+
+	auto* bgDrawList = ImGui::GetBackgroundDrawList();
+	auto* fgDrawList = ImGui::GetForegroundDrawList();
+
+	{// Logo
+		let width = 64.0f;
+		let height = 64.0f;
+
+		let offset = ImVec2{ 8.0f + windowPadding.x, 2.5f + windowPadding.y + titlebarOffset };
+		let rectMin = ImVec2{ ImGui::GetItemRectMin().x + offset.x, ImGui::GetItemRectMin().y + offset.y };
+		let rectMax = ImVec2{ rectMin.x + width, rectMin.y + height };
+		fgDrawList->AddImage(sIcon->GetID(), rectMin, rectMax, { 0, 1 }, { 1, 0 });
+	}
+
+	// Title bar drag area
+	// On Windows we hook into the GLFW win32 window internals
+	ImGui::SetCursorPos({ windowPadding.x, windowPadding.y + titlebarOffset });
+	ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - windowPadding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
+	{// Custom Titlebar
+
+		let min = ImGui::GetCursorScreenPos();
+		let max = ImVec2{ min.x + ImGui::GetWindowWidth() - windowPadding.y * 2.0f, min.y + titlebarHeight };
+
+		//let bg = (ImU32)ImColor{ ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) };
+		//bgDrawList->AddRectFilled(min, max, ImU32(ImColor{ 255, 255, 255 }));
+		//fgDrawList->AddRect(min, max, ImU32(ImColor{ 255, 255, 255 }));
+		{
+			constexpr float buttonsAreaWidth = 94.0f;
+			let width = ImGui::GetContentRegionAvail().x;
+
+			// Title bar drag area
+			// On Windows we hook into the GLFW win32 window internals
+			//ImGui::SetCursorPos({ windowPadding.x, windowPadding.y + titlebarOffset });
+			const ImColor debugColor = { 255, 0, 0, 255 };
+			//fgDrawList->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + width - buttonsAreaWidth, ImGui::GetCursorScreenPos().y + titlebarHeight), debugColor);
+			ImGui::SetNextItemAllowOverlap();
+			ImGui::InvisibleButton("##titlebarDragZone", { width - buttonsAreaWidth, titlebarHeight });
+			let isHovered = ImGui::IsItemHovered();
+			mWindow->SetTitlebarHovered(isHovered);
+
+			if (isMaximized)
+			{
+				let mousePosY = ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y;
+				if (mousePosY >= 0.0f && mousePosY < 6.0f)
+					mWindow->SetTitlebarHovered(true);
+			}
+		}
+
+		
+		{// Draw Menubar
+			ImGui::SuspendLayout();
+			{
+				const float logoHorizontalOffset = 16.0f * 2.0f + 48.0f + windowPadding.x;
+				ImGui::SetCursorPos(ImVec2(logoHorizontalOffset, 6.0f + titlebarOffset));
+				RenderMenubar();
+
+				if (ImGui::IsItemHovered())
+					mWindow->SetTitlebarHovered(false);
+			}
+			ImGui::ResumeLayout();
+		}
+
+
+		let& theme = ImGui::GetStyle().Colors;
+		{
+			let currCursor = ImGui::GetCursorPos();
+			{// App name
+				constexpr char appname[] = "CupOfTea (Green Tea editor)";
+				ImGui::PushFont(TitleFont);
+				let textSize = ImGui::CalcTextSize(appname);
+				let centerPos = ImVec2{ ImGui::GetWindowWidth() * 0.5f - textSize.x * 0.5f, 2.0f + windowPadding.y + 6.0f };
+				ImGui::SetCursorPos(centerPos);
+				ImGui::Text(appname);
+				ImGui::PopFont();
+			}
+
+			{// Play/Pause & Stop buttons
+				ImGui::SuspendLayout();
+				ImGui::PushFont(IconFont);
+				let centerPos = ImVec2{ ImGui::GetWindowWidth() * 0.5f - 30.0f, 2.0f + windowPadding.y + 6.0f + 18.0f };
+				ImGui::SetCursorPos(centerPos);
+
+				let buttonH = theme[ImGuiCol_ButtonHovered];
+				let buttonP = theme[ImGuiCol_ButtonActive];
+
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 0.0f });
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0, 0, 0, 0 });
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ buttonH.x, buttonH.y, buttonH.z, 0.333f });
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ buttonP.x, buttonP.y, buttonP.z, 0.75f });
+				
+				let playing = gte::internal::GetContext()->Playing;
+				auto& paused = gte::internal::GetContext()->Paused;
+				let isPausedButton = playing && !paused;
+				if (!isPausedButton) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.224f, 0.663f, 0.224f, 1.0f });
+				let play = ImGui::Button(isPausedButton ? ICON_FK_PAUSE : ICON_FK_PLAY, { 30.0f, 30.0f }); ImGui::SameLine();
+				if (!isPausedButton) ImGui::PopStyleColor();
+				if (play && !playing)
+					Start();
+				else if (play && playing)
+					paused = !paused;
+				
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.827f, 0.278f, 0.278f, playing ? 1.0f : 0.5f });
+				if (!playing) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				if (ImGui::Button(ICON_FK_STOP, { 30.0f, 30.0f }))
+					Stop();
+				if (!playing) ImGui::PopItemFlag();
+				ImGui::PopStyleColor();
+
+				ImGui::PopStyleColor(3);
+				ImGui::PopStyleVar(2);
+
+				ImGui::PopFont();
+				ImGui::ResumeLayout();
+			}
+			ImGui::SetCursorPos(currCursor);
+		}
+
+		{//Window buttons
+			let& buttonCol = theme[ImGuiCol_Text];
+			let buttonColN = (ImU32)ImColor{ ImVec4 { buttonCol.x * 0.9f, buttonCol.y * 0.9f, buttonCol.z * 0.9f, buttonCol.w * 0.9f } };
+			let buttonColH = (ImU32)ImColor{ ImVec4 { buttonCol.x * 1.2f, buttonCol.y * 1.2f, buttonCol.z * 1.2f, buttonCol.w * 1.2f } };
+			let buttonColP = (ImU32)ImColor{ theme[ImGuiCol_TextDisabled] };
+			constexpr float buttonWidth = 14.0f;
+			constexpr float buttonHeight = 14.0f;
+
+			// Minimize Button
+			ImGui::Spring();
+			gte::gui::ShiftCursorY(8.0f);
+			{
+				let width = sMinimize->GetWidth();
+				let height = sMinimize->GetHeight();
+				let padY = (buttonHeight - (float)height) / 2.0f;
+				if (ImGui::InvisibleButton("Minimize", { buttonWidth, buttonHeight }))
+					mWindow->Minimize();
+
+				gte::gui::DrawButtonImage(sMinimize->GetID(), buttonColN, buttonColH, buttonColP, gte::gui::RectExpanded(gte::gui::GetItemRect(), { 0.0f, -padY }));
+			}
+
+			ImGui::Spring(-1.0f, 17.0f);
+			gte::gui::ShiftCursorY(8.0f);
+			// Maximize or Restore Button
+			{
+				let width = sMaximize->GetWidth();
+				let height = sMaximize->GetHeight();
+				let padY = (buttonHeight - (float)height) / 2.0f;
+				if (ImGui::InvisibleButton("Maximize", ImVec2(buttonWidth, buttonHeight)))
+					isMaximized ? mWindow->Restore() : mWindow->Maximize();
+
+				gte::gui::DrawButtonImage(isMaximized ? sRestore->GetID() : sMaximize->GetID(), buttonColN, buttonColH, buttonColP, gte::gui::RectExpanded(gte::gui::GetItemRect(), { 0.0f, -padY }));
+			}
+
+			ImGui::Spring(-1.0f, 15.0f);
+			gte::gui::ShiftCursorY(8.0f);
+			// Close Button
+			{
+				let width = sClose->GetWidth();
+				let height = sClose->GetHeight();
+				let padY = (buttonHeight - (float)height) / 2.0f;
+				if (ImGui::InvisibleButton("Close", { buttonWidth, buttonHeight }))
+					Close();
+
+				gte::gui::DrawButtonImage(sClose->GetID(), buttonColN, buttonColH, buttonColP, gte::gui::RectExpanded(gte::gui::GetItemRect(), { 0.0f, -padY }));
+			}
+		}
+	}
+	ImGui::Spring(-1.0f, 18.0f);
+	ImGui::EndHorizontal();
+	ImGui::SetCursorPosY(titlebarHeight);
+
+	DrawExportPopup();
+	DrawExportProgress();
+	// DockSpace
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	{
+		ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		ImGuiDockNode* Node = ImGui::DockBuilderGetNode(dockspace_id);
+		Node->SharedFlags |= ImGuiDockNodeFlags_NoWindowMenuButton;
+	}
+
+	ImGui::End();//End Dockspace
+
+	// Actual content
+	RenderGUI();
+	gui->End();
+}
+
+void CupOfTea::RenderMenubar()
+{
+	const ImRect menuBarRect = { ImGui::GetCursorPos(), { ImGui::GetContentRegionAvail().x + ImGui::GetCursorScreenPos().x, ImGui::GetFrameHeightWithSpacing() } };
+	ImGuiIO& io = ImGui::GetIO();
+	auto TitleFont = io.Fonts->Fonts[5];
+	ImGui::BeginGroup();
+	if (gte::gui::BeginMenubar(menuBarRect))
+	{
+		ImGui::PushFont(TitleFont);
+		bool exportgame = false;
+		//ImGui::Image(sIcon->GetID(), { 64.0f, 51.0f }, { 0, 1 }, { 1, 0 });
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ ImColor{ 192, 192, 192 } });
+		if (ImGui::BeginMenu("File"))
+		{
+			const char biggest[] = "Save Scene As...Ctrl+Shift+N";
+			if (gte::gui::DrawMenuItem(ICON_FK_CUBES, "New Scene", "Ctrl+N", biggest))
+				NewScene();
+			//if (gte::gui::DrawMenuItem(ICON_FK_BOOK, "New Project", "Ctrl+Shift+N", biggest))
+			//{
+			//}
+			//if (gte::gui::DrawMenuItem(ICON_FK_FOLDER_OPEN, "Open Project...", "Ctrl+O", biggest))
+			//{
+			//	
+			//}
+			if (gte::gui::DrawMenuItem(ICON_FK_FLOPPY_O, "Save Scene", "Ctrl+S", biggest))
+				SaveScene();
+			if (gte::gui::DrawMenuItem(ICON_FK_FILE, "Save Scene As...", "Ctrl+Shift+S", biggest))
+				SaveSceneAs(gte::internal::CreateFileDialog(gte::internal::FileDialogType::Save, "Green Tea Scene (*.gtscene)\0*.gtscene\0"));
+			ImGui::Separator();
+			if (gte::gui::DrawMenuItem(ICON_FK_GAMEPAD, "Export Game", nullptr, biggest))
+				exportgame = true;
+			ImGui::Separator();
+			if (gte::gui::DrawMenuItem(ICON_FK_POWER_OFF, "Exit", "Alt+F4", biggest))
+				Close();
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("View"))
+		{
+			ImGui::MenuItem("Viewport", nullptr, &mPanels[0]);
+			ImGui::MenuItem("Content Browser", nullptr, &mPanels[1]);
+			ImGui::MenuItem("Hierarchy", nullptr, &mPanels[2]);
+			ImGui::MenuItem("Properties", nullptr, &mPanels[3]);
+			ImGui::MenuItem("Console Log", nullptr, &mPanels[4]);
+			ImGui::EndMenu();
+		}
+		
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ ImColor{ 0, 0, 0 } });
+		if (ImGui::Button("About"))
+			mPanels[5] = !mPanels[5];
+		ImGui::PopStyleColor(2);
+		ImGui::PopFont();
+		if (exportgame)
+			ImGui::OpenPopup("Export Game##Popup");
+	}
+	gte::gui::EndMenubar();
+	ImGui::EndGroup();
+
+}
+
+#include "embeded_icons.hpp"
+
 CupOfTea::CupOfTea(const std::string& filepath)
 	: Application({"CupOfTea (Green Tea editor)", 0, 0, 1080, 720, false, true, true}), mBrowserPanel("Assets")
 {
-    gte::Window* window = gte::internal::GetContext()->GlobalWindow;
     gui = gte::gui::ImGuiLayer::Create();
-    gui->Init(window->GetPlatformWindow(), window->GetContext());
+    gui->Init(mWindow->GetPlatformWindow(), mWindow->GetContext());
 
-	gte::Image img("../Assets/Icons/Logo.png");
-	sIcon = gte::GPU::Texture2D::Create(img);
+	{// Images
+		gte::Image img("../Assets/Icons/Logo.png");
+		sIcon = gte::GPU::Texture2D::Create(img);
 
+		img.Load(gWindowMinimizeIcon, sizeof(gWindowMinimizeIcon));
+		sMinimize = gte::GPU::Texture2D::Create(img);
+
+		img.Load(gWindowMaximizeIcon, sizeof(gWindowMaximizeIcon));
+		sMaximize = gte::GPU::Texture2D::Create(img);
+
+		img.Load(gWindowCloseIcon, sizeof(gWindowCloseIcon));
+		sClose = gte::GPU::Texture2D::Create(img);
+
+		img.Load(gWindowRestoreIcon, sizeof(gWindowRestoreIcon));
+		sRestore = gte::GPU::Texture2D::Create(img);
+	}
+	
 	std::filesystem::path prjdir = filepath;
 	prjdir = prjdir.parent_path();
 	std::filesystem::current_path(prjdir);
@@ -618,13 +808,13 @@ CupOfTea::CupOfTea(const std::string& filepath)
 	
 	auto solutionFile = prjdir.filename().string() + ".sln";
 	ShellExecuteA(0, 0, solutionFile.c_str(), 0, 0, SW_SHOW);
-	gte::internal::GetContext()->ActiveScene->OnViewportResize(window->GetWidth(), window->GetHeight());
+	gte::internal::GetContext()->ActiveScene->OnViewportResize(mWindow->GetWidth(), mWindow->GetHeight());
 	gte::internal::GetContext()->ScriptEngine = new gte::internal::ScriptingEngine();
 
 	gte::GPU::FrameBufferSpecification spec;
 	spec.Attachments = { gte::GPU::TextureFormat::RGB8 };
-	spec.Width = window->GetWidth();
-	spec.Height = window->GetHeight();
+	spec.Width = mWindow->GetWidth();
+	spec.Height = mWindow->GetHeight();
 	gte::internal::GetContext()->ViewportFBO = gte::GPU::FrameBuffer::Create(spec);
 
 	spec.Attachments = { gte::GPU::TextureFormat::RGB8 };
@@ -840,6 +1030,7 @@ void CupOfTea::Start(void)
 		id = selectedEntity.GetID();
 	mSnapshot = gte::internal::GetContext()->ActiveScene;
 	gte::internal::GetContext()->Playing = true;
+	gte::internal::GetContext()->Paused = false;
 	gte::internal::GetContext()->ActiveScene = gte::Scene::Copy(mSnapshot);
 	gte::internal::GetContext()->ActiveScene->OnStart();
 	if (id.IsValid())

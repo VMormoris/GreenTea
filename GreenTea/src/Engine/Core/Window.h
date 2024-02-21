@@ -95,14 +95,21 @@ namespace gte {
 		[[nodiscard]] static Window* Create(const WindowSpecification& spec) noexcept;
 
 		//Window handling
-		//[[nodiscard]] virtual bool IsMaximized(void) noexcept = 0;
-		//virtual void Maximize(void) noexcept = 0;
-		//virtual void Minimize(void) noexcept = 0;
-		//virtual void Restore(void) noexcept = 0;
-		//virtual void Close(void) noexcept = 0;//Produces close event
+		[[nodiscard]] virtual bool IsTitlebarHovered(void) const noexcept = 0;
+		virtual void SetTitlebarHovered(bool flag) noexcept = 0;
+
+		[[nodiscard]] virtual bool IsMaximized(void) const noexcept = 0;
+		virtual void Maximize(void) noexcept = 0;
+		
+		virtual void Minimize(void) noexcept = 0;
+		virtual void Restore(void) noexcept = 0;
+		virtual void Close(void) noexcept = 0;//Produces close event
+
 
 		[[nodiscard]] virtual void* GetNativeWindow(void) noexcept = 0;
 		[[nodiscard]] virtual const void* GetNativeWindow(void) const noexcept = 0;
+
+
 	};
 
 }

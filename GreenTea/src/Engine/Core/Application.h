@@ -18,9 +18,14 @@ namespace gte {
 
 		virtual void Update(float dt);
 
-	private:
-		bool mRunning = false;
+	protected:
+
 		Window* mWindow = nullptr;
+
+	private:
+
+		bool mRunning = false;
+		
 	};
 
 }

@@ -32,6 +32,17 @@ namespace gte::GLFW {
 		[[nodiscard]] void* GetNativeWindow(void) noexcept override;
 		[[nodiscard]] const void* GetNativeWindow(void) const noexcept override;
 
+		void SetTitlebarHovered(bool flag) noexcept override { mProps.TitlebarHovered = flag; }
+		[[nodiscard]] bool IsTitlebarHovered(void) const noexcept override { return mProps.TitlebarHovered; }
+
+		[[nodiscard]] bool IsMaximized(void) const noexcept override;
+
+		void Maximize(void) noexcept;
+
+		void Minimize(void) noexcept;
+		void Restore(void) noexcept;
+		void Close(void) noexcept;
+
 	private:
 
 		void Center(void) noexcept;
@@ -49,6 +60,7 @@ namespace gte::GLFW {
 			int32 x = 0;
 			int32 y = 0;
 			bool VSync = true;
+			bool TitlebarHovered = false;
 
 			glm::vec2 MousePos = { 0.0f, 0.0f };//Actually last's frames because event callbacks are called last
 		};

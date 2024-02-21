@@ -28,6 +28,7 @@ The following third party assets are being used by the editor:
 
   * _[ForkAwesome](https://forkaweso.me/Fork-Awesome/) Use for the Icons of the editor._
   * _[Roboto](https://fonts.google.com/specimen/Roboto) Font designed by Christian Robertson._
+  * _[Playtypes](https://fonts.google.com/specimen/Play) Font designed by Jonas Hecksher
   * _[papirus-icon-theme](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme) Icons for content browser panel_
 
 # Contributing

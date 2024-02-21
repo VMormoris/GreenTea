@@ -62,16 +62,16 @@ namespace gte::GLFW {
 		glfwSetWindowCloseCallback(mWindow, [](GLFWwindow* window) { internal::GetContext()->Dispatcher.Dispatch<EventType::WindowClose>(); });
 		
 		glfwSetWindowSizeCallback(mWindow, [](GLFWwindow* window, int width, int height) {
-			WindowProps& props = *static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
-			props.Width = width;
-			props.Height = height;
+			WindowProps* props = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
+			props->Width = width;
+			props->Height = height;
 			internal::GetContext()->Dispatcher.Dispatch<EventType::WindowResize>(width, height);
 		});
 		
 		glfwSetWindowPosCallback(mWindow, [](GLFWwindow* window, int x, int y) {
-			WindowProps& props = *static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
-			props.x = x;
-			props.y = y;
+			WindowProps* props = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
+			props->x = x;
+			props->y = y;
 			auto* context = internal::GetContext();
 			context->Dispatcher.Dispatch<EventType::WindowMove>(x, y);
 		});
@@ -124,7 +124,7 @@ namespace gte::GLFW {
 
 		glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos)
 		{
-			WindowProps* prop = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
+			WindowProps* props = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
 			static Entity hovered = {};
 
 			Entity entity = Input::GetHoveredEntity();
@@ -138,10 +138,25 @@ namespace gte::GLFW {
 			hovered = entity;
 			internal::GetContext()->Dispatcher.Dispatch<EventType::MouseMove>((int32)xpos, (int32)ypos);
 
-			prop->MousePos = { xpos, ypos };
+			props->MousePos = { xpos, ypos };
 		});
 
+		glfwSetTitlebarHitTestCallback(mWindow, [](GLFWwindow* window, int32 x, int32 y, int* hit)
+		{
+			WindowProps* props = static_cast<WindowProps*>(glfwGetWindowUserPointer(window));
+			*hit = props->TitlebarHovered;
+		});
 	}
+
+	bool GLFWWindow::IsMaximized(void) const noexcept { return (bool) glfwGetWindowAttrib(mWindow, GLFW_MAXIMIZED); }
+
+	void GLFWWindow::Maximize(void) noexcept { glfwMaximizeWindow(mWindow); }
+
+	void GLFWWindow::Minimize(void) noexcept { glfwIconifyWindow(mWindow); }
+
+	void GLFWWindow::Restore(void) noexcept { glfwRestoreWindow(mWindow); }
+
+	void GLFWWindow::Close(void) noexcept { glfwSetWindowShouldClose(mWindow, GLFW_TRUE); }
 
 	void GLFWWindow::Center(void) noexcept
 	{

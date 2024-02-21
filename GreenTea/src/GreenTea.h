@@ -14,6 +14,7 @@
 
 #if !defined(GAME_DLL) && !defined(REFLECTION) && !defined(GT_DIST)
 	#include <Engine/ImGui/ImGuiLayer.h>
+	#include <Engine/ImGui/ImGuiUtils.h>
 	#include <Engine/ImGui/ImGuiWidgets.h>
 #endif
 

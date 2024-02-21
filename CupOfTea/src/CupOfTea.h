@@ -10,11 +10,14 @@ class CupOfTea : public gte::Application {
 public:
 	CupOfTea(const std::string& filepath);
 	~CupOfTea(void);
+
 	void Update(float) override;
 
 private:
 
 	void RenderGUI(void);
+	void RenderMainWindow(void);
+	void RenderMenubar();
 
 	void NewScene(void);
 	void OpenScene(const std::filesystem::path& path);
@@ -32,6 +35,7 @@ private:
 	bool OnScroll(float dx, float dy);
 
 private:
+
 	gte::Scene* mSnapshot = nullptr;
 	std::string mScenePath = "";
 	gte::gui::ImGuiLayer* gui = nullptr;

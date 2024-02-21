@@ -95,7 +95,6 @@ namespace gte {
 		stbi_image_free(tbuffer);
 	}
 
-	static uint32 sIndex = 0;
 	void Image::Load(const byte* buffer)
 	{
 		if (mBuffer) ::operator delete(mBuffer, Size());
@@ -105,6 +104,23 @@ namespace gte {
 		
 		mBuffer = (byte*) ::operator new(Size());
 		memcpy(mBuffer, buffer + 12, Size());
+	}
+
+	void Image::Load(const byte* buffer, int32 length)
+	{
+		if (mBuffer) ::operator delete(mBuffer, Size());
+
+		int32_t width, height, channels;
+		uint64_t size = 0;
+
+		uint8_t* data = (uint8_t*)stbi_load_from_memory((const stbi_uc*)buffer, length, &width, &height, &channels, 4);
+		mWidth = width;
+		mHeight = height;
+		mbpp = channels;
+
+		mBuffer = (uint8_t*) ::operator new(Size());
+		memcpy(mBuffer, data, Size());
+		stbi_image_free(data);
 	}
 
 	void Image::Load(const byte* buffer, uint32 width, uint32 height, int32 bpp)
