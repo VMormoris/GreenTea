@@ -20,7 +20,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+        with:
+            submodules: recursive
+            
       - name: Setup premake
         uses: abel0b/setup-premake@v2.3
         with:
