@@ -75,6 +75,8 @@ namespace gte {
 		// it also assumes that destination entity is "Empty Enity" (aka has only ID, Tag and Relationship component)
 		void CopyComponents(Entity source, Entity destination);
 
+		void StopAllAudio(void) noexcept;
+
 	private:
 		entt::registry mReg;
 		entt::registry mPhysicsReg;

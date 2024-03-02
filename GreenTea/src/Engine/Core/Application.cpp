@@ -34,10 +34,8 @@ namespace gte {
 		internal::GetContext()->GlobalWindow = mWindow;
 
 		REGISTER(EventType::WindowClose, this, &Application::Close);
-
 		RenderCommand::Init();
 		Renderer2D::Init();
-
 		auto* device = audio::AudioDevice::Get();//Create audio device
 	}
 

@@ -67,6 +67,7 @@ namespace gte::audio {
 	Source::Source(void) { alGenSources(1, mSourceID.get()); }
 	Source::~Source(void)
 	{
+		GTE_TRACE_LOG("Use count:", mSourceID.use_count());
 		if(mSourceID.use_count() == 1)
 			alDeleteSources(1, mSourceID.get());
 	}

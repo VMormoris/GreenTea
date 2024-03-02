@@ -1270,6 +1270,13 @@ namespace gte {
 		}
 	}
 
+	void Scene::StopAllAudio(void) noexcept
+	{
+		auto view = mReg.view<SpeakerComponent>();
+		for (auto&& [_, speaker] : view.each())
+			speaker.Source.Stop();
+	}
+
 	template<typename... Component>
 	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<uuid, entt::entity>& enttMap)
 	{
@@ -1443,6 +1450,7 @@ namespace gte {
 	{
 		OnPhysicsStop();
 		DestroyRuntime();
+		StopAllAudio();
 		internal::GetContext()->GlobalTime = 0.0f;
 	}
 
