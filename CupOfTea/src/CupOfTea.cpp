@@ -601,11 +601,15 @@ void CupOfTea::RenderMainWindow(void)
 				if (!isPausedButton) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.224f, 0.663f, 0.224f, 1.0f });
 				let play = ImGui::Button(isPausedButton ? ICON_FK_PAUSE : ICON_FK_PLAY, { 30.0f, 30.0f }); ImGui::SameLine();
 				if (!isPausedButton) ImGui::PopStyleColor();
-				if (play && !playing)
-					Start();
+				if (play && !playing) Start();
 				else if (play && playing)
+				{
+					if (paused) gte::internal::GetContext()->ActiveScene->OnResume();
+					else gte::internal::GetContext()->ActiveScene->OnPause();
+
 					paused = !paused;
-				
+				}
+
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{ 0.827f, 0.278f, 0.278f, playing ? 1.0f : 0.5f });
 				if (!playing) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				if (ImGui::Button(ICON_FK_STOP, { 30.0f, 30.0f }))

@@ -25,6 +25,7 @@ namespace gte::audio {
 		void Pause(void);
 
 		bool IsPlaying(void) const;
+		bool IsPaused(void) const;
 
 	private:
 

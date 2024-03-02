@@ -1454,6 +1454,21 @@ namespace gte {
 		internal::GetContext()->GlobalTime = 0.0f;
 	}
 
+	void Scene::OnPause(void)
+	{
+		auto view = mReg.view<SpeakerComponent>();
+		for (auto&& [_, speaker] : view.each())
+			speaker.Source.Pause();
+	}
+
+	void Scene::OnResume(void)
+	{
+		auto view = mReg.view<SpeakerComponent>();
+		for (auto&& [_, speaker] : view.each())
+			if (speaker.Source.IsPaused())
+				speaker.Source.Play();
+	}
+
 	void Scene::DestroyRuntime()
 	{
 		auto scripts = mReg.view<NativeScriptComponent>();

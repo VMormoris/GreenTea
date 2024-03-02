@@ -36,6 +36,13 @@ namespace gte::audio {
 		return result == AL_PLAYING;
 	}
 
+	bool Source::IsPaused(void) const
+	{
+		int32 result;
+		alGetSourcei(*mSourceID, AL_SOURCE_STATE, &result);
+		return result == AL_PAUSED;
+	}
+
 	void Source::SetProperties(const SpeakerComponent* speaker)
 	{
 		alSourcef(*mSourceID, AL_GAIN, speaker->Volume);

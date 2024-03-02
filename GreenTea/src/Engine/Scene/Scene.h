@@ -49,6 +49,8 @@ namespace gte {
 
 		void OnStart(void);
 		void OnStop(void);
+		void OnPause(void);
+		void OnResume(void);
 
 		void DestroyRuntime(void);
 		void PatchScripts(void);
