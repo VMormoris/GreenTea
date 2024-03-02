@@ -12,6 +12,7 @@ jobs:
 
     env:
         VERSION_TAG: Pre-Aplha v0.0.1 
+        TAG: v0.0.1
 
     strategy:
       matrix:
@@ -38,14 +39,14 @@ jobs:
         run: msbuild /m /p:Configuration=${{matrix.config}} .
 
       - name: Create release zip
-        run: New-Item "CupOfTea ${{env.VERSION_TAG}}" -ItemType "directory" && Copy-Item LICENSE,Assets -Destination "CupOfTea ${{env.VERSION_TAG}}" -Recurse && Copy-Item bin/${{matrix.config}}-windows/CupOfTea -Destination "CupOfTea ${{env.VERSION_TAG}}/bin" -Recurse && Compress-Archive "CupOfTea ${{env.VERSION_TAG}}" ${{matrix.config}}.zip
+        run: New-Item "CupOfTea ${{env.VERSION_TAG}}" -ItemType "directory"; Copy-Item LICENSE,Assets -Destination "CupOfTea ${{env.VERSION_TAG}}" -Recurse; Copy-Item bin/${{matrix.config}}-windows/CupOfTea -Destination "CupOfTea ${{env.VERSION_TAG}}/bin" -Recurse; Copy-Item ./resources -Destination "CupOfTea ${{env.VERSION_TAG}}" -Recurse; Compress-Archive "CupOfTea ${{env.VERSION_TAG}}" ${{matrix.config}}.zip
 
       - name: Publish
         id: Publish
         uses: softprops/action-gh-release@v1
         with:
           name: CupOfTea ${{ env.VERSION_TAG }}
-          tag_name: ${{ env.VERSION_TAG }}
+          tag_name: ${{ env.TAG }}
           body_path: CHANGELOG.md
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           files: |
