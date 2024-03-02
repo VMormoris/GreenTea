@@ -1,0 +1,50 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  windows:
+    name: windows-release
+    runs-on: windows-latest
+
+    env:
+        VERSION_TAG: Pre-Aplha v0.0.1 
+
+    strategy:
+      matrix:
+        config: [Release]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup premake
+        uses: abel0b/setup-premake@v2.3
+        with:
+          version: "5.0.0-beta2"
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.3.1
+
+      - name: Create Solution file
+        run: premake5.exe vs2022
+
+      - name: Build app
+        run: msbuild /m /p:Configuration=${{matrix.config}} .
+
+      - name: Create release zip
+        run: New-Item "CupOfTea ${{env.VERSION_TAG}}" && Copy-Item LICENSE,Assets,imgui.ini -Destination "CupOfTea ${{env.VERSION_TAG}}" -Recurse && Copy-Item bin/${{matrix.config}}-windows/CupOfTea -Destination "CupOfTea ${{env.VERSION_TAG}}/bin" && Compress-Archive "CupOfTea ${{env.VERSION_TAG}}" ${{matrix.config}}.zip
+
+      - name: Publish
+        id: Publish
+        uses: softprops/action-gh-release@v1
+        with:
+          name: CupOfTea ${{ env.VERSION_TAG }}
+          tag_name: ${{ env.VERSION_TAG }}
+          body_path: CHANGELOG.md
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          files: |
+            ${{matrix.config}}.zip
