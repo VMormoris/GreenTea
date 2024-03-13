@@ -39,7 +39,7 @@ jobs:
         run: msbuild /m /p:Configuration=${{matrix.config}} .
 
       - name: Create release zip
-        run: New-Item "CupOfTea ${{env.VERSION_TAG}}" -ItemType "directory"; Copy-Item LICENSE,Assets -Destination "CupOfTea ${{env.VERSION_TAG}}" -Recurse; Copy-Item bin/${{matrix.config}}-windows/CupOfTea -Destination "CupOfTea ${{env.VERSION_TAG}}/bin" -Recurse; Copy-Item ./resources -Destination "CupOfTea ${{env.VERSION_TAG}}" -Recurse; Compress-Archive "CupOfTea ${{env.VERSION_TAG}}" ${{matrix.config}}.zip
+        run: Compress-Archive -CompressionLevel Fastest -Path Assets, 3rdParty, bin, GreenTea, resources, CHANGELOG.md, LICENSE, README.md -DestinationPath ${{matrix.config}}.zip
 
       - name: Publish
         id: Publish
